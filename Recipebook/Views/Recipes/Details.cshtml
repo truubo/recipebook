@@ -1,0 +1,41 @@
+﻿@model Recipebook.Models.Recipe
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>@Html.DisplayFor(model => model.Title)</h1>
+
+<div>
+    <hr />
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+            </dt>
+            <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+            </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Directions)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Directions)
+        </dd>
+        
+        <!--<dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Private)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Private)
+        </dd>-->
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.AuthorId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.AuthorId)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
