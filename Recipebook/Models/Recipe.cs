@@ -22,7 +22,7 @@ namespace Recipebook.Models
 
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
-        public ICollection<CategoryRecipe> CategoryRecipes { get; set; } = new List<CategoryRecipe>();
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
     }
 
 }

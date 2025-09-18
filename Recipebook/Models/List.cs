@@ -23,7 +23,7 @@
 
         // Navigation to join tables
         public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();
-        public ICollection<ListIngredients> ListIngredients { get; set; } = new List<ListIngredients>();
+        public ICollection<ListIngredient> ListIngredients { get; set; } = new List<ListIngredient>();
     }
 
 }
