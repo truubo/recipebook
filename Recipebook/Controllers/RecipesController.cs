@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +24,15 @@ namespace Recipebook.Controllers
         // GET: Recipes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Recipe.ToListAsync());
+            var recipes = await _context.Recipe.ToListAsync();
+            foreach (Recipe r in recipes)
+            {
+                r.AuthorEmail = await _context.Users
+                .Where(u => u.Id == r.AuthorId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+            }
+            return View(recipes);
         }
 
         // GET: Recipes/Details/5
@@ -40,10 +50,18 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
+            var authorEmail = await _context.Users
+                .Where(u => u.Id == recipe.AuthorId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            ViewData["AuthorEmail"] = authorEmail;
+
             return View(recipe);
         }
 
         // GET: Recipes/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -54,14 +72,16 @@ namespace Recipebook.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Directions,Description,Private,AuthorId")] Recipe recipe)
+        [Authorize]
+        public async Task<IActionResult> Create(Recipe recipe)
         {
-            if (ModelState.IsValid)
-            {
+            recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //if (ModelState.IsValid)
+            //{
                 _context.Add(recipe);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            }
+            //}
             return View(recipe);
         }
 
@@ -86,16 +106,16 @@ namespace Recipebook.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Directions,Description,Private,AuthorId")] Recipe recipe)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Directions,Description,Private")] Recipe recipe)
         {
             if (id != recipe.Id)
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid)
-            {
-                try
+            recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //if (ModelState.IsValid)
+            //{
+            try
                 {
                     _context.Update(recipe);
                     await _context.SaveChangesAsync();
@@ -112,7 +132,7 @@ namespace Recipebook.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            }
+            //}
             return View(recipe);
         }
 

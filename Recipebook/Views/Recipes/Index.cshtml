@@ -16,16 +16,16 @@
                 @Html.DisplayNameFor(model => model.Title)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Directions)
+                @Html.DisplayNameFor(model => model.Description)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Description)
+                @Html.DisplayNameFor(model => model.Directions)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Private)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AuthorId)
+                Author Email
             </th>
             <th></th>
         </tr>
@@ -37,16 +37,16 @@
                 @Html.DisplayFor(modelItem => item.Title)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Directions)
+                @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Description)
+                @Html.DisplayFor(modelItem => item.Directions)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Private)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.AuthorId)
+                @Html.DisplayFor(modelItem => item.AuthorEmail)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
