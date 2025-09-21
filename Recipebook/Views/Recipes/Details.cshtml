@@ -4,38 +4,49 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>@Html.DisplayFor(model => model.Title)</h1>
+<h1 class="mb-4">@Html.DisplayFor(model => model.Title)</h1>
 
-<div>
-    <hr />
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3 text-muted">
+                @Html.DisplayNameFor(model => model.Description)
             </dt>
-            <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Description)
             </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Directions)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Directions)
-        </dd>
-        
-        <!--<dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Private)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Private)
-        </dd>-->
-        <dt class = "col-sm-2">
-            Author Email
-        </dt>
-        <dd class = "col-sm-10">
-            @ViewData["AuthorEmail"]
-        </dd>
-    </dl>
+
+            <dt class="col-sm-3 text-muted">
+                @Html.DisplayNameFor(model => model.Directions)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Directions)
+            </dd>
+
+            <dt class="col-sm-3 text-muted">
+                @Html.DisplayNameFor(model => model.Private)
+            </dt>
+            <dd class="col-sm-9">
+                <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+                    @(Model.Private ? "Private" : "Public")
+                </span>
+            </dd>
+
+            <dt class="col-sm-3 text-muted">
+                Author Email
+            </dt>
+            <dd class="col-sm-9">
+                <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
+            </dd>
+        </dl>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="d-flex gap-3">
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
+        Edit
+    </a>
+    <a asp-action="Index" class="btn btn-secondary">
+        Back to List
+    </a>
 </div>
