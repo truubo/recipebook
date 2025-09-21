@@ -25,10 +25,15 @@ namespace Recipebook.Models
         public bool Private { get; set; } = false;
 
         // Foreign Key to User (author)
+        // has to be a string because of how MS identity works
         [Required]
-        [Column(TypeName = "int")]
-        //[ForeignKey("User")]
-        public int AuthorId { get; set; }
+        [Column(TypeName = "nvarchar(450)")]
+        [ForeignKey("AspNetUsers")]
+        public string AuthorId { get; set; }
+
+        // author emails may change, so AuthorEmail will be set locally whenever needed
+        [NotMapped]
+        public string AuthorEmail { get; set; }
 
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
