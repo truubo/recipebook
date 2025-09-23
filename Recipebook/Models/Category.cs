@@ -12,7 +12,7 @@ namespace Recipebook.Models
         [Column(TypeName = "nvarchar(50)"), MaxLength(50)]
         public string Name { get; set; }
 
-        public ICollection<Recipe> Recipes { get; set; }
+        public ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
 
     }
 }
