@@ -1,0 +1,44 @@
+﻿@model Tuple<IEnumerable<Recipebook.Models.List>, string?>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    var lists = Model.Item1;
+    var myUserId = Model.Item2;
+    var ownerEmails = ViewBag.OwnerEmails as Dictionary<string, string>;
+}
+
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Owner</th>
+            <th># Recipes</th>
+            <th>Private?</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (lists != null && lists.Any())
+        {
+            foreach (var l in lists)
+            {
+                var ownerEmail = (ownerEmails != null && ownerEmails.TryGetValue(l.OwnerId, out var em)) ? em : "Unknown";
+
+                <tr>
+                    <td>@l.Name</td>
+                    <td>@l.ListType</td>
+                    <td>@ownerEmail</td>
+                    <td>@(l.ListRecipes?.Count ?? 0)</td>
+                    <td>@(l.Private ? "Yes" : "No")</td>
+                    <td>
+                        <a asp-controller="Lists" asp-action="Details" asp-route-id="@l.Id">Details</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="6" class="text-muted">No lists to show.</td></tr>
+        }
+    </tbody>
+</table>
