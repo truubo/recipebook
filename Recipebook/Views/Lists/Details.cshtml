@@ -1,0 +1,55 @@
+﻿@* Views/Lists/Details.cshtml *@
+@model Recipebook.Models.List
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "List Details";
+    var ownerEmail = ViewBag.OwnerEmail as string;
+}
+
+<h2>@Model.Name</h2>
+
+<dl class="row">
+    <dt class="col-sm-2">Type</dt>
+    <dd class="col-sm-10">@Model.ListType</dd>
+
+    <dt class="col-sm-2">Owner</dt>
+    <dd class="col-sm-10">@ownerEmail</dd>
+
+    <dt class="col-sm-2">Created</dt>
+    <dd class="col-sm-10">@Model.CreationDate.ToLocalTime()</dd>
+
+    <dt class="col-sm-2">Private?</dt>
+    <dd class="col-sm-10">@(Model.Private ? "Yes" : "No")</dd>
+</dl>
+
+<h4>Recipes</h4>
+@if (Model.ListRecipes != null && Model.ListRecipes.Any())
+{
+    <ul class="list-unstyled">
+        @foreach (var lr in Model.ListRecipes)
+        {
+            <li class="mb-1">
+                <strong>@lr.Recipe?.Title</strong>
+                @if (lr.Recipe != null)
+                {
+                    <a asp-controller="Recipes"
+                       asp-action="Details"
+                       asp-route-id="@lr.Recipe.Id"
+                       class="btn btn-link btn-sm align-baseline">
+                        View
+                    </a>
+                }
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted">No recipes attached yet.</p>
+}
+
+<p class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+</p>

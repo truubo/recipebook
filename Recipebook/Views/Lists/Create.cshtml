@@ -1,0 +1,43 @@
+﻿@model Recipebook.Models.ViewModels.ListEditVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Create List";
+}
+
+<h2>Create List</h2>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="List.Name" class="form-label"></label>
+        <input asp-for="List.Name" class="form-control" />
+        <span asp-validation-for="List.Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="List.ListType" class="form-label"></label>
+        <select asp-for="List.ListType" class="form-select"
+                asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"></select>
+        <span asp-validation-for="List.ListType" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="List.Private" class="form-check-input" />
+        <label asp-for="List.Private" class="form-check-label"></label>
+    </div>
+
+    <!-- OwnerId is set server-side -->
+
+    <div class="mb-3">
+        <label class="form-label">Add Recipes</label>
+        <select asp-for="SelectedRecipeIds" class="form-select" multiple size="10"
+                asp-items="Model.RecipeChoices"></select>
+        <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
