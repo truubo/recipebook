@@ -1,0 +1,39 @@
+﻿@model Recipebook.Models.ViewModels.ListsIndexVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Lists";
+}
+
+<h1 class="mb-3">Lists</h1>
+
+<p>
+    <a asp-controller="Lists" asp-action="Create" class="btn btn-primary">Create New List</a>
+</p>
+
+<ul class="nav nav-tabs" id="listsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="my-tab" data-bs-toggle="tab" data-bs-target="#my"
+                type="button" role="tab" aria-controls="my" aria-selected="true">
+            My Lists
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all"
+                type="button" role="tab" aria-controls="all" aria-selected="false">
+            All Lists
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content pt-3" id="listsTabsContent">
+    <div class="tab-pane fade show active" id="my" role="tabpanel" aria-labelledby="my-tab">
+        @await Html.PartialAsync("_ListsTable",
+                 new Tuple<IEnumerable<Recipebook.Models.List>, string?>(
+                 Model.MyLists, Model.MyUserId))
+    </div>
+    <div class="tab-pane fade" id="all" role="tabpanel" aria-labelledby="all-tab">
+        @await Html.PartialAsync("_ListsTable",
+                 new Tuple<IEnumerable<Recipebook.Models.List>, string?>(
+                 Model.AllLists, Model.MyUserId))
+    </div>
+</div>
