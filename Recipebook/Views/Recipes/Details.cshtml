@@ -10,10 +10,49 @@
     <div class="card-body">
         <dl class="row">
             <dt class="col-sm-3 text-muted">
+                Categories
+            </dt>
+            <dd class="col-sm-9">
+                @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
+                {
+                    <ul class="list-inline mb-0">
+                        @foreach (var cr in Model.CategoryRecipes)
+                        {
+                            <li class="list-inline-item badge bg-info text-dark">@cr.Category.Name</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+            <dt class="col-sm-3 text-muted">
+                Author Email
+            </dt>
+            <dd class="col-sm-9">
+                <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
+            </dd>
+            <dt class="col-sm-3 text-muted">
+                Privacy
+            </dt>
+            <dd class="col-sm-9">
+                <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+                    @(Model.Private ? "Private" : "Public")
+                </span>
+            </dd>
+            <dt class="col-sm-3 text-muted">
                 @Html.DisplayNameFor(model => model.Description)
             </dt>
             <dd class="col-sm-9">
-                @Html.DisplayFor(model => model.Description)
+                @if (Model.Description != null)
+                {
+                    @Html.DisplayFor(model => model.Description)
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
             </dd>
 
             <dt class="col-sm-3 text-muted">
@@ -21,22 +60,6 @@
             </dt>
             <dd class="col-sm-9">
                 @Html.DisplayFor(model => model.Directions)
-            </dd>
-
-            <dt class="col-sm-3 text-muted">
-                @Html.DisplayNameFor(model => model.Private)
-            </dt>
-            <dd class="col-sm-9">
-                <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
-                    @(Model.Private ? "Private" : "Public")
-                </span>
-            </dd>
-
-            <dt class="col-sm-3 text-muted">
-                Author Email
-            </dt>
-            <dd class="col-sm-9">
-                <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
             </dd>
         </dl>
     </div>

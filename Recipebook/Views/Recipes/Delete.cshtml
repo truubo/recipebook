@@ -15,12 +15,40 @@
             <dd class="col-sm-9"><strong>@Model.Title</strong></dd>
 
             <dt class="col-sm-3 text-muted">Description</dt>
-            <dd class="col-sm-9">@Model.Description</dd>
+            <dd class="col-sm-9">
+                @if (@Model.Description != null)
+                {
+                    @Model.Description
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
 
             <dt class="col-sm-3 text-muted">Directions</dt>
             <dd class="col-sm-9">@Model.Directions</dd>
 
-            <dt class="col-sm-3 text-muted">Private</dt>
+            <dt class="col-sm-3 text-muted">
+                Categories
+            </dt>
+            <dd class="col-sm-9">
+                @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
+                {
+                    <ul class="list-inline mb-0">
+                        @foreach (var cr in Model.CategoryRecipes)
+                        {
+                            <li class="list-inline-item badge bg-info text-dark">@cr.Category.Name</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3 text-muted">Privacy</dt>
             <dd class="col-sm-9">
                 <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
                     @(Model.Private ? "Private" : "Public")

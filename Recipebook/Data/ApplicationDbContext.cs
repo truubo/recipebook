@@ -16,5 +16,6 @@ namespace Recipebook.Data
         public DbSet<ListIngredient> ListIngredients { get; set; }
         public DbSet<Recipe> Recipe { get; set; } = default!;
         public DbSet<Category> Category { get; set; } = default!;
+        public DbSet<CategoryRecipe> CategoryRecipes { get; set; }
     }
 }
