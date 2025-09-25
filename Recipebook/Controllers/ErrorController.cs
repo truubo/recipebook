@@ -10,10 +10,11 @@ namespace Recipebook.Controllers
             return View();
         }
 
-        public IActionResult NotFound()
+        [Route("Error/404")]
+        public IActionResult NotFoundPage()
         {
             Response.StatusCode = 404;
-            return View();
+            return View("NotFound");
         }
     }
 }

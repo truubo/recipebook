@@ -40,14 +40,14 @@ namespace Recipebook.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return Redirect("/Error/NotFound");
             }
 
             var recipe = await _context.Recipe
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (recipe == null)
             {
-                return NotFound();
+                return Redirect("/Error/NotFound");
             }
 
             var authorEmail = await _context.Users
@@ -76,12 +76,12 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Create(Recipe recipe)
         {
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (ModelState.IsValid)
-            //{
+            if (FormValid)
+            {
                 _context.Add(recipe);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            //}
+            }
             return View(recipe);
         }
 
@@ -113,9 +113,9 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (ModelState.IsValid)
-            //{
-            try
+            if (FormValid)
+            {
+                try
                 {
                     _context.Update(recipe);
                     await _context.SaveChangesAsync();
@@ -132,7 +132,7 @@ namespace Recipebook.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            //}
+            }
             return View(recipe);
         }
 
@@ -172,6 +172,16 @@ namespace Recipebook.Controllers
         private bool RecipeExists(int id)
         {
             return _context.Recipe.Any(e => e.Id == id);
+        }
+
+        private bool FormValid
+        {
+            get
+            {
+                ModelState.Remove("AuthorEmail");
+                ModelState.Remove("AuthorId");
+                return ModelState.IsValid;
+            }
         }
     }
 }
