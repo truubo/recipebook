@@ -18,7 +18,14 @@
                     <ul class="list-inline mb-0">
                         @foreach (var cr in Model.CategoryRecipes)
                         {
-                            <li class="list-inline-item badge bg-info text-dark">@cr.Category.Name</li>
+                            <li class="list-inline-item">
+                                <a asp-controller="Categories"
+                                   asp-action="Details"
+                                   asp-route-id="@cr.Category.Id"
+                                   class="badge bg-info text-dark text-decoration-none">
+                                    @cr.Category.Name
+                                </a>
+                            </li>
                         }
                     </ul>
                 }
@@ -27,12 +34,14 @@
                     <span class="text-muted">None</span>
                 }
             </dd>
+
             <dt class="col-sm-3 text-muted">
                 Author Email
             </dt>
             <dd class="col-sm-9">
                 <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
             </dd>
+
             <dt class="col-sm-3 text-muted">
                 Privacy
             </dt>
@@ -41,11 +50,12 @@
                     @(Model.Private ? "Private" : "Public")
                 </span>
             </dd>
+
             <dt class="col-sm-3 text-muted">
                 @Html.DisplayNameFor(model => model.Description)
             </dt>
             <dd class="col-sm-9">
-                @if (Model.Description != null)
+                @if (!string.IsNullOrEmpty(Model.Description))
                 {
                     @Html.DisplayFor(model => model.Description)
                 }

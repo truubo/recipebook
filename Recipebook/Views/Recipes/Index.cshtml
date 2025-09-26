@@ -32,28 +32,33 @@
                     <tr>
                         <td><strong>@item.Title</strong></td>
                         <td>
-                            @if (item.Description != null)
+                            @if (!string.IsNullOrEmpty(item.Description))
                             {
-                                @(item.Description?.Length > 50
+                                @(item.Description.Length > 50
                                                         ? item.Description.Substring(0, 50) + "..."
-                                                            : item.Description)
-                            }
+                                                        : item.Description)
+                                                }
                             else
                             {
                                 <span class="text-muted">None</span>
                             }
-                        </td>
+                    </td>
                     <td>
                         @(item.Directions?.Length > 50
-                              ? item.Directions.Substring(0, 50) + "..."
-                              : item.Directions)
+                                                ? item.Directions.Substring(0, 50) + "..."
+                                                : item.Directions)
                     </td>
                     <td>
                         @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
                             {
                                 @foreach (var cr in item.CategoryRecipes)
                                 {
-                                    <span class="badge bg-info text-dark me-1">@cr.Category.Name</span>
+                                    <a asp-controller="Categories"
+                                       asp-action="Details"
+                                       asp-route-id="@cr.Category.Id"
+                                       class="badge bg-info text-dark me-1 text-decoration-none">
+                                        @cr.Category.Name
+                                    </a>
                                 }
                             }
                             else
