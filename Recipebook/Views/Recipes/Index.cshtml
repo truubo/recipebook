@@ -20,7 +20,8 @@
                     <th>@Html.DisplayNameFor(model => model.Title)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Directions)</th>
-                    <th>@Html.DisplayNameFor(model => model.Private)</th>
+                    <th>Categories</th>
+                    <th>Privacy</th>
                     <th>@Html.DisplayNameFor(model => model.AuthorEmail)</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -29,42 +30,60 @@
                 @foreach (var item in Model)
                 {
                     <tr>
+                        <td><strong>@item.Title</strong></td>
                         <td>
-                            <strong>@item.Title</strong>
+                            @if (item.Description != null)
+                            {
+                                @(item.Description?.Length > 50
+                                                        ? item.Description.Substring(0, 50) + "..."
+                                                            : item.Description)
+                            }
+                            else
+                            {
+                                <span class="text-muted">None</span>
+                            }
+                        </td>
+                    <td>
+                        @(item.Directions?.Length > 50
+                              ? item.Directions.Substring(0, 50) + "..."
+                              : item.Directions)
+                    </td>
+                    <td>
+                        @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
+                            {
+                                @foreach (var cr in item.CategoryRecipes)
+                                {
+                                    <span class="badge bg-info text-dark me-1">@cr.Category.Name</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">None</span>
+                            }
                         </td>
                         <td>
-                            @(item.Description?.Length > 50
-                                                    ? item.Description.Substring(0, 50) + "..."
-                                                    : item.Description)
-                                                                   </td>
-                                                                   <td>
-                            @(item.Directions?.Length > 50
-                                                    ? item.Directions.Substring(0, 50) + "..."
-                                                    : item.Directions)
-                    </td>
-                    <td>
-                        <span class="badge @(item.Private ? "bg-danger" : "bg-success")">
-                            @(item.Private ? "Private" : "Public")
-                        </span>
-                    </td>
-                    <td>
-                        <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a>
-                    </td>
-                    <td class="text-end">
-                        <div class="btn-group" role="group">
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
-                                Edit
-                            </a>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">
-                                Details
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
-                                Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                                }
+                            <span class="badge @(item.Private ? "bg-danger" : "bg-success")">
+                                @(item.Private ? "Private" : "Public")
+                            </span>
+                        </td>
+                        <td>
+                            <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group" role="group">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                    Edit
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">
+                                    Details
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                    Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
