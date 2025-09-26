@@ -1,4 +1,4 @@
-﻿@model Recipebook.Models.ViewModels.ListEditVm
+@model Recipebook.Models.ViewModels.ListEditVm
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Edit List";
@@ -37,6 +37,7 @@
                 <label class="form-label fw-bold">Recipes</label>
                 <select asp-for="SelectedRecipeIds" class="form-select" multiple size="10"
                         asp-items="Model.RecipeChoices"></select>
+                <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
                 <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
             </div>
 

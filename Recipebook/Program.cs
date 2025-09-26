@@ -4,6 +4,11 @@ using Recipebook.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Make logging explicit & predictable
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -34,6 +39,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication(); // <-- required for [Authorize] and User.Identity     must be before authorization
 app.UseAuthorization();
 
 app.MapControllerRoute(

@@ -1,4 +1,5 @@
 ﻿// Controllers/ListsController.cs
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;             // ← added
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Models.ViewModels;
@@ -19,11 +21,17 @@ namespace Recipebook.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ILogger<ListsController> _logger;   // ← added
 
-        public ListsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        // ctor now accepts a logger
+        public ListsController(
+            ApplicationDbContext context,
+            UserManager<IdentityUser> userManager,
+            ILogger<ListsController> logger)                 // ← added
         {
             _context = context;
             _userManager = userManager;
+            _logger = logger;                                 // ← added
         }
 
         // Helper to build recipe dropdowns
@@ -159,6 +167,10 @@ namespace Recipebook.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // Alerts (TempData) + Log
+            TempData["Success"] = $"List '{vm.List.Name}' created.";
+            _logger.LogInformation("List {ListId} created by user {UserId}.", vm.List.Id, uid);  // ← added
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -223,7 +235,12 @@ namespace Recipebook.Controllers
             _context.ListRecipes.AddRange(toAdd);
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            // Alerts (TempData) + Log
+            TempData["Success"] = $"List '{list.Name}' updated.";
+            _logger.LogInformation("List {ListId} updated by user {UserId}.", list.Id, uid);      // ← added
+
+            return RedirectToAction(nameof(Details), new { id = list.Id });
         }
 
         // GET: Lists/Delete/5 (owner-only)
@@ -260,6 +277,11 @@ namespace Recipebook.Controllers
 
             _context.Lists.Remove(list);
             await _context.SaveChangesAsync();
+
+            // Alerts (TempData) + Log
+            TempData["Success"] = $"List '{list.Name}' deleted.";
+            _logger.LogInformation("List {ListId} deleted by user {UserId}.", list.Id, uid);      // ← added
+
             return RedirectToAction(nameof(Index));
         }
     }

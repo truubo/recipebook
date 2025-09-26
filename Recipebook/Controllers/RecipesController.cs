@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Services;
@@ -17,10 +18,12 @@ namespace Recipebook.Controllers
     public class RecipesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<RecipesController> _logger;
 
-        public RecipesController(ApplicationDbContext context)
+        public RecipesController(ApplicationDbContext context, ILogger<RecipesController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: Recipes
@@ -28,10 +31,10 @@ namespace Recipebook.Controllers
         {
             var recipes = await _context.Recipe
                 .Include(r => r.CategoryRecipes)
-                .ThenInclude(cr => cr.Category)
+                    .ThenInclude(cr => cr.Category)
                 .ToListAsync();
 
-            foreach (Recipe r in recipes)
+            foreach (var r in recipes)
             {
                 r.AuthorEmail = await _context.Users
                     .Where(u => u.Id == r.AuthorId)
@@ -44,20 +47,27 @@ namespace Recipebook.Controllers
         // GET: Recipes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+            {
+                _logger.LogWarning("Details requested with null id.");
+                return Redirect("/Error/NotFound");
+            }
 
             var recipe = await _context.Recipe
                 .Include(r => r.CategoryRecipes)
                     .ThenInclude(cr => cr.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (recipe == null) return NotFound();
+            if (recipe == null)
+            {
+                _logger.LogWarning("Details requested for missing recipe {RecipeId}.", id);
+                return Redirect("/Error/NotFound");
+            }
 
             var authorEmail = await _context.Users
                 .Where(u => u.Id == recipe.AuthorId)
                 .Select(u => u.Email)
                 .FirstOrDefaultAsync();
-
             ViewData["AuthorEmail"] = authorEmail;
 
             return View(recipe);
@@ -78,27 +88,40 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Create(Recipe recipe, int[] selectedCategories)
         {
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (CustomFormValidation.FormValid(ModelState))
+
+            if (FormValid(ModelState))
             {
-                _context.Add(recipe);
-                await _context.SaveChangesAsync();
-
-                if (selectedCategories != null)
+                try
                 {
-                    foreach (var catId in selectedCategories)
-                    {
-                        _context.CategoryRecipes.Add(new CategoryRecipe
-                        {
-                            RecipeId = recipe.Id,
-                            CategoryId = catId
-                        });
-                    }
+                    _context.Add(recipe);
                     await _context.SaveChangesAsync();
-                }
 
-                return RedirectToAction(nameof(Index));
+                    // link any selected categories
+                    if (selectedCategories != null && selectedCategories.Length > 0)
+                    {
+                        foreach (var catId in selectedCategories)
+                        {
+                            _context.CategoryRecipes.Add(new CategoryRecipe
+                            {
+                                RecipeId = recipe.Id,
+                                CategoryId = catId
+                            });
+                        }
+                        await _context.SaveChangesAsync();
+                    }
+
+                    _logger.LogInformation("Recipe {RecipeId} created by user {UserId}.", recipe.Id, recipe.AuthorId);
+                    TempData["Success"] = "Recipe created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating recipe by user {UserId}.", recipe.AuthorId);
+                    TempData["Error"] = "An error occurred while creating the recipe.";
+                }
             }
 
+            // re-populate categories when validation fails
             ViewBag.AllCategories = new MultiSelectList(_context.Category, "Id", "Name", selectedCategories);
             return View(recipe);
         }
@@ -112,15 +135,20 @@ namespace Recipebook.Controllers
             var recipe = await _context.Recipe
                 .Include(r => r.CategoryRecipes)
                 .FirstOrDefaultAsync(r => r.Id == id);
-
             if (recipe == null) return NotFound();
 
-            // Pass categories to view; preselect current ones
+            // author-only guard
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (recipe.AuthorId != userId)
+            {
+                _logger.LogWarning("Unauthorized edit attempt on recipe {RecipeId} by user {UserId}.", id, userId);
+                return Forbid();
+            }
+
+            // categories with current selections
             var allCategories = await _context.Category.ToListAsync();
             ViewBag.AllCategories = new MultiSelectList(
-                allCategories,
-                "Id",
-                "Name",
+                allCategories, "Id", "Name",
                 recipe.CategoryRecipes.Select(cr => cr.CategoryId)
             );
 
@@ -135,79 +163,104 @@ namespace Recipebook.Controllers
         {
             if (id != recipe.Id) return NotFound();
 
-            recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (CustomFormValidation.FormValid(ModelState))
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            recipe.AuthorId = userId;
+
+            // author-only guard against tampering
+            var original = await _context.Recipe.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
+            if (original == null) return NotFound();
+            if (original.AuthorId != userId)
+            {
+                _logger.LogWarning("Unauthorized edit POST on recipe {RecipeId} by user {UserId}.", id, userId);
+                return Forbid();
+            }
+
+            if (FormValid(ModelState))
             {
                 try
                 {
-                    // Update recipe info
+                    // update main recipe
                     _context.Update(recipe);
                     await _context.SaveChangesAsync();
 
-                    // Update CategoryRecipe junction table
-                    var existingCategories = _context.CategoryRecipes
+                    // sync CategoryRecipes
+                    var existing = _context.CategoryRecipes
                         .Where(cr => cr.RecipeId == recipe.Id)
                         .ToList();
 
-                    // Remove deselected categories
-                    foreach (var cat in existingCategories)
+                    // remove deselected
+                    foreach (var link in existing)
                     {
-                        if (!selectedCategories.Contains(cat.CategoryId))
-                            _context.CategoryRecipes.Remove(cat);
+                        if (selectedCategories == null || !selectedCategories.Contains(link.CategoryId))
+                            _context.CategoryRecipes.Remove(link);
                     }
 
-                    // Add newly selected categories
-                    foreach (var catId in selectedCategories)
+                    // add newly selected
+                    if (selectedCategories != null)
                     {
-                        if (!existingCategories.Any(ec => ec.CategoryId == catId))
+                        foreach (var catId in selectedCategories)
                         {
-                            _context.CategoryRecipes.Add(new CategoryRecipe
+                            if (!existing.Any(ec => ec.CategoryId == catId))
                             {
-                                RecipeId = recipe.Id,
-                                CategoryId = catId
-                            });
+                                _context.CategoryRecipes.Add(new CategoryRecipe
+                                {
+                                    RecipeId = recipe.Id,
+                                    CategoryId = catId
+                                });
+                            }
                         }
                     }
 
                     await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!RecipeExists(recipe.Id)) return NotFound();
-                    else throw;
-                }
 
-                return RedirectToAction(nameof(Index));
+                    _logger.LogInformation("Recipe {RecipeId} updated by user {UserId}.", recipe.Id, userId);
+                    TempData["Success"] = "Recipe updated successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    if (!RecipeExists(recipe.Id))
+                    {
+                        _logger.LogWarning("Recipe {RecipeId} disappeared during update.", recipe.Id);
+                        return NotFound();
+                    }
+                    _logger.LogError(ex, "Concurrency error updating recipe {RecipeId} by user {UserId}.", recipe.Id, userId);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating recipe {RecipeId} by user {UserId}.", recipe.Id, userId);
+                    TempData["Error"] = "An error occurred while updating the recipe.";
+                }
             }
 
-            // Reload categories if validation fails
+            // reload categories if validation fails
             var allCategoriesReload = await _context.Category.ToListAsync();
             ViewBag.AllCategories = new MultiSelectList(
-                allCategoriesReload,
-                "Id",
-                "Name",
-                selectedCategories
+                allCategoriesReload, "Id", "Name", selectedCategories
             );
 
             return View(recipe);
         }
 
         // GET: Recipes/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var recipe = await _context.Recipe
                 .Include(r => r.CategoryRecipes)
                     .ThenInclude(cr => cr.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
+            if (recipe == null) return NotFound();
 
-            if (recipe == null)
+            // author-only guard
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (recipe.AuthorId != userId)
             {
-                return NotFound();
+                _logger.LogWarning("Unauthorized delete GET on recipe {RecipeId} by user {UserId}.", id, userId);
+                return Forbid();
             }
 
             return View(recipe);
@@ -216,25 +269,42 @@ namespace Recipebook.Controllers
         // POST: Recipes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var recipe = await _context.Recipe.FindAsync(id);
-            if (recipe != null)
+            if (recipe == null) return RedirectToAction(nameof(Index));
+
+            // author-only guard
+            if (recipe.AuthorId != userId)
             {
-                // Remove associated CategoryRecipes first
+                _logger.LogWarning("Unauthorized delete POST on recipe {RecipeId} by user {UserId}.", id, userId);
+                return Forbid();
+            }
+
+            try
+            {
+                // remove links first
                 var categoryLinks = _context.CategoryRecipes.Where(cr => cr.RecipeId == id);
                 _context.CategoryRecipes.RemoveRange(categoryLinks);
 
                 _context.Recipe.Remove(recipe);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Recipe {RecipeId} deleted by user {UserId}.", id, userId);
+                TempData["Success"] = "Recipe deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting recipe {RecipeId} by user {UserId}.", id, userId);
+                TempData["Error"] = "An error occurred while deleting the recipe.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool RecipeExists(int id)
-        {
-            return _context.Recipe.Any(e => e.Id == id);
-        }
+        private bool RecipeExists(int id) => _context.Recipe.Any(e => e.Id == id);
     }
 }
