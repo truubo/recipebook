@@ -6,50 +6,70 @@
     var ownerEmail = ViewBag.OwnerEmail as string;
 }
 
-<h2>@Model.Name</h2>
+<h2 class="mb-4">@Model.Name</h2>
 
-<dl class="row">
-    <dt class="col-sm-2">Type</dt>
-    <dd class="col-sm-10">@Model.ListType</dd>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row mb-3">
+            <dt class="col-sm-3 fw-bold">Type</dt>
+            <dd class="col-sm-9">@Model.ListType</dd>
 
-    <dt class="col-sm-2">Owner</dt>
-    <dd class="col-sm-10">@ownerEmail</dd>
+            <dt class="col-sm-3 fw-bold">Owner</dt>
+            <dd class="col-sm-9">@ownerEmail</dd>
 
-    <dt class="col-sm-2">Created</dt>
-    <dd class="col-sm-10">@Model.CreationDate.ToLocalTime()</dd>
+            <dt class="col-sm-3 fw-bold">Created</dt>
+            <dd class="col-sm-9">@Model.CreationDate.ToLocalTime()</dd>
 
-    <dt class="col-sm-2">Private?</dt>
-    <dd class="col-sm-10">@(Model.Private ? "Yes" : "No")</dd>
-</dl>
+            <dt class="col-sm-3 fw-bold">Private?</dt>
+            <dd class="col-sm-9">
+                <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+                    @(Model.Private ? "Yes" : "No")
+                </span>
+            </dd>
+        </dl>
 
-<h4>Recipes</h4>
-@if (Model.ListRecipes != null && Model.ListRecipes.Any())
-{
-    <ul class="list-unstyled">
-        @foreach (var lr in Model.ListRecipes)
+        <h4 class="mt-4 mb-3">
+            Recipes
+            <span class="badge bg-secondary">
+                @(Model.ListRecipes?.Count() ?? 0)
+            </span>
+        </h4>
+
+        @if (Model.ListRecipes != null && Model.ListRecipes.Any())
         {
-            <li class="mb-1">
-                <strong>@lr.Recipe?.Title</strong>
-                @if (lr.Recipe != null)
+            <ul class="list-group">
+                @foreach (var lr in Model.ListRecipes)
                 {
-                    <a asp-controller="Recipes"
-                       asp-action="Details"
-                       asp-route-id="@lr.Recipe.Id"
-                       class="btn btn-link btn-sm align-baseline">
-                        View
-                    </a>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <strong>@lr.Recipe?.Title</strong>
+                        @if (lr.Recipe != null)
+                        {
+                            <a asp-controller="Recipes"
+                               asp-action="Details"
+                               asp-route-id="@lr.Recipe.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        }
+                    </li>
                 }
-            </li>
+            </ul>
         }
-    </ul>
-}
-else
-{
-    <p class="text-muted">No recipes attached yet.</p>
-}
+        else
+        {
+            <p class="text-muted">No recipes attached yet.</p>
+        }
 
-<p class="mt-3">
-    <a asp-action="Index" class="btn btn-secondary">Back</a>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
-    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
-</p>
+        <div class="d-flex gap-2 mt-4">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Back
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Delete
+            </a>
+        </div>
+    </div>
+</div>

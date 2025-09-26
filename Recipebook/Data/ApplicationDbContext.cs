@@ -15,6 +15,8 @@ namespace Recipebook.Data
         public DbSet<ListRecipe> ListRecipes { get; set; }
         public DbSet<ListIngredient> ListIngredients { get; set; }
         public DbSet<Recipe> Recipe { get; set; } = default!; // singular to match _context.Recipe
+        public DbSet<Category> Category { get; set; } = default!;
+        public DbSet<CategoryRecipe> CategoryRecipes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

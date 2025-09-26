@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Recipebook.Data;
 
@@ -11,9 +12,11 @@ using Recipebook.Data;
 namespace Recipebook.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250925182538_CategoryRecipe")]
+    partial class CategoryRecipe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -348,9 +351,8 @@ namespace Recipebook.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<string>("OwnerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("Private")
                         .HasColumnType("bit");
@@ -402,10 +404,9 @@ namespace Recipebook.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RecipeId");
+                    b.HasIndex("ListId");
 
-                    b.HasIndex("ListId", "RecipeId")
-                        .IsUnique();
+                    b.HasIndex("RecipeId");
 
                     b.ToTable("ListRecipes");
                 });
@@ -576,7 +577,7 @@ namespace Recipebook.Migrations
                         .IsRequired();
 
                     b.HasOne("Recipebook.Models.Recipe", "Recipe")
-                        .WithMany("ListRecipes")
+                        .WithMany()
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -603,8 +604,6 @@ namespace Recipebook.Migrations
                     b.Navigation("CategoryRecipes");
 
                     b.Navigation("IngredientRecipes");
-
-                    b.Navigation("ListRecipes");
                 });
 #pragma warning restore 612, 618
         }

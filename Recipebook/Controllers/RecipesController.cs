@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -29,8 +29,12 @@ namespace Recipebook.Controllers
         // GET: Recipes
         public async Task<IActionResult> Index()
         {
-            var recipes = await _context.Recipe.ToListAsync();
-            foreach (Recipe r in recipes)
+            var recipes = await _context.Recipe
+                .Include(r => r.CategoryRecipes)
+                    .ThenInclude(cr => cr.Category)
+                .ToListAsync();
+
+            foreach (var r in recipes)
             {
                 r.AuthorEmail = await _context.Users
                     .Where(u => u.Id == r.AuthorId)
@@ -50,7 +54,10 @@ namespace Recipebook.Controllers
             }
 
             var recipe = await _context.Recipe
+                .Include(r => r.CategoryRecipes)
+                    .ThenInclude(cr => cr.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (recipe == null)
             {
                 _logger.LogWarning("Details requested for missing recipe {RecipeId}.", id);
@@ -61,7 +68,6 @@ namespace Recipebook.Controllers
                 .Where(u => u.Id == recipe.AuthorId)
                 .Select(u => u.Email)
                 .FirstOrDefaultAsync();
-
             ViewData["AuthorEmail"] = authorEmail;
 
             return View(recipe);
@@ -71,6 +77,7 @@ namespace Recipebook.Controllers
         [Authorize]
         public IActionResult Create()
         {
+            ViewBag.AllCategories = new MultiSelectList(_context.Category, "Id", "Name");
             return View();
         }
 
@@ -78,16 +85,31 @@ namespace Recipebook.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create(Recipe recipe)
+        public async Task<IActionResult> Create(Recipe recipe, int[] selectedCategories)
         {
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (CustomFormValidation.FormValid(ModelState))
+            if (FormValid(ModelState))
             {
                 try
                 {
                     _context.Add(recipe);
                     await _context.SaveChangesAsync();
+
+                    // link any selected categories
+                    if (selectedCategories != null && selectedCategories.Length > 0)
+                    {
+                        foreach (var catId in selectedCategories)
+                        {
+                            _context.CategoryRecipes.Add(new CategoryRecipe
+                            {
+                                RecipeId = recipe.Id,
+                                CategoryId = catId
+                            });
+                        }
+                        await _context.SaveChangesAsync();
+                    }
+
                     _logger.LogInformation("Recipe {RecipeId} created by user {UserId}.", recipe.Id, recipe.AuthorId);
                     TempData["Success"] = "Recipe created successfully.";
                     return RedirectToAction(nameof(Index));
@@ -99,6 +121,8 @@ namespace Recipebook.Controllers
                 }
             }
 
+            // re-populate categories when validation fails
+            ViewBag.AllCategories = new MultiSelectList(_context.Category, "Id", "Name", selectedCategories);
             return View(recipe);
         }
 
@@ -106,24 +130,27 @@ namespace Recipebook.Controllers
         [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var recipe = await _context.Recipe.FindAsync(id);
-            if (recipe == null)
-            {
-                return NotFound();
-            }
+            var recipe = await _context.Recipe
+                .Include(r => r.CategoryRecipes)
+                .FirstOrDefaultAsync(r => r.Id == id);
+            if (recipe == null) return NotFound();
 
-            // Author-only guard
+            // author-only guard
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (recipe.AuthorId != userId)
             {
                 _logger.LogWarning("Unauthorized edit attempt on recipe {RecipeId} by user {UserId}.", id, userId);
                 return Forbid();
             }
+
+            // categories with current selections
+            var allCategories = await _context.Category.ToListAsync();
+            ViewBag.AllCategories = new MultiSelectList(
+                allCategories, "Id", "Name",
+                recipe.CategoryRecipes.Select(cr => cr.CategoryId)
+            );
 
             return View(recipe);
         }
@@ -132,35 +159,60 @@ namespace Recipebook.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Directions,Description,Private")] Recipe recipe)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Directions,Description,Private")] Recipe recipe, int[] selectedCategories)
         {
-            if (id != recipe.Id)
-            {
-                return NotFound();
-            }
+            if (id != recipe.Id) return NotFound();
 
-            // Ensure ownership persists
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             recipe.AuthorId = userId;
 
-            // Author-only guard against tampering
+            // author-only guard against tampering
             var original = await _context.Recipe.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
-            if (original == null)
-            {
-                return NotFound();
-            }
+            if (original == null) return NotFound();
             if (original.AuthorId != userId)
             {
                 _logger.LogWarning("Unauthorized edit POST on recipe {RecipeId} by user {UserId}.", id, userId);
                 return Forbid();
             }
 
-            if (CustomFormValidation.FormValid(ModelState))
+            if (FormValid(ModelState))
             {
                 try
                 {
+                    // update main recipe
                     _context.Update(recipe);
                     await _context.SaveChangesAsync();
+
+                    // sync CategoryRecipes
+                    var existing = _context.CategoryRecipes
+                        .Where(cr => cr.RecipeId == recipe.Id)
+                        .ToList();
+
+                    // remove deselected
+                    foreach (var link in existing)
+                    {
+                        if (selectedCategories == null || !selectedCategories.Contains(link.CategoryId))
+                            _context.CategoryRecipes.Remove(link);
+                    }
+
+                    // add newly selected
+                    if (selectedCategories != null)
+                    {
+                        foreach (var catId in selectedCategories)
+                        {
+                            if (!existing.Any(ec => ec.CategoryId == catId))
+                            {
+                                _context.CategoryRecipes.Add(new CategoryRecipe
+                                {
+                                    RecipeId = recipe.Id,
+                                    CategoryId = catId
+                                });
+                            }
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+
                     _logger.LogInformation("Recipe {RecipeId} updated by user {UserId}.", recipe.Id, userId);
                     TempData["Success"] = "Recipe updated successfully.";
                     return RedirectToAction(nameof(Index));
@@ -182,6 +234,12 @@ namespace Recipebook.Controllers
                 }
             }
 
+            // reload categories if validation fails
+            var allCategoriesReload = await _context.Category.ToListAsync();
+            ViewBag.AllCategories = new MultiSelectList(
+                allCategoriesReload, "Id", "Name", selectedCategories
+            );
+
             return View(recipe);
         }
 
@@ -189,19 +247,15 @@ namespace Recipebook.Controllers
         [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var recipe = await _context.Recipe
+                .Include(r => r.CategoryRecipes)
+                    .ThenInclude(cr => cr.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (recipe == null)
-            {
-                return NotFound();
-            }
+            if (recipe == null) return NotFound();
 
-            // Author-only guard
+            // author-only guard
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (recipe.AuthorId != userId)
             {
@@ -221,12 +275,9 @@ namespace Recipebook.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var recipe = await _context.Recipe.FindAsync(id);
-            if (recipe == null)
-            {
-                return RedirectToAction(nameof(Index));
-            }
+            if (recipe == null) return RedirectToAction(nameof(Index));
 
-            // Author-only guard
+            // author-only guard
             if (recipe.AuthorId != userId)
             {
                 _logger.LogWarning("Unauthorized delete POST on recipe {RecipeId} by user {UserId}.", id, userId);
@@ -235,8 +286,13 @@ namespace Recipebook.Controllers
 
             try
             {
+                // remove links first
+                var categoryLinks = _context.CategoryRecipes.Where(cr => cr.RecipeId == id);
+                _context.CategoryRecipes.RemoveRange(categoryLinks);
+
                 _context.Recipe.Remove(recipe);
                 await _context.SaveChangesAsync();
+
                 _logger.LogInformation("Recipe {RecipeId} deleted by user {UserId}.", id, userId);
                 TempData["Success"] = "Recipe deleted successfully.";
             }
@@ -249,9 +305,6 @@ namespace Recipebook.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool RecipeExists(int id)
-        {
-            return _context.Recipe.Any(e => e.Id == id);
-        }
+        private bool RecipeExists(int id) => _context.Recipe.Any(e => e.Id == id);
     }
 }
