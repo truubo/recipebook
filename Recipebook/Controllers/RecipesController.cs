@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Recipebook.Data;
 using Recipebook.Models;
+using Recipebook.Services;
+using static Recipebook.Services.CustomFormValidation;
 
 namespace Recipebook.Controllers
 {
@@ -76,7 +78,7 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Create(Recipe recipe)
         {
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (FormValid)
+            if (CustomFormValidation.FormValid(ModelState))
             {
                 _context.Add(recipe);
                 await _context.SaveChangesAsync();
@@ -113,7 +115,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (FormValid)
+            if (CustomFormValidation.FormValid(ModelState))
             {
                 try
                 {
@@ -172,16 +174,6 @@ namespace Recipebook.Controllers
         private bool RecipeExists(int id)
         {
             return _context.Recipe.Any(e => e.Id == id);
-        }
-
-        private bool FormValid
-        {
-            get
-            {
-                ModelState.Remove("AuthorEmail");
-                ModelState.Remove("AuthorId");
-                return ModelState.IsValid;
-            }
         }
     }
 }
