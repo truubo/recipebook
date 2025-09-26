@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Recipebook.Data;
 using Recipebook.Models;
+using Recipebook.Services;
+using static Recipebook.Services.CustomFormValidation;
 
 namespace Recipebook.Controllers
 {
@@ -40,14 +42,14 @@ namespace Recipebook.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return Redirect("/Error/NotFound");
             }
 
             var recipe = await _context.Recipe
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (recipe == null)
             {
-                return NotFound();
+                return Redirect("/Error/NotFound");
             }
 
             var authorEmail = await _context.Users
@@ -76,12 +78,12 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Create(Recipe recipe)
         {
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (ModelState.IsValid)
-            //{
+            if (CustomFormValidation.FormValid(ModelState))
+            {
                 _context.Add(recipe);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            //}
+            }
             return View(recipe);
         }
 
@@ -113,9 +115,9 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
             recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (ModelState.IsValid)
-            //{
-            try
+            if (CustomFormValidation.FormValid(ModelState))
+            {
+                try
                 {
                     _context.Update(recipe);
                     await _context.SaveChangesAsync();
@@ -132,7 +134,7 @@ namespace Recipebook.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            //}
+            }
             return View(recipe);
         }
 
