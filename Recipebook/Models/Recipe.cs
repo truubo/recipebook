@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
+
 namespace Recipebook.Models
 {
     public class Recipe
@@ -24,6 +26,10 @@ namespace Recipebook.Models
         [Column(TypeName = "bit")]
         public bool Private { get; set; } = false;
 
+
+        [NotMapped]
+         public string? OwnerEmail { get; set; }
+
         // Foreign Key to User (author)
         // has to be a string because of how MS identity works
         [Required]
@@ -38,6 +44,8 @@ namespace Recipebook.Models
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
+
+        public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();
     }
 
 }
