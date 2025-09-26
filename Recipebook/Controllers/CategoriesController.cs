@@ -56,7 +56,7 @@ namespace Recipebook.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Category category)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 _context.Add(category);
                 await _context.SaveChangesAsync();
@@ -93,7 +93,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 try
                 {
