@@ -14,5 +14,6 @@ namespace Recipebook.Models
 
         public ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
 
+        public ICollection<CategoryRecipe> CategoryRecipes { get; set; } = new List<CategoryRecipe>();
     }
 }

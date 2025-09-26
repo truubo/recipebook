@@ -34,7 +34,10 @@ namespace Recipebook.Controllers
             }
 
             var category = await _context.Category
+                .Include(c => c.CategoryRecipes)
+                    .ThenInclude(cr => cr.Recipe)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (category == null)
             {
                 return NotFound();
