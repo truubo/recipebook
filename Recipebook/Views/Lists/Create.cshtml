@@ -28,9 +28,14 @@
     <!-- OwnerId is set server-side -->
 
     <div class="mb-3">
-        <label class="form-label">Add Recipes</label>
-        <select asp-for="SelectedRecipeIds" class="form-select" multiple size="10"
-                asp-items="Model.RecipeChoices"></select>
+        <label asp-for="SelectedRecipeIds" class="form-label"></label>
+        <select asp-for="SelectedRecipeIds"
+                asp-items="Model.RecipeChoices"
+                class="form-select"
+                multiple
+                size="10">
+        </select>
+        <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
         <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
     </div>
 

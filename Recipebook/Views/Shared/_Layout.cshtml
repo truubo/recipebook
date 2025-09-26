@@ -32,6 +32,7 @@
         </nav>
     </header>
     <div class="container">
+        <partial name="_Alerts"/>
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
@@ -45,6 +46,23 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Wait until the DOM is ready
+        document.addEventListener("DOMContentLoaded", function () {
+            // Select all Bootstrap alerts
+            const alerts = document.querySelectorAll(".alert");
+
+            alerts.forEach(function (alert) {
+                // Auto-close after 5 seconds
+                setTimeout(function () {
+                    // Use Bootstrap's built-in dismiss (requires bootstrap.bundle.js)
+                    var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
