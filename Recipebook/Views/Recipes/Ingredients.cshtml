@@ -1,0 +1,45 @@
+﻿@model IEnumerable<Recipebook.Models.Ingredient>
+
+@{
+    ViewData["Title"] = "Ingredients";
+}
+
+<h1>Ingredients</h1>
+
+<div class="mb-3">
+    <a class="btn btn-success" href="@Url.Action("AddIngredient", "Recipes")">
+        <i class="bi bi-plus-circle"></i> Add Ingredient
+    </a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Name</td>
+                <td>
+                    <a class="btn btn-sm btn-warning"
+                       href="@Url.Action("UpdateIngredient", "Recipes", new { id = item.Id })">
+                        Edit
+                    </a>
+
+                    <form asp-action="DeleteIngredient" asp-controller="Recipes" asp-route-id="@item.Id"
+                          method="post" style="display:inline;"
+                          onsubmit="return confirm('⚠️ WARNING: You are about to delete this ingredient. This action cannot be undone. Continue?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>

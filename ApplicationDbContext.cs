@@ -1,0 +1,6 @@
+public class ApplicationDbContext : IdentityDbContext { 
+    // ... 
+    public DbSet<Recipebook.Models.Recipe> Recipe { get; set; }
+    public DbSet<Ingredient> Ingredients { get; set; }
+    // ... 
+}

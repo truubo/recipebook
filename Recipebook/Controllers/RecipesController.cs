@@ -173,5 +173,103 @@ namespace Recipebook.Controllers
         {
             return _context.Recipe.Any(e => e.Id == id);
         }
+
+        // GET: Recipes/AddIngrediant
+        [HttpGet]
+        public IActionResult AddIngredient()
+        {
+            return View();
+        }
+
+        // POST: Recipes/AddIngrediant
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddIngredient([Bind("Name")] Ingredient ingredient)
+        {
+            // Remove ModelState check for debugging
+            _context.Ingredient.Add(ingredient);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Ingredients");
+        }
+
+        // GET: Recipes/Ingrediants
+        public async Task<IActionResult> Ingredients()
+        {
+            var ingredients = await _context.Ingredient.ToListAsync();
+            return View(ingredients);
+        }
+
+        // GET: Recipes/UpdateIngredient/{id}
+        [HttpGet]
+        public async Task<IActionResult> UpdateIngredient(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var ingredient = await _context.Ingredient.FindAsync(id);
+            if (ingredient == null)
+            {
+                return NotFound();
+            }
+            return View(ingredient);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateIngredient(int id, [Bind("Id,Name")] Ingredient ingredient)
+        {
+            if (id != ingredient.Id)
+                return NotFound();
+
+            var existingIngredient = await _context.Ingredient.FindAsync(id);
+            if (existingIngredient == null)
+                return NotFound();
+
+            try
+            {
+                // Update only the properties you want
+                existingIngredient.Name = ingredient.Name;
+
+                _context.Update(existingIngredient);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("Ingredients");
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Ingredient.Any(e => e.Id == id))
+                    return NotFound();
+
+                throw;
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteIngredient(int id)
+        {
+            var ingredient = await _context.Ingredient.FindAsync(id);
+            if (ingredient == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _context.Ingredient.Remove(ingredient);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Optional: log or show error
+                Console.WriteLine(ex.Message);
+            }
+
+            return RedirectToAction("Ingredients");
+        }
+
+
     }
 }
