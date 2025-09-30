@@ -1,0 +1,398 @@
+﻿@import "../../../node_modules/bootstrap/scss/bootstrap";
+@import "variables";
+
+// ------------------------------
+// Mixins
+// ------------------------------
+@mixin button-states($bg, $border: null, $text: white) {
+    background-color: $bg;
+    border-color: if($border != null, $border, $bg);
+    color: $text;
+    transition: all 0.2s ease-in-out;
+
+    &:hover,
+    &:focus,
+    &:active,
+    &.active,
+    &:not(:disabled):not(.disabled):hover {
+        background-color: darken($bg, 10%);
+        border-color: darken(if($border != null, $border, $bg), 10%);
+        color: $text;
+    }
+
+    &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+}
+
+// ------------------------------
+// Body
+// ------------------------------
+body {
+    background-color: $beige;
+    color: black;
+    font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+// ------------------------------
+// Cards
+// ------------------------------
+.card {
+    background-color: $light-brown;
+    color: black;
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+// ------------------------------
+// Tables
+// ------------------------------
+.table {
+    width: 100%;
+    border: 1px solid darken($light-brown, 20%);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: $light-brown;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1rem;
+
+    thead {
+        background-color: darken($light-brown, 5%);
+        font-weight: 600;
+    }
+
+    th,
+    td {
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid darken($light-brown, 15%);
+        vertical-align: middle;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: lighten($light-brown, 2%);
+    }
+
+    tbody tr:hover {
+        background-color: darken($light-brown, 8%);
+        cursor: pointer;
+    }
+}
+
+// ------------------------------
+// Headers / Footers
+// ------------------------------
+.header,
+.footer {
+    background-color: $red;
+    color: white !important;
+    padding: 1rem 2rem;
+
+    a {
+        color: white !important;
+        text-decoration: none;
+
+        &:hover,
+        &:focus {
+            color: $light-red;
+            text-decoration: underline;
+        }
+    }
+}
+
+// ------------------------------
+// Navbar
+// ------------------------------
+.navbar {
+    background-color: $red !important;
+    color: white !important;
+    padding: 0.75rem 1.5rem;
+
+    a.nav-link,
+    .navbar-brand {
+        color: white !important;
+        text-decoration: none;
+
+        &:hover,
+        &:focus {
+            color: $light-red;
+            text-decoration: underline;
+        }
+    }
+
+    .navbar-toggler {
+        border-color: $beige;
+
+        &:hover,
+        &:focus {
+            background-color: $beige;
+            color: $red;
+        }
+    }
+
+    .dropdown-menu {
+        background-color: $light-brown;
+
+        a.dropdown-item {
+            color: black;
+
+            &:hover, &:focus {
+                background-color: darken($light-brown, 5%);
+                color: white;
+            }
+        }
+    }
+    // Navbar buttons (login/register/logout)
+    .btn {
+        @include button-states($light-red);
+        margin-left: 0.5rem;
+        color: white !important;
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: white !important;
+        }
+    }
+}
+
+// ------------------------------
+// Buttons
+// ------------------------------
+.btn-primary {
+    @include button-states($red);
+}
+
+.btn-secondary {
+    @include button-states($light-brown);
+}
+
+.btn-danger {
+    @include button-states($dark-red);
+}
+
+.btn-info {
+    @include button-states($dark-brown);
+}
+
+.btn-success {
+    @include button-states($light-red);
+}
+
+.btn-outline-primary {
+    border-color: $red;
+    color: $red;
+    transition: all 0.2s ease-in-out;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: $red;
+        color: white;
+        border-color: $red;
+    }
+}
+
+// ------------------------------
+// Accent text
+// ------------------------------
+.accent {
+    color: $light-red;
+}
+
+// ------------------------------
+// Badges
+// ------------------------------
+.badge {
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.35em 0.6em;
+    color: white !important; // force white text
+}
+
+.badge.bg-info {
+    background-color: $beige !important;
+    color: white !important;
+}
+// categories
+.badge.bg-success {
+    background-color: $light-red !important;
+    color: white !important;
+}
+// public
+.badge.bg-danger {
+    background-color: $dark-red !important;
+    color: white !important;
+}
+// private
+
+.badge:hover {
+    opacity: 0.85;
+    text-decoration: none;
+}
+
+// ------------------------------
+// Form inputs
+// ------------------------------
+.form-control {
+    background-color: $beige;
+    border: 1px solid darken($light-brown, 20%);
+    border-radius: 0.5rem;
+    color: black;
+
+    &:focus {
+        background-color: $beige;
+        border-color: $red;
+        box-shadow: 0 0 0 0.2rem rgba($red, 0.25);
+        color: black;
+    }
+}
+
+// ------------------------------
+// Lists
+// ------------------------------
+.list-group-item {
+    background-color: $light-brown;
+    border: 1px solid darken($light-brown, 20%);
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: darken($light-brown, 5%);
+    }
+}
+
+// ------------------------------
+// Compact spacing for tables and cards
+// ------------------------------
+.table th,
+.table td,
+.card-body {
+    padding: 0.5rem 0.75rem;
+}
+
+// ------------------------------
+// Utility Color Overrides
+// ------------------------------
+.bg-primary {
+    background-color: $red !important;
+    color: white !important;
+}
+
+.bg-secondary {
+    background-color: $light-brown !important;
+    color: white !important;
+}
+
+.bg-success {
+    background-color: $light-red !important;
+    color: white !important;
+}
+
+.bg-danger {
+    background-color: $dark-red !important;
+    color: white !important;
+}
+
+.bg-warning {
+    background-color: $light-red !important;
+    color: black !important;
+}
+
+.bg-info {
+    background-color: $dark-brown !important;
+    color: white !important;
+}
+
+.bg-light {
+    background-color: lighten($beige, 5%) !important;
+    color: black !important;
+}
+
+.bg-dark {
+    background-color: $dark-brown !important;
+    color: white !important;
+}
+
+.text-primary {
+    color: $red !important;
+}
+
+.text-secondary {
+    color: $light-brown !important;
+}
+
+.text-success {
+    color: $light-red !important;
+}
+
+.text-danger {
+    color: $dark-red !important;
+}
+
+.text-warning {
+    color: $light-red !important;
+}
+
+.text-info {
+    color: $dark-brown !important;
+}
+
+.text-light {
+    color: lighten($beige, 5%) !important;
+}
+
+.text-dark {
+    color: $dark-brown !important;
+}
+
+.border-primary {
+    border-color: $red !important;
+}
+
+.border-secondary {
+    border-color: $light-brown !important;
+}
+
+.border-success {
+    border-color: $light-red !important;
+}
+
+.border-danger {
+    border-color: $dark-red !important;
+}
+
+.border-warning {
+    border-color: $light-red !important;
+}
+
+.border-info {
+    border-color: $dark-brown !important;
+}
+
+.border-light {
+    border-color: lighten($beige, 5%) !important;
+}
+
+.border-dark {
+    border-color: $dark-brown !important;
+}
+
+// ------------------------------
+// Links
+// ------------------------------
+a {
+    color: $red;
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+        color: $light-red;
+        text-decoration: underline;
+    }
+}
