@@ -26,7 +26,7 @@
                     {
                         var ownerEmail = (ownerEmails != null && ownerEmails.TryGetValue(l.OwnerId, out var em)) ? em : "Unknown";
 
-                        <tr>
+                        <tr onclick="location.href='@Url.Action("Details", "Lists", new { id = l.Id })'" style="cursor:pointer;">
                             <td><strong>@l.Name</strong></td>
                             <td>@l.ListType</td>
                             <td>@ownerEmail</td>
@@ -44,9 +44,6 @@
                                 <div class="btn-group" role="group">
                                     <a asp-controller="Lists" asp-action="Edit" asp-route-id="@l.Id" class="btn btn-sm btn-primary">
                                         Edit
-                                    </a>
-                                    <a asp-controller="Lists" asp-action="Details" asp-route-id="@l.Id" class="btn btn-sm btn-info text-white">
-                                        Details
                                     </a>
                                     <a asp-controller="Lists" asp-action="Delete" asp-route-id="@l.Id" class="btn btn-sm btn-danger">
                                         Delete

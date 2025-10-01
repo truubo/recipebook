@@ -11866,40 +11866,46 @@ body {
 }
 
 .card {
-  background-color: #a78a7f;
+  background: linear-gradient(to bottom, #a78a7f 0%, rgb(173.2333333333, 146.2875, 136.0666666667) 100%);
   color: black;
   border-radius: 0.75rem;
   border: none;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  padding: 1.25rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
   margin-bottom: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
 }
 
 .table {
   width: 100%;
-  border: 1px solid rgb(113.7777777778, 88, 78.2222222222);
   border-radius: 0.5rem;
   overflow: hidden;
-  background-color: #a78a7f;
+  background-color: #a78a7f !important;
   border-collapse: separate;
   border-spacing: 0;
   margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
 }
 .table thead {
-  background-color: rgb(156.6111111111, 124.1875, 111.8888888889);
+  background-color: rgb(150.0444444444, 116.05, 103.1555555556) !important;
+  color: white !important;
   font-weight: 600;
 }
 .table th,
 .table td {
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid rgb(128.8888888889, 99.6875, 88.6111111111);
   vertical-align: middle;
-}
-.table tbody tr:nth-child(even) {
-  background-color: rgb(171.1555555556, 143.525, 133.0444444444);
+  background-color: #a78a7f !important;
+  color: black;
+  transition: background-color 0.2s;
 }
 .table tbody tr:hover {
-  background-color: rgb(150.0444444444, 116.05, 103.1555555556);
+  background-color: rgb(154.5333333333, 121.425, 108.8666666667) !important;
   cursor: pointer;
 }
 
@@ -12075,10 +12081,15 @@ body {
   border-radius: 0.5rem;
   padding: 0.35em 0.6em;
   color: white !important;
+  transition: all 0.2s;
+}
+.badge:hover {
+  opacity: 0.85;
+  text-decoration: none;
 }
 
 .badge.bg-info {
-  background-color: #e7d7c1 !important;
+  background-color: #3f2d27 !important;
   color: white !important;
 }
 
@@ -12090,11 +12101,6 @@ body {
 .badge.bg-danger {
   background-color: #5c0f0a !important;
   color: white !important;
-}
-
-.badge:hover {
-  opacity: 0.85;
-  text-decoration: none;
 }
 
 .form-control {

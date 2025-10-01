@@ -39,13 +39,19 @@ body {
 // Cards
 // ------------------------------
 .card {
-    background-color: $light-brown;
+    background: linear-gradient(to bottom, $light-brown 0%, lighten($light-brown, 3%) 100%);
     color: black;
     border-radius: 0.75rem;
     border: none;
-    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-    padding: 1.25rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+    padding: 1.5rem;
     margin-bottom: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+    }
 }
 
 // ------------------------------
@@ -53,32 +59,32 @@ body {
 // ------------------------------
 .table {
     width: 100%;
-    border: 1px solid darken($light-brown, 20%);
     border-radius: 0.5rem;
     overflow: hidden;
-    background-color: $light-brown;
+    background-color: $light-brown !important;
     border-collapse: separate;
     border-spacing: 0;
     margin-bottom: 1rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.05);
 
     thead {
-        background-color: darken($light-brown, 5%);
+        background-color: darken($light-brown, 8%) !important;
+        color: white !important;
         font-weight: 600;
     }
 
     th,
     td {
-        padding: 0.5rem 0.75rem;
+        padding: 0.75rem 1rem;
         border-bottom: 1px solid darken($light-brown, 15%);
         vertical-align: middle;
-    }
-
-    tbody tr:nth-child(even) {
-        background-color: lighten($light-brown, 2%);
+        background-color: $light-brown !important;
+        color: black;
+        transition: background-color 0.2s;
     }
 
     tbody tr:hover {
-        background-color: darken($light-brown, 8%);
+        background-color: darken($light-brown, 6%) !important;
         cursor: pointer;
     }
 }
@@ -146,7 +152,7 @@ body {
             }
         }
     }
-    // Navbar buttons (login/register/logout)
+
     .btn {
         @include button-states($light-red);
         margin-left: 0.5rem;
@@ -211,28 +217,30 @@ body {
     font-weight: 500;
     border-radius: 0.5rem;
     padding: 0.35em 0.6em;
-    color: white !important; // force white text
+    color: white !important;
+    transition: all 0.2s;
+
+    &:hover {
+        opacity: 0.85;
+        text-decoration: none;
+    }
 }
 
+// Categories badges
 .badge.bg-info {
-    background-color: $beige !important;
+    background-color: $dark-brown !important;
     color: white !important;
 }
-// categories
+
+// Public / Private
 .badge.bg-success {
     background-color: $light-red !important;
     color: white !important;
 }
-// public
+
 .badge.bg-danger {
     background-color: $dark-red !important;
     color: white !important;
-}
-// private
-
-.badge:hover {
-    opacity: 0.85;
-    text-decoration: none;
 }
 
 // ------------------------------
