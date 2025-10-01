@@ -1,92 +1,91 @@
 ﻿@model IEnumerable<Recipebook.Models.Recipe>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Recipes";
 }
 
-<h1 class="mb-4">Recipes</h1>
+<div class="container index-page">
+    <div class="index-header">
+        <h1>Recipes</h1>
+        <p class="lead text-muted">Browse, edit, or create your favorite recipes.</p>
 
-<div class="mb-3">
-    <a asp-action="Create" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Create New
-    </a>
-</div>
+        <a asp-action="Create" class="btn btn-success btn-lg btn-create">
+            <i class="bi bi-plus-circle"></i> Create New
+        </a>
+    </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <table class="table table-hover align-middle">
-            <thead class="table">
-                <tr>
-                    <th>@Html.DisplayNameFor(model => model.Title)</th>
-                    <th>@Html.DisplayNameFor(model => model.Description)</th>
-                    <th>@Html.DisplayNameFor(model => model.Directions)</th>
-                    <th>Categories</th>
-                    <th>Privacy</th>
-                    <th>@Html.DisplayNameFor(model => model.AuthorEmail)</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr onclick="location.href='@Url.Action("Details", new { id = item.Id })'" style="cursor:pointer;">
-                        <td><strong>@item.Title</strong></td>
-                        <td>
-                            @if (!string.IsNullOrEmpty(item.Description))
-                            {
-                                @(item.Description.Length > 50
-                                                        ? item.Description.Substring(0, 50) + "..."
-                                                        : item.Description)
-                                                }
-                            else
-                            {
-                                <span class="text-muted">None</span>
-                            }
-                    </td>
-                    <td>
-                        @(item.Directions?.Length > 50
-                                                ? item.Directions.Substring(0, 50) + "..."
-                                                : item.Directions)
-                    </td>
-                    <td>
-                        @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
-                            {
-                                @foreach (var cr in item.CategoryRecipes)
-                                {
-                                    <a asp-controller="Categories"
-                                       asp-action="Details"
-                                       asp-route-id="@cr.Category.Id"
-                                       class="badge bg-dark me-1 text-white text-decoration-none">
-                                        @cr.Category.Name
-                                    </a>
-                                }
-                            }
-                            else
-                            {
-                                <span class="text-muted">None</span>
-                            }
-                        </td>
-                        <td>
-                            <span class="badge @(item.Private ? "bg-danger" : "bg-success")">
-                                @(item.Private ? "Private" : "Public")
-                            </span>
-                        </td>
-                        <td>
-                            <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a>
-                        </td>
-                        <td class="text-end">
-                            <div class="btn-group" role="group">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
-                                    Edit
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
-                                    Delete
-                                </a>
-                            </div>
-                        </td>
+    <div class="card index-card">
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table">
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.Title)</th>
+                        <th>@Html.DisplayNameFor(model => model.Description)</th>
+                        <th>@Html.DisplayNameFor(model => model.Directions)</th>
+                        <th>Categories</th>
+                        <th>Privacy</th>
+                        <th>@Html.DisplayNameFor(model => model.AuthorEmail)</th>
+                        <th class="text-end">Actions</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr onclick="location.href='@Url.Action("Details", new { id = item.Id })'" style="cursor:pointer;">
+                            <td><strong>@item.Title</strong></td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    @(item.Description.Length > 50
+                                                                ? item.Description.Substring(0, 50) + "..."
+                                                                : item.Description)
+                                                        }
+                                else
+                                {
+                                    <span class="text-muted">None</span>
+                                }
+                            </td>
+                            <td>
+                                @(item.Directions?.Length > 50
+                                                            ? item.Directions.Substring(0, 50) + "..."
+                                                            : item.Directions)
+                            </td>
+                            <td>
+                                @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
+                                    {
+                                        @foreach (var cr in item.CategoryRecipes)
+                                        {
+                                            <a asp-controller="Categories"
+                                               asp-action="Details"
+                                               asp-route-id="@cr.Category.Id"
+                                               class="badge bg-info">
+                                                @cr.Category.Name
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">None</span>
+                                    }
+                            </td>
+                            <td>
+                                <span class="badge @(item.Private ? "bg-danger" : "bg-success")">
+                                    @(item.Private ? "Private" : "Public")
+                                </span>
+                            </td>
+                            <td>
+                                <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

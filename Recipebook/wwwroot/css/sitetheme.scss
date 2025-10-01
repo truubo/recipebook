@@ -26,6 +26,34 @@
     }
 }
 
+@mixin alert-style($bg, $text: white, $border: null) {
+    background-color: $bg;
+    color: $text;
+    border: 1px solid if($border != null, $border, darken($bg, 10%));
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.05);
+    transition: all 0.2s;
+
+    &:hover,
+    &:focus {
+        background-color: darken($bg, 5%);
+        color: $text;
+        border-color: darken(if($border != null, $border, darken($bg, 10%)), 5%);
+        cursor: pointer;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}
+
 // ------------------------------
 // Body
 // ------------------------------
@@ -391,6 +419,26 @@ body {
     border-color: $dark-brown !important;
 }
 
+.alert-primary {
+    @include alert-style($brown);
+}
+
+.alert-secondary {
+    @include alert-style($light-brown, black);
+}
+
+.alert-success {
+    @include alert-style($light-red);
+}
+
+.alert-danger {
+    @include alert-style($dark-red);
+}
+
+.alert-info {
+    @include alert-style($dark-brown);
+}
+
 // ------------------------------
 // Links
 // ------------------------------
@@ -402,5 +450,238 @@ a {
     &:focus {
         color: $light-red;
         text-decoration: underline;
+    }
+}
+
+// ------------------------------
+// Brown implementations
+// ------------------------------
+
+// Buttons
+.btn-brown {
+    @include button-states($brown);
+}
+
+// Alerts
+.alert-brown {
+    @include alert-style($brown, white);
+}
+
+// Utility Color Overrides
+.bg-brown {
+    background-color: $brown !important;
+    color: white !important;
+}
+
+.text-brown {
+    color: $brown !important;
+}
+
+.border-brown {
+    border-color: $brown !important;
+}
+
+html, body {
+    height: 100%; // make full height available
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; // ensure body fills viewport
+}
+
+main {
+    flex: 1; // pushes footer down when content is short
+}
+
+// ------------------------------
+// Delete Page Styling
+// ------------------------------
+.delete-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80vh;
+
+    .delete-header {
+        text-align: center;
+        margin-bottom: 2rem;
+
+        h1 {
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+        }
+    }
+
+    .delete-card {
+        max-width: 700px;
+        margin: 0 auto; // horizontally center
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+    }
+
+    .delete-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        .btn {
+            min-width: 120px; // consistent button width
+        }
+    }
+}
+
+.index-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 80vh;
+    padding: 2rem;
+
+    .index-header {
+        text-align: center;
+        margin-bottom: 3rem;
+
+        h1 {
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: $dark-brown;
+        }
+
+        .btn-create {
+            margin-top: 1rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+        }
+    }
+
+    .index-card {
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+
+        table {
+            width: 100%; // full width
+            th, td {
+                vertical-align: middle;
+            }
+
+            .btn-group a {
+                min-width: 70px;
+            }
+        }
+    }
+}
+
+// ------------------------------
+// Home Page Styling
+// ------------------------------
+.home-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 70vh;
+    padding: 2rem;
+
+    h1 {
+        margin-bottom: 1.5rem;
+    }
+
+    p.lead {
+        margin-bottom: 3rem;
+        font-size: 1.2rem;
+        color: $dark-brown;
+    }
+
+    .home-cards {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        justify-content: center;
+
+        .col-md-4 {
+            display: flex;
+            flex: 1 1 300px; // responsive width
+        }
+
+        .card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+            }
+
+            .btn {
+                align-self: center;
+            }
+        }
+    }
+}
+
+.recipe-form-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 2rem;
+
+    h1 {
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .card {
+        max-width: 1200px;
+        width: 100%;
+        padding: 1.5rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+
+            .d-flex {
+                justify-content: center; // center the buttons
+                margin-top: 1rem;
+
+                .btn {
+                    min-width: 120px;
+                }
+            }
+        }
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control, select, textarea {
+        border-radius: 0.5rem;
+    }
+
+    .recipe-form-card {
+        width: 90%;
+        min-width: 400px;
     }
 }

@@ -12237,6 +12237,126 @@ body {
   border-color: #3f2d27 !important;
 }
 
+.alert-primary {
+  background-color: #735751;
+  color: white;
+  border: 1px solid rgb(85.0765306122, 64.362244898, 59.9234693878);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.alert-primary:hover, .alert-primary:focus {
+  background-color: rgb(100.0382653061, 75.681122449, 70.4617346939);
+  color: white;
+  border-color: rgb(70.1147959184, 53.0433673469, 49.3852040816);
+  cursor: pointer;
+}
+.alert-primary a {
+  color: inherit;
+  text-decoration: underline;
+}
+.alert-primary a:hover {
+  text-decoration: none;
+}
+
+.alert-secondary {
+  background-color: #a78a7f;
+  color: black;
+  border: 1px solid rgb(144, 111.375, 99);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.alert-secondary:hover, .alert-secondary:focus {
+  background-color: rgb(156.6111111111, 124.1875, 111.8888888889);
+  color: black;
+  border-color: rgb(128.8888888889, 99.6875, 88.6111111111);
+  cursor: pointer;
+}
+.alert-secondary a {
+  color: inherit;
+  text-decoration: underline;
+}
+.alert-secondary a:hover {
+  text-decoration: none;
+}
+
+.alert-success {
+  background-color: #bf4342;
+  color: white;
+  border: 1px solid rgb(153.8893280632, 52.9249011858, 52.1106719368);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.alert-success:hover, .alert-success:focus {
+  background-color: rgb(172.9387351779, 59.476284585, 58.5612648221);
+  color: white;
+  border-color: rgb(134.8399209486, 46.3735177866, 45.6600790514);
+  cursor: pointer;
+}
+.alert-success a {
+  color: inherit;
+  text-decoration: underline;
+}
+.alert-success a:hover {
+  text-decoration: none;
+}
+
+.alert-danger {
+  background-color: #5c0f0a;
+  color: white;
+  border: 1px solid rgb(46, 7.5, 5);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.alert-danger:hover, .alert-danger:focus {
+  background-color: rgb(69, 11.25, 7.5);
+  color: white;
+  border-color: rgb(23, 3.75, 2.5);
+  cursor: pointer;
+}
+.alert-danger a {
+  color: inherit;
+  text-decoration: underline;
+}
+.alert-danger a:hover {
+  text-decoration: none;
+}
+
+.alert-info {
+  background-color: #3f2d27;
+  color: white;
+  border: 1px solid rgb(31.5, 22.5, 19.5);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.alert-info:hover, .alert-info:focus {
+  background-color: rgb(47.25, 33.75, 29.25);
+  color: white;
+  border-color: rgb(15.75, 11.25, 9.75);
+  cursor: pointer;
+}
+.alert-info a {
+  color: inherit;
+  text-decoration: underline;
+}
+.alert-info a:hover {
+  text-decoration: none;
+}
+
 a {
   color: #8c1c13;
   text-decoration: none;
@@ -12244,4 +12364,227 @@ a {
 a:hover, a:focus {
   color: #bf4342;
   text-decoration: underline;
+}
+
+.btn-brown {
+  background-color: #735751;
+  border-color: #735751;
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+.btn-brown:hover, .btn-brown:focus, .btn-brown:active, .btn-brown.active, .btn-brown:not(:disabled):not(.disabled):hover {
+  background-color: rgb(85.0765306122, 64.362244898, 59.9234693878);
+  border-color: rgb(85.0765306122, 64.362244898, 59.9234693878);
+  color: white;
+}
+.btn-brown:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.alert-brown {
+  background-color: #735751;
+  color: white;
+  border: 1px solid rgb(85.0765306122, 64.362244898, 59.9234693878);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.alert-brown:hover, .alert-brown:focus {
+  background-color: rgb(100.0382653061, 75.681122449, 70.4617346939);
+  color: white;
+  border-color: rgb(70.1147959184, 53.0433673469, 49.3852040816);
+  cursor: pointer;
+}
+.alert-brown a {
+  color: inherit;
+  text-decoration: underline;
+}
+.alert-brown a:hover {
+  text-decoration: none;
+}
+
+.bg-brown {
+  background-color: #735751 !important;
+  color: white !important;
+}
+
+.text-brown {
+  color: #735751 !important;
+}
+
+.border-brown {
+  border-color: #735751 !important;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+.delete-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80vh;
+}
+.delete-page .delete-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.delete-page .delete-header h1, .delete-page .delete-header .h1 {
+  margin-bottom: 1rem;
+}
+.delete-page .delete-header p {
+  font-size: 1.1rem;
+}
+.delete-page .delete-card {
+  max-width: 700px;
+  margin: 0 auto;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+}
+.delete-page .delete-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.delete-page .delete-actions .btn {
+  min-width: 120px;
+}
+
+.index-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  min-height: 80vh;
+  padding: 2rem;
+}
+.index-page .index-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.index-page .index-header h1, .index-page .index-header .h1 {
+  margin-bottom: 1rem;
+}
+.index-page .index-header p {
+  font-size: 1.1rem;
+  color: #3f2d27;
+}
+.index-page .index-header .btn-create {
+  margin-top: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+}
+.index-page .index-card {
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+}
+.index-page .index-card table {
+  width: 100%;
+}
+.index-page .index-card table th, .index-page .index-card table td {
+  vertical-align: middle;
+}
+.index-page .index-card table .btn-group a {
+  min-width: 70px;
+}
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 70vh;
+  padding: 2rem;
+}
+.home-page h1, .home-page .h1 {
+  margin-bottom: 1.5rem;
+}
+.home-page p.lead {
+  margin-bottom: 3rem;
+  font-size: 1.2rem;
+  color: #3f2d27;
+}
+.home-page .home-cards {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+}
+.home-page .home-cards .col-md-4 {
+  display: flex;
+  flex: 1 1 300px;
+}
+.home-page .home-cards .card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.home-page .home-cards .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+}
+.home-page .home-cards .card .btn {
+  align-self: center;
+}
+
+.recipe-form-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 2rem;
+}
+.recipe-form-page h1, .recipe-form-page .h1 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.recipe-form-page .card {
+  max-width: 1200px;
+  width: 100%;
+  padding: 1.5rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.recipe-form-page .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+}
+.recipe-form-page .card form {
+  display: flex;
+  flex-direction: column;
+}
+.recipe-form-page .card form .d-flex {
+  justify-content: center;
+  margin-top: 1rem;
+}
+.recipe-form-page .card form .d-flex .btn {
+  min-width: 120px;
+}
+.recipe-form-page .form-label {
+  font-weight: 600;
+}
+.recipe-form-page .form-control, .recipe-form-page select, .recipe-form-page textarea {
+  border-radius: 0.5rem;
+}
+.recipe-form-page .recipe-form-card {
+  width: 90%;
+  min-width: 400px;
 }

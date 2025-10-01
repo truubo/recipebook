@@ -1,8 +1,34 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container home-page">
+    <h1>Welcome to Recipebook!</h1>
+    <p class="lead">Your personal hub for storing, sharing, and discovering recipes.</p>
+
+    <div class="home-cards row">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <h5 class="card-title">Browse Recipes</h5>
+                <p class="card-text">Discover meals shared by other users.</p>
+                <a asp-controller="Recipes" asp-action="Index" class="btn btn-primary">Explore</a>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <h5 class="card-title">Organize Lists</h5>
+                <p class="card-text">Plan your weekly meals or grocery shopping.</p>
+                <a asp-controller="Lists" asp-action="Index" class="btn btn-success">View Lists</a>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <h5 class="card-title">Categories</h5>
+                <p class="card-text">Sort recipes into easy-to-find categories.</p>
+                <a asp-controller="Categories" asp-action="Index" class="btn btn-info">View Categories</a>
+            </div>
+        </div>
+    </div>
 </div>
