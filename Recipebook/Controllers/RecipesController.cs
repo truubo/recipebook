@@ -51,36 +51,62 @@ namespace Recipebook.Controllers
 
         // --------------------------------- INDEX ---------------------------------
         // GET: Recipes
-        // Loads recipes with their category links so the view can render category
-        // names without extra DB calls. Also resolves AuthorEmail for display.
-        public async Task<IActionResult> Index()
+        // Adds title search + tag (category) filter while preserving logging and author resolution.
+        public async Task<IActionResult> Index(string? searchString, int? tagId)
         {
-            var recipes = await _context.Recipe
-                .Include(r => r.CategoryRecipes)        // eager-load join rows
-                    .ThenInclude(cr => cr.Category)     // eager-load Category for names
-                .ToListAsync();
+            // Base query with eager loading (so the view can show category names without extra DB calls)
+            var query = _context.Recipe
+                .Include(r => r.CategoryRecipes)
+                    .ThenInclude(cr => cr.Category)
+                .AsQueryable();
 
+            // Apply title search (case-insensitive by default SQL collation; adjust if needed)
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                query = query.Where(r => r.Title.Contains(searchString));
+            }
+
+            // Apply tag filter (CategoryId) if provided
+            if (tagId.HasValue)
+            {
+                int cid = tagId.Value;
+                query = query.Where(r => r.CategoryRecipes.Any(cr => cr.CategoryId == cid));
+            }
+
+            var recipes = await query.ToListAsync();
+
+            // Resolve AuthorEmail for display (same behavior as before; coalesce to empty string)
             foreach (var r in recipes)
             {
-                // CS8601 note: FirstOrDefaultAsync may return null; coalesce to "" to
-                // avoid assigning null into a non-nullable property. Behavior unchanged.
                 r.AuthorEmail = (await _context.Users
                     .Where(u => u.Id == r.AuthorId)
                     .Select(u => u.Email)
                     .FirstOrDefaultAsync()) ?? string.Empty;
             }
 
-            // Build a readable actor for the log: use email if signed-in else "anonymous".
+            // Actor for logging: email if signed-in, else "anonymous"
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             string who = (uid == null)
                 ? "anonymous"
                 : (await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync()) ?? uid;
 
-            _logger.LogInformation("{Who} -> /Recipes/Index | count={Count}",
-                who, recipes.Count);
+            // Log with filter context
+            _logger.LogInformation(
+                "{Who} -> /Recipes/Index | count={Count} search='{Search}' tagId={TagId}",
+                who, recipes.Count, searchString ?? string.Empty, tagId?.ToString() ?? "null"
+            );
+
+            // Populate dropdown + preserve current filter values for the view's form
+            ViewBag.TagList = new SelectList(
+                await _context.Category.OrderBy(c => c.Name).ToListAsync(),
+                "Id", "Name"
+            );
+            ViewBag.SearchString = searchString;
+            ViewBag.TagId = tagId;
 
             return View(recipes);
         }
+
 
         // -------------------------------- DETAILS --------------------------------
         // GET: Recipes/Details/5

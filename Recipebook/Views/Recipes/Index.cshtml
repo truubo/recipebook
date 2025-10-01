@@ -1,16 +1,39 @@
 ﻿@model IEnumerable<Recipebook.Models.Recipe>
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     ViewData["Title"] = "Index";
+    var currentSearch = ViewBag.SearchString as string;
 }
 
 <h1 class="mb-4">Recipes</h1>
 
-<div class="mb-3">
+<div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
     <a asp-action="Create" class="btn btn-success">
         <i class="bi bi-plus-circle"></i> Create New
     </a>
+
+    <!-- Search + Tag Filter (GET form so URL is shareable) -->
+    <form asp-action="Index" method="get" class="d-flex gap-2">
+        <input type="text"
+               name="searchString"
+               value="@(currentSearch ?? string.Empty)"
+               class="form-control"
+               placeholder="Search by title..." />
+
+        <select name="tagId" class="form-select" asp-items="ViewBag.TagList">
+            <option value="">All Tags</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </form>
 </div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">No results found.</div>
+}
 
 <div class="card shadow-sm">
     <div class="card-body">
@@ -35,21 +58,21 @@
                             @if (!string.IsNullOrEmpty(item.Description))
                             {
                                 @(item.Description.Length > 50
-                                                        ? item.Description.Substring(0, 50) + "..."
-                                                        : item.Description)
-                                                }
+                                    ? item.Description.Substring(0, 50) + "..."
+                                    : item.Description)
+                            }
                             else
                             {
                                 <span class="text-muted">None</span>
                             }
-                    </td>
-                    <td>
-                        @(item.Directions?.Length > 50
-                                                ? item.Directions.Substring(0, 50) + "..."
-                                                : item.Directions)
-                    </td>
-                    <td>
-                        @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
+                        </td>
+                        <td>
+                            @(item.Directions?.Length > 50
+                                ? item.Directions.Substring(0, 50) + "..."
+                                : item.Directions)
+                        </td>
+                        <td>
+                            @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
                             {
                                 @foreach (var cr in item.CategoryRecipes)
                                 {
@@ -76,15 +99,9 @@
                         </td>
                         <td class="text-end">
                             <div class="btn-group" role="group">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
-                                    Edit
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">
-                                    Details
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
-                                    Delete
-                                </a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Details</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
                             </div>
                         </td>
                     </tr>
