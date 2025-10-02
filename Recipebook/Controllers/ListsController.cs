@@ -164,7 +164,7 @@ namespace Recipebook.Controllers
         // -------------------------------- DETAILS --------------------------------
         // GET: Lists/Details/5
         // Visibility: allow if the list belongs to the user OR the list is public.
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, int? sortType)
         {
             if (id is null) return NotFound();
 
@@ -184,6 +184,21 @@ namespace Recipebook.Controllers
             {
                 _logger.LogInformation("{Email} navigated to /Views/Lists/Details/{ListId}, not found or not visible", myEmail, id);
                 return NotFound();
+            }
+
+            if (sortType is null)
+            {
+                sortType = 0;
+            }
+
+            switch ((SortType)sortType)
+            {
+                case SortType.AlphabeticalAsc:
+                    list.ListRecipes = list.ListRecipes.OrderBy(l => l.Recipe.Title).ToList();
+                    break;
+                case SortType.AlphabeticalDesc:
+                    list.ListRecipes = list.ListRecipes.OrderByDescending(l => l.Recipe.Title).ToList();
+                    break;
             }
 
             // Look up owner email for display.
