@@ -100,7 +100,8 @@ namespace Recipebook.Controllers
         // Displays empty form.
         public IActionResult Create()
         {
-            _logger.LogInformation("{Who} -> /Categories/Create", Who());
+            
+
             return View();
         }
 

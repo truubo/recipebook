@@ -12,8 +12,10 @@ namespace Recipebook.Models
 
         [Required, MaxLength(50)]
         [Column(TypeName = "varchar(50)")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public ICollection<IngredientRecipe> IngredientRecipes { get; set; }
+        public ICollection<IngredientRecipe>? IngredientRecipes { get; set; }
+
+        public string OwnerId { get; set; } = string.Empty;
     }
 }

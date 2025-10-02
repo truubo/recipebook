@@ -39,5 +39,6 @@ namespace Recipebook.Data
                 .HasForeignKey(lr => lr.RecipeId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
+        public DbSet<Recipebook.Models.Ingredient> Ingredient { get; set; } = default!;
     }
 }
