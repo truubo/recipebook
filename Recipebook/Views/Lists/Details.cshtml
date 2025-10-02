@@ -38,8 +38,6 @@
         @if (Model.ListRecipes != null && Model.ListRecipes.Any())
         {
             <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()">
-                <!--<option value="1">Sort by A-Z</option>
-                <option value="2">Sort by Z-A</option>-->
             </select>
             <ul class="list-group">
                 @foreach (var lr in Model.ListRecipes)

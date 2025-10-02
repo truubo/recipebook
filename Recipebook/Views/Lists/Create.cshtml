@@ -13,20 +13,17 @@
             <form asp-action="Create" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <!-- List Name -->
                 <div class="mb-3">
                     <label asp-for="List.Name" class="form-label fw-bold"></label>
                     <input asp-for="List.Name" class="form-control" />
                     <span asp-validation-for="List.Name" class="text-danger"></span>
                 </div>
 
-                <!-- Privacy -->
                 <div class="form-check mb-3">
                     <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
                     <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck"></label>
                 </div>
 
-                <!-- List Type -->
                 <div class="mb-3">
                     <label asp-for="List.ListType" class="form-label fw-bold"></label>
                     <select asp-for="List.ListType" class="form-select"
@@ -34,7 +31,6 @@
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
 
-                <!-- Recipes Multi-select -->
                 <div class="mb-3">
                     <label class="form-label fw-bold" asp-for="SelectedRecipeIds">Add Recipes</label>
                     <select asp-for="SelectedRecipeIds"
@@ -47,12 +43,11 @@
                     <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
                 </div>
 
-                <!-- Form Actions -->
                 <div class="d-flex justify-content-center gap-2">
                     <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-plus-circle"></i> Create
                     </button>
-                    <a asp-action="Index" class="btn btn-brown btn-lg">
+                    <a onclick="history.back()" class="btn btn-brown btn-lg">
                         Cancel
                     </a>
                 </div>
