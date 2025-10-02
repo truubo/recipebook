@@ -72,8 +72,8 @@ body {
     border-radius: 0.75rem;
     border: none;
     box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
     transition: transform 0.2s, box-shadow 0.2s;
 
     &:hover {
@@ -313,133 +313,6 @@ body {
 }
 
 // ------------------------------
-// Utility Color Overrides
-// ------------------------------
-.bg-primary {
-    background-color: $red !important;
-    color: white !important;
-}
-
-.bg-secondary {
-    background-color: $light-brown !important;
-    color: white !important;
-}
-
-.bg-success {
-    background-color: $light-red !important;
-    color: white !important;
-}
-
-.bg-danger {
-    background-color: $dark-red !important;
-    color: white !important;
-}
-
-.bg-warning {
-    background-color: $light-red !important;
-    color: black !important;
-}
-
-.bg-info {
-    background-color: $dark-brown !important;
-    color: white !important;
-}
-
-.bg-light {
-    background-color: lighten($beige, 5%) !important;
-    color: black !important;
-}
-
-.bg-dark {
-    background-color: $dark-brown !important;
-    color: white !important;
-}
-
-.text-primary {
-    color: $red !important;
-}
-
-.text-secondary {
-    color: $light-brown !important;
-}
-
-.text-success {
-    color: $light-red !important;
-}
-
-.text-danger {
-    color: $dark-red !important;
-}
-
-.text-warning {
-    color: $light-red !important;
-}
-
-.text-info {
-    color: $dark-brown !important;
-}
-
-.text-light {
-    color: lighten($beige, 5%) !important;
-}
-
-.text-dark {
-    color: $dark-brown !important;
-}
-
-.border-primary {
-    border-color: $red !important;
-}
-
-.border-secondary {
-    border-color: $light-brown !important;
-}
-
-.border-success {
-    border-color: $light-red !important;
-}
-
-.border-danger {
-    border-color: $dark-red !important;
-}
-
-.border-warning {
-    border-color: $light-red !important;
-}
-
-.border-info {
-    border-color: $dark-brown !important;
-}
-
-.border-light {
-    border-color: lighten($beige, 5%) !important;
-}
-
-.border-dark {
-    border-color: $dark-brown !important;
-}
-
-.alert-primary {
-    @include alert-style($brown);
-}
-
-.alert-secondary {
-    @include alert-style($light-brown, black);
-}
-
-.alert-success {
-    @include alert-style($light-red);
-}
-
-.alert-danger {
-    @include alert-style($dark-red);
-}
-
-.alert-info {
-    @include alert-style($dark-brown);
-}
-
-// ------------------------------
 // Links
 // ------------------------------
 a {
@@ -535,6 +408,9 @@ main {
     }
 }
 
+// ------------------------------
+// Index Page Styling
+// ------------------------------
 .index-page {
     display: flex;
     flex-direction: column;
@@ -562,16 +438,113 @@ main {
     }
 
     .index-card {
-        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+        padding: 0;
 
-        table {
-            width: 100%; // full width
-            th, td {
-                vertical-align: middle;
+        .card-grid {
+            display: grid;
+            gap: 1.5rem;
+            // mobile
+            grid-template-columns: 1fr;
+            // tablet
+            @media (min-width: 768px) {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            // desktop
+            @media (min-width: 992px) {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .recipe-card {
+            position: relative;
+            background-color: $light-brown;
+            border: 2px solid $dark-brown;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+
+            &:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            // Full-card clickable overlay
+            .card-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                text-indent: -9999px; // hide text
+                background: transparent;
+                border-radius: inherit; // match card corners
+            }
+            // Content sits above overlay
+            .card-header,
+            .categories,
+            .card-text,
+            .card-footer {
+                position: relative;
+                z-index: 2;
+                pointer-events: none; // allow overlay to catch clicks
+            }
+            // Re-enable pointer events for interactive elements
+            .card-header a,
+            .categories a,
+            .card-footer .btn-group a {
+                pointer-events: auto;
             }
 
-            .btn-group a {
-                min-width: 70px;
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 0.5rem;
+
+                .private-badge {
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.5rem;
+                }
+            }
+
+            .card-title {
+                color: $dark-brown;
+                font-weight: 700;
+                font-size: 1.25rem;
+                margin: 0;
+            }
+
+            .card-text {
+                color: black;
+                line-height: 1.5;
+                margin-bottom: 0.5rem;
+            }
+
+            .categories {
+                .badge {
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.5rem;
+                }
+            }
+
+            .card-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 1rem;
+
+                .btn-group .btn {
+                    font-size: 1rem;
+                    padding: 0.5rem 0.6rem;
+                }
+
+                small a {
+                    text-decoration: none;
+                    color: $dark-brown;
+                }
             }
         }
     }
@@ -632,6 +605,9 @@ main {
     }
 }
 
+// ------------------------------
+// Create/Edit Page Styling
+// ------------------------------
 .recipe-form-page {
     display: flex;
     flex-direction: column;
@@ -683,5 +659,79 @@ main {
     .recipe-form-card {
         width: 90%;
         min-width: 400px;
+    }
+}
+
+// ------------------------------
+// Details Page Styling
+// ------------------------------
+.details-page {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: $light-brown;
+    border: 2px solid $dark-brown;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+
+    .details-header {
+        .recipe-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: $dark-brown;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-info {
+            .badge {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        .author {
+            font-size: 1rem;
+            color: $text-muted;
+            margin-top: 0.75rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+        }
+    }
+
+    .details-body {
+        margin-top: 1.5rem;
+
+        .section-title {
+            font-weight: 600;
+            color: black;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: 1rem;
+            color: black;
+        }
+    }
+
+    .details-actions {
+        justify-content: center;
+
+        .btn {
+            min-width: 130px;
+            font-weight: 500;
+            border-radius: 0.5rem;
+        }
+
+        .btn-brown {
+            background-color: $dark-brown;
+            color: #fff;
+
+            &:hover {
+                background-color: darken($dark-brown, 7%);
+            }
+        }
     }
 }
