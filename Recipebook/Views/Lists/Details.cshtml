@@ -82,12 +82,15 @@
 </div>
 
 <script>
-    document.querySelectorAll("#sortSelect option").forEach(item => {
-        if (item.value == new URLSearchParams(window.location.search).get("sortType")) {
-            item.selected = true
-        }
-    })
-    document.querySelector("#sortSelect").addEventListener("change", function () {
-        window.location.href = `?sortType=${this.value}`
-    })
+    const sortSelect = document.querySelector("#sortSelect");
+    if (sortSelect) {
+        sortSelect.addEventListener("change", function () {
+            window.location.href = `?sortType=${this.value}`
+        })
+        sortSelect.querySelectorAll("option").forEach(item => {
+            if (item.value == new URLSearchParams(window.location.search).get("sortType")) {
+                item.selected = true
+            }
+        })
+    }
 </script>
