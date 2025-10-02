@@ -106,7 +106,8 @@ namespace Recipebook.Controllers
         // Shows two buckets for the signed-in user:
         //   • MyLists: lists you own
         //   • AllLists: lists you own OR any lists marked public (Private == false)
-        public async Task<IActionResult> Index()
+        // Adds optional search by list Name via ?searchString=...
+        public async Task<IActionResult> Index(string? searchString)
         {
             // Identity basics: Get current user's Id and Email for personalization/logs.
             var uid = _userManager.GetUserId(User)!;
@@ -117,25 +118,31 @@ namespace Recipebook.Controllers
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
-            // Read-only, include recipe link counts for display.
-            var myLists = await _context.Lists
+            // Base queries (deferred); include recipe link counts for display.
+            var myListsQ = _context.Lists
                 .Where(l => l.OwnerId == uid)
                 .Include(l => l.ListRecipes)
-                .AsNoTracking()
-                .OrderBy(l => l.Name)
-                .ToListAsync();
+                .AsNoTracking();
 
-            var allLists = await _context.Lists
+            var allListsQ = _context.Lists
                 .Where(l => l.OwnerId == uid || l.Private == false)
                 .Include(l => l.ListRecipes)
-                .AsNoTracking()
-                .OrderBy(l => l.Name)
-                .ToListAsync();
+                .AsNoTracking();
+
+            // Optional title search (applies to both buckets)
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                myListsQ = myListsQ.Where(l => l.Name.Contains(searchString));
+                allListsQ = allListsQ.Where(l => l.Name.Contains(searchString));
+            }
+
+            var myLists = await myListsQ.OrderBy(l => l.Name).ToListAsync();
+            var allLists = await allListsQ.OrderBy(l => l.Name).ToListAsync();
 
             // Logging example required by assignment/narrative.
             _logger.LogInformation(
-                "{Email} navigated to /Views/Lists/Index, loaded {MyCount} my list, loaded {AllCount} all list",
-                myEmail, myLists.Count, allLists.Count);
+                "{Email} navigated to /Views/Lists/Index, loaded {MyCount} my list, loaded {AllCount} all list, search='{Search}'",
+                myEmail, myLists.Count, allLists.Count, searchString ?? string.Empty);
 
             // For the view: map OwnerId -> OwnerEmail so we can display who owns what.
             var ownerIds = myLists.Select(l => l.OwnerId)
@@ -148,6 +155,7 @@ namespace Recipebook.Controllers
                 .ToDictionaryAsync(u => u.Id, u => u.Email);
 
             ViewBag.OwnerEmails = ownerEmails; // simple pass-through container
+            ViewBag.SearchString = searchString; // keep input sticky in the view
 
             // ViewModel tailored for the Index view
             var vm = new ListsIndexVm
@@ -164,7 +172,7 @@ namespace Recipebook.Controllers
         // -------------------------------- DETAILS --------------------------------
         // GET: Lists/Details/5
         // Visibility: allow if the list belongs to the user OR the list is public.
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, int? sortType)
         {
             if (id is null) return NotFound();
 
@@ -184,6 +192,21 @@ namespace Recipebook.Controllers
             {
                 _logger.LogInformation("{Email} navigated to /Views/Lists/Details/{ListId}, not found or not visible", myEmail, id);
                 return NotFound();
+            }
+
+            if (sortType is null)
+            {
+                sortType = 0;
+            }
+
+            switch ((SortType)sortType)
+            {
+                case SortType.AlphabeticalAsc:
+                    list.ListRecipes = list.ListRecipes.OrderBy(l => l.Recipe.Title).ToList();
+                    break;
+                case SortType.AlphabeticalDesc:
+                    list.ListRecipes = list.ListRecipes.OrderByDescending(l => l.Recipe.Title).ToList();
+                    break;
             }
 
             // Look up owner email for display.
