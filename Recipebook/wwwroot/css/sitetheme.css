@@ -12257,47 +12257,47 @@ main {
   min-width: 120px;
 }
 
-.index-page {
+.recipe-index-page {
   display: flex;
   flex-direction: column;
   justify-content: start;
   min-height: 80vh;
   padding: 2rem;
 }
-.index-page .index-header {
+.recipe-index-page .index-header {
   text-align: center;
   margin-bottom: 3rem;
 }
-.index-page .index-header h1, .index-page .index-header .h1 {
+.recipe-index-page .index-header h1, .recipe-index-page .index-header .h1 {
   margin-bottom: 1rem;
 }
-.index-page .index-header p {
+.recipe-index-page .index-header p {
   font-size: 1.1rem;
   color: #3f2d27;
 }
-.index-page .index-header .btn-create {
+.recipe-index-page .index-header .btn-create {
   margin-top: 1rem;
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
 }
-.index-page .index-card {
+.recipe-index-page .index-card {
   padding: 0;
 }
-.index-page .index-card .card-grid {
+.recipe-index-page .index-card .card-grid {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr;
 }
 @media (min-width: 768px) {
-  .index-page .index-card .card-grid {
+  .recipe-index-page .index-card .card-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 @media (min-width: 992px) {
-  .index-page .index-card .card-grid {
+  .recipe-index-page .index-card .card-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-.index-page .index-card .recipe-card {
+.recipe-index-page .index-card .recipe-card {
   position: relative;
   background-color: #a78a7f;
   border: 2px solid #3f2d27;
@@ -12308,11 +12308,11 @@ main {
   justify-content: space-between;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.index-page .index-card .recipe-card:hover {
+.recipe-index-page .index-card .recipe-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.index-page .index-card .recipe-card .card-overlay {
+.recipe-index-page .index-card .recipe-card .card-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -12323,55 +12323,55 @@ main {
   background: transparent;
   border-radius: inherit;
 }
-.index-page .index-card .recipe-card .card-header,
-.index-page .index-card .recipe-card .categories,
-.index-page .index-card .recipe-card .card-text,
-.index-page .index-card .recipe-card .card-footer {
+.recipe-index-page .index-card .recipe-card .card-header,
+.recipe-index-page .index-card .recipe-card .categories,
+.recipe-index-page .index-card .recipe-card .card-text,
+.recipe-index-page .index-card .recipe-card .card-footer {
   position: relative;
   z-index: 2;
   pointer-events: none;
 }
-.index-page .index-card .recipe-card .card-header a,
-.index-page .index-card .recipe-card .categories a,
-.index-page .index-card .recipe-card .card-footer .btn-group a {
+.recipe-index-page .index-card .recipe-card .card-header a,
+.recipe-index-page .index-card .recipe-card .categories a,
+.recipe-index-page .index-card .recipe-card .card-footer .btn-group a {
   pointer-events: auto;
 }
-.index-page .index-card .recipe-card .card-header {
+.recipe-index-page .index-card .recipe-card .card-header {
   display: flex;
   justify-content: space-between;
   align-items: start;
   margin-bottom: 0.5rem;
 }
-.index-page .index-card .recipe-card .card-header .private-badge {
+.recipe-index-page .index-card .recipe-card .card-header .private-badge {
   font-size: 0.8rem;
   padding: 0.35rem 0.5rem;
 }
-.index-page .index-card .recipe-card .card-title {
+.recipe-index-page .index-card .recipe-card .card-title {
   color: #3f2d27;
   font-weight: 700;
   font-size: 1.25rem;
   margin: 0;
 }
-.index-page .index-card .recipe-card .card-text {
+.recipe-index-page .index-card .recipe-card .card-text {
   color: black;
   line-height: 1.5;
   margin-bottom: 0.5rem;
 }
-.index-page .index-card .recipe-card .categories .badge {
+.recipe-index-page .index-card .recipe-card .categories .badge {
   font-size: 0.8rem;
   padding: 0.35rem 0.5rem;
 }
-.index-page .index-card .recipe-card .card-footer {
+.recipe-index-page .index-card .recipe-card .card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 1rem;
 }
-.index-page .index-card .recipe-card .card-footer .btn-group .btn {
+.recipe-index-page .index-card .recipe-card .card-footer .btn-group .btn {
   font-size: 1rem;
   padding: 0.5rem 0.6rem;
 }
-.index-page .index-card .recipe-card .card-footer small a, .index-page .index-card .recipe-card .card-footer .small a {
+.recipe-index-page .index-card .recipe-card .card-footer small a, .recipe-index-page .index-card .recipe-card .card-footer .small a {
   text-decoration: none;
   color: #3f2d27;
 }

@@ -14,6 +14,7 @@ using System;
 using System.Linq;
 using System.Security.Claims; // for ClaimTypes
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -98,6 +99,7 @@ namespace Recipebook.Controllers
         // -------------------------------- CREATE --------------------------------
         // GET: Categories/Create
         // Displays empty form.
+        [Authorize]
         public IActionResult Create()
         {
             _logger.LogInformation("{Who} -> /Categories/Create", Who());
@@ -107,6 +109,7 @@ namespace Recipebook.Controllers
         // POST: Categories/Create
         // Accepts bound Category, stamps OwnerId, saves.
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Category category)
         {
@@ -134,6 +137,7 @@ namespace Recipebook.Controllers
         // ---------------------------------- EDIT --------------------------------
         // GET: Categories/Edit/5
         // Loads category for editing. Only owner can edit.
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -164,6 +168,7 @@ namespace Recipebook.Controllers
         // POST: Categories/Edit/5
         // Updates allowed fields (Name). Owner-only.
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Category category)
         {
@@ -226,6 +231,7 @@ namespace Recipebook.Controllers
         // --------------------------------- DELETE --------------------------------
         // GET: Categories/Delete/5
         // Shows confirmation. Only owner may delete.
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -255,6 +261,7 @@ namespace Recipebook.Controllers
         // POST: Categories/Delete/5
         // Deletes the category row. Only owner may confirm.
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
