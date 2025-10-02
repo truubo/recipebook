@@ -1,36 +1,44 @@
 ﻿@model Recipebook.Models.ViewModels.ListsIndexVm
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @{
     ViewData["Title"] = "Lists";
-    var currentSearch = ViewBag.SearchString as string;
+    var currentSearch = ViewBag.SearchString as string; // keep search value between requests
 }
 
 <h1 class="mb-4">Lists</h1>
 
 <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <!-- Button: Create a new list -->
     <a asp-controller="Lists" asp-action="Create" class="btn btn-success">
         <i class="bi bi-plus-circle"></i> Create New List
     </a>
 
+    <!-- Search bar (GET so it's bookmark/share-friendly) -->
     <form asp-action="Index" method="get" class="d-flex gap-2">
+        <!-- Text search field -->
         <input type="text"
                name="searchString"
-               value="@(currentSearch ?? string.Empty)"
-               class="form-control"
-               placeholder="Search by list name..." />
+               value="@(currentSearch ?? string.Empty)" <!-- preserve typed value -->
+        class="form-control"
+        placeholder="Search by list name..." />
+        <!-- Buttons: run search or clear search -->
         <button type="submit" class="btn btn-primary">Search</button>
         <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
     </form>
 </div>
 
+<!-- Tab navigation: lets user switch between My Lists vs All Lists -->
 <ul class="nav nav-tabs" id="listsTabs" role="tablist">
     <li class="nav-item" role="presentation">
+        <!-- Default active tab = My Lists -->
         <button class="nav-link active" id="my-tab" data-bs-toggle="tab" data-bs-target="#my"
                 type="button" role="tab" aria-controls="my" aria-selected="true">
             My Lists
         </button>
     </li>
     <li class="nav-item" role="presentation">
+        <!-- Secondary tab = All Lists -->
         <button class="nav-link" id="all-tab" data-bs-toggle="tab" data-bs-target="#all"
                 type="button" role="tab" aria-controls="all" aria-selected="false">
             All Lists
@@ -39,33 +47,45 @@
 </ul>
 
 <div class="tab-content pt-3" id="listsTabsContent">
+    <!-- ------------------- MY LISTS TAB ------------------- -->
     <div class="tab-pane fade show active" id="my" role="tabpanel" aria-labelledby="my-tab">
         @if (!Model.MyLists.Any())
         {
+            <!-- If no results in My Lists -->
             <div class="alert alert-warning">No results found.</div>
         }
         else
         {
+            <!-- Card wrapper containing a partial table for My Lists -->
             <div class="card shadow-sm">
                 <div class="card-body p-0">
-                    @await Html.PartialAsync("_ListsTable",
-                             new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.MyLists, Model.MyUserId))
+                    @await Html.PartialAsync(
+                             "_ListsTable",
+                             new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.MyLists, Model.MyUserId)
+                             )
+                    <!-- Note: passing a Tuple with list collection + current user id
+                         so the partial can handle ownership-specific actions -->
                 </div>
             </div>
         }
     </div>
 
+    <!-- ------------------- ALL LISTS TAB ------------------- -->
     <div class="tab-pane fade" id="all" role="tabpanel" aria-labelledby="all-tab">
         @if (!Model.AllLists.Any())
         {
+            <!-- If no results in All Lists -->
             <div class="alert alert-warning">No results found.</div>
         }
         else
         {
+            <!-- Card wrapper containing a partial table for All Lists -->
             <div class="card shadow-sm">
                 <div class="card-body p-0">
-                    @await Html.PartialAsync("_ListsTable",
-                             new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.AllLists, Model.MyUserId))
+                    @await Html.PartialAsync(
+                             "_ListsTable",
+                             new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.AllLists, Model.MyUserId)
+                             )
                 </div>
             </div>
         }

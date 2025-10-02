@@ -50,6 +50,7 @@ namespace Recipebook.Controllers
             "[" + string.Join(", ", names) + "]";
 
         // --------------------------------- INDEX ---------------------------------
+        // --------------------------------- INDEX ---------------------------------
         // GET: Recipes
         // Adds title search + tag (category) filter while preserving logging and author resolution.
         public async Task<IActionResult> Index(string? searchString, int? tagId)
@@ -60,7 +61,7 @@ namespace Recipebook.Controllers
                     .ThenInclude(cr => cr.Category)
                 .AsQueryable();
 
-            // Apply title search (case-insensitive by default SQL collation; adjust if needed)
+            // Apply title search
             if (!string.IsNullOrWhiteSpace(searchString))
             {
                 query = query.Where(r => r.Title.Contains(searchString));
@@ -75,7 +76,7 @@ namespace Recipebook.Controllers
 
             var recipes = await query.ToListAsync();
 
-            // Resolve AuthorEmail for display (same behavior as before; coalesce to empty string)
+            // Resolve AuthorEmail for display
             foreach (var r in recipes)
             {
                 r.AuthorEmail = (await _context.Users
@@ -96,16 +97,18 @@ namespace Recipebook.Controllers
                 who, recipes.Count, searchString ?? string.Empty, tagId?.ToString() ?? "null"
             );
 
-            // Populate dropdown + preserve current filter values for the view's form
+            // ? Populate dropdown AND preserve selection
             ViewBag.TagList = new SelectList(
                 await _context.Category.OrderBy(c => c.Name).ToListAsync(),
-                "Id", "Name"
+                "Id", "Name", tagId
             );
+
             ViewBag.SearchString = searchString;
             ViewBag.TagId = tagId;
 
             return View(recipes);
         }
+
 
 
         // -------------------------------- DETAILS --------------------------------
