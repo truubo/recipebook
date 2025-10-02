@@ -48,19 +48,34 @@ namespace Recipebook.Controllers
         // -------------------------------- INDEX ---------------------------------
         // GET: Categories
         // Shows all categories. Also maps OwnerId -> Email for display.
-        public async Task<IActionResult> Index()
+        // Adds optional search by category name (?searchString=...)
+        public async Task<IActionResult> Index(string? searchString)
         {
-            var categories = await _context.Category.ToListAsync();
+            var query = _context.Category.AsQueryable();
 
-            _logger.LogInformation("{Who} -> /Categories/Index | count={Count}", Who(), categories.Count);
+            // Apply search filter if provided
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                query = query.Where(c => c.Name.Contains(searchString));
+            }
+
+            var categories = await query.ToListAsync();
+
+            _logger.LogInformation("{Who} -> /Categories/Index | count={Count} search='{Search}'",
+                Who(), categories.Count, searchString ?? string.Empty);
 
             // Preload owner emails for view display
+            var ownerIds = categories.Select(c => c.OwnerId).Distinct().ToList();
             ViewBag.OwnerEmails = await _context.Users
-                .Where(u => categories.Select(c => c.OwnerId).Distinct().Contains(u.Id))
+                .Where(u => ownerIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id, u => u.Email);
+
+            // Preserve current search term for sticky input in the view
+            ViewBag.SearchString = searchString;
 
             return View(categories);
         }
+
 
         // ------------------------------- DETAILS --------------------------------
         // GET: Categories/Details/5

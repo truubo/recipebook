@@ -4,18 +4,34 @@
     ViewData["Title"] = "Categories";
     // NEW: lookup from controller: OwnerId -> Email
     var owners = ViewBag.OwnerEmails as System.Collections.Generic.Dictionary<string, string>;
+    var currentSearch = ViewBag.SearchString as string; // NEW
 }
 
 <h1 class="mb-4">Categories</h1>
 
-<div class="mb-3">
+<div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
     @if (User.Identity.IsAuthenticated)
     {
         <a asp-action="Create" class="btn btn-success btn-lg btn-create">
             <i class="bi bi-plus-circle"></i> Create New
         </a>
+
+        <form asp-action="Index" method="get" class="d-flex gap-2">
+            <input type="text"
+                   name="searchString"
+                   value="@(currentSearch ?? string.Empty)"
+                   class="form-control"
+                   placeholder="Search by category name..." />
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+        </form>
     }
 </div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">No results found.</div>
+}
 
 <div class="card shadow-sm">
     <div class="card-body">
