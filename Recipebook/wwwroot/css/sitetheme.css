@@ -11981,6 +11981,25 @@ body {
   cursor: pointer;
 }
 
+.mb-3.d-flex {
+  flex-wrap: wrap;
+}
+.mb-3.d-flex .btn-success,
+.mb-3.d-flex .btn-create {
+  margin-bottom: 0.5rem;
+  margin-left: 0;
+}
+@media (min-width: 768px) {
+  .mb-3.d-flex .btn-success,
+  .mb-3.d-flex .btn-create {
+    margin-left: auto;
+    margin-bottom: 0;
+  }
+}
+.mb-3.d-flex form {
+  flex: 1 1 auto;
+}
+
 .btn-primary {
   background-color: #8c1c13;
   border-color: #8c1c13;
@@ -12134,14 +12153,24 @@ textarea.form-control:focus {
 }
 
 .list-group-item {
-  background-color: #a78a7f;
-  border: 1px solid rgb(113.7777777778, 88, 78.2222222222);
+  background-color: #735751;
+  border: 1px solid black;
   margin-bottom: 0.5rem;
   border-radius: 0.5rem;
   transition: background-color 0.2s;
 }
 .list-group-item:hover {
   background-color: rgb(156.6111111111, 124.1875, 111.8888888889);
+}
+
+.custom-list-item {
+  background-color: #735751;
+  border: 1px solid #3f2d27;
+  color: white;
+}
+.custom-list-item:hover, .custom-list-item:focus {
+  background-color: #e7d7c1;
+  color: black;
 }
 
 .table th,
@@ -12372,6 +12401,197 @@ main {
   padding: 0.5rem 0.6rem;
 }
 .recipe-index-page .index-card .recipe-card .card-footer small a, .recipe-index-page .index-card .recipe-card .card-footer .small a {
+  text-decoration: none;
+  color: #3f2d27;
+}
+
+.category-index-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  min-height: 80vh;
+  padding: 2rem;
+}
+.category-index-page .index-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.category-index-page .index-header h1, .category-index-page .index-header .h1 {
+  margin-bottom: 1rem;
+}
+.category-index-page .index-header p {
+  font-size: 1.1rem;
+  color: #3f2d27;
+}
+.category-index-page .index-header .btn-create {
+  margin-top: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+}
+.category-index-page .category-card-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 768px) {
+  .category-index-page .category-card-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (min-width: 1200px) {
+  .category-index-page .category-card-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+.category-index-page .category-pill-card {
+  position: relative;
+  background-color: #a78a7f;
+  border: 2px solid #3f2d27;
+  border-radius: 50px;
+  padding: 0.2rem 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.category-index-page .category-pill-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+}
+.category-index-page .category-pill-card .card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  text-indent: -9999px;
+  background: transparent;
+  border-radius: inherit;
+}
+.category-index-page .category-pill-card .card-body {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.category-index-page .category-pill-card .card-body .category-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #3f2d27;
+  margin-bottom: 0.25rem;
+}
+.category-index-page .category-pill-card .card-body small, .category-index-page .category-pill-card .card-body .small {
+  font-size: 0.85rem;
+  color: #3f2d27;
+}
+
+.list-index-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  min-height: 80vh;
+  padding: 2rem;
+}
+.list-index-page .index-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.list-index-page .index-header h1, .list-index-page .index-header .h1 {
+  margin-bottom: 0.5rem;
+}
+.list-index-page .index-header p {
+  font-size: 1.1rem;
+  color: #3f2d27;
+}
+.list-index-page .card-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .list-index-page .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 992px) {
+  .list-index-page .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.list-index-page .card-grid .list-card {
+  position: relative;
+  background-color: #a78a7f;
+  border: 2px solid #3f2d27;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.list-index-page .card-grid .list-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.list-index-page .card-grid .list-card .card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  text-indent: -9999px;
+  background: transparent;
+  border-radius: inherit;
+}
+.list-index-page .card-grid .list-card .card-header,
+.list-index-page .card-grid .list-card .card-text,
+.list-index-page .card-grid .list-card .card-footer {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+.list-index-page .card-grid .list-card .card-header a,
+.list-index-page .card-grid .list-card .card-footer .btn-group a {
+  pointer-events: auto;
+}
+.list-index-page .card-grid .list-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 0.5rem;
+}
+.list-index-page .card-grid .list-card .card-header .private-badge {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.5rem;
+}
+.list-index-page .card-grid .list-card .card-title {
+  color: #3f2d27;
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin: 0;
+}
+.list-index-page .card-grid .list-card .card-text {
+  color: black;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+.list-index-page .card-grid .list-card .card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+.list-index-page .card-grid .list-card .card-footer .btn-group .btn {
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+}
+.list-index-page .card-grid .list-card .card-footer small a, .list-index-page .card-grid .list-card .card-footer .small a {
   text-decoration: none;
   color: #3f2d27;
 }

@@ -59,7 +59,10 @@ namespace Recipebook.Controllers
                 query = query.Where(c => c.Name.Contains(searchString));
             }
 
-            var categories = await query.ToListAsync();
+            var categories = await query
+                .Include(c => c.CategoryRecipes)
+                    .ThenInclude(cr => cr.Recipe)
+                .ToListAsync();
 
             _logger.LogInformation("{Who} -> /Categories/Index | count={Count} search='{Search}'",
                 Who(), categories.Count, searchString ?? string.Empty);
@@ -104,6 +107,13 @@ namespace Recipebook.Controllers
                 .Select(cr => cr.Recipe?.Title)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
                 .ToList();
+
+            var ownerEmail = await _context.Users
+                .Where(u => u.Id == category.OwnerId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            ViewBag.OwnerEmail = ownerEmail;
 
             _logger.LogInformation("{Who} -> /Categories/Details/{Id} '{Name}' | recipes={Count} [{Titles}]",
                 Who(), category.Id, category.Name, recipeTitles.Count, string.Join(", ", recipeTitles));

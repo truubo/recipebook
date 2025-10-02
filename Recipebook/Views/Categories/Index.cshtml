@@ -2,21 +2,24 @@
 
 @{
     ViewData["Title"] = "Categories";
-    // NEW: lookup from controller: OwnerId -> Email
-    var owners = ViewBag.OwnerEmails as System.Collections.Generic.Dictionary<string, string>;
-    var currentSearch = ViewBag.SearchString as string; // NEW
+    var currentSearch = ViewBag.SearchString as string;
 }
 
-<h1 class="mb-4">Categories</h1>
+<div class="container category-index-page">
+    <div class="index-header">
+        <h1>Categories</h1>
+        <p class="lead text-muted">Browse readily available categories or create your own!</p>
+    </div>
 
-<div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-    @if (User.Identity.IsAuthenticated)
-    {
-        <a asp-action="Create" class="btn btn-success btn-lg btn-create">
-            <i class="bi bi-plus-circle"></i> Create New
-        </a>
+    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-action="Create" class="btn btn-success btn-create">
+                <i class="bi bi-plus-circle"></i> Create
+            </a>
+        }
 
-        <form asp-action="Index" method="get" class="d-flex gap-2">
+        <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
             <input type="text"
                    name="searchString"
                    value="@(currentSearch ?? string.Empty)"
@@ -25,48 +28,31 @@
             <button type="submit" class="btn btn-primary">Search</button>
             <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
         </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-brown">No results found.</div>
     }
-</div>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-warning">No results found.</div>
-}
+    <div class="category-card-grid">
+        @foreach (var item in Model)
+        {
+            <div class="category-pill-card">
+                <a asp-action="Details" asp-route-id="@item.Id" class="card-overlay">View Details</a>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <table class="table table-hover align-middle">
-            <thead class="table">
-                <tr>
-                    <th>@Html.DisplayNameFor(model => model.Name)</th>
-                    <th>Author</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr onclick="location.href='@Url.Action("Details", new { id = item.Id })'" style="cursor:pointer;">
-                        <td>
-                            <strong>@item.Name</strong>
-                        </td>
-                        <td class="text-muted">
-                            @(owners?.GetValueOrDefault(item.OwnerId) ?? "(unknown)")
-                        </td>
-                        <td class="text-end">
-                            <div class="btn-group" role="group">
-                                @if (User.Identity.IsAuthenticated && item.OwnerId == User.Identity.Name)
-                                {
-                                    <div class="btn-group">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
-                                    </div>
-                                }
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                <div class="card-body">
+                    <h5 class="category-name">@item.Name</h5>
+                    <small class="text-muted">
+                        @{
+                            var count = item.CategoryRecipes?.Count() ?? 0;
+                        }
+                        <small class="text-muted">
+                            @count @((count == 1) ? "recipe" : "recipes")
+                        </small>
+                    </small>
+                </div>
+            </div>
+        }
     </div>
 </div>

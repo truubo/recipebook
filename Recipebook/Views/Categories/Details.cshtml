@@ -1,8 +1,10 @@
 ﻿@model Recipebook.Models.Category
 @using System.Security.Claims
-
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Category Details";
+    var ownerEmail = ViewBag.OwnerEmail as string;
+    var itemCount = Model.CategoryRecipes?.Count() ?? 0;
 }
 
 <div class="details-page position-relative">
@@ -13,7 +15,7 @@
         </a>
 
         <div class="d-flex gap-2">
-            @if (User.Identity.IsAuthenticated && Model?.OwnerId == User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier))
+            @if (User.Identity.IsAuthenticated && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
                     <i class="bi bi-pencil-square"></i>
@@ -26,28 +28,58 @@
     </div>
 
     <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Html.DisplayFor(model => model.Name)</h1>
+        <h1 class="recipe-title">@Model.Name</h1>
+
+        <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
+            <div>
+                <span class="fw-bold">Recipes:</span> @itemCount
+            </div>
+        </div>
+
+        <div class="author d-flex justify-content-center align-items-center gap-2 mt-3">
+            <span>
+                Category created by <a href="mailto:@ownerEmail">@ownerEmail</a>
+            </span>
+        </div>
     </div>
 
     <div class="details-body mt-4">
-        <h4 class="section-title mt-4 d-flex align-items-center gap-2">
-            Recipes in this Category
-            <span class="badge bg-brown">
-                @(Model.CategoryRecipes?.Count() ?? 0)
-            </span>
-        </h4>
+        <h4 class="section-title mt-4">Recipes in this Category</h4>
 
         @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
         {
             <ul class="list-group">
                 @foreach (var cr in Model.CategoryRecipes)
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        @cr.Recipe.Title
-                        <a asp-controller="Recipes" asp-action="Details" asp-route-id="@cr.Recipe.Id" class="btn btn-sm btn-brown">
-                            View
+                    if (cr.Recipe != null)
+                    {
+                        <a asp-controller="Recipes"
+                           asp-action="Details"
+                           asp-route-id="@cr.Recipe.Id"
+                           class="list-group-item my-1 text-decoration-none custom-list-item">
+
+                            <div>
+                                <strong>@cr.Recipe.Title</strong>
+                                <p class="mb-0 small">
+                                    @{
+                                        var desc = cr.Recipe.Description ?? "";
+                                        if (string.IsNullOrWhiteSpace(desc))
+                                        {
+                                            @: <span class="fst-italic">No description available.</span>
+                                        }
+                                        else
+                                        {
+                                            if (desc.Length > 100)
+                                            {
+                                                desc = desc.Substring(0, 100) + "...";
+                                            }
+                                            @desc
+                                        }
+                                    }
+                                </p>
+                            </div>
                         </a>
-                    </li>
+                    }
                 }
             </ul>
         }

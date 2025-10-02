@@ -9,19 +9,19 @@
 <div class="container recipe-index-page">
     <div class="index-header">
         <h1>Recipes</h1>
-        <p class="lead text-muted">Browse, create, or edit your favorite recipes.</p>
+        <p class="lead text-muted">Browse, create, or edit your favorite recipes!</p>
     </div>
 
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         @if (User.Identity.IsAuthenticated)
         {
             <a asp-action="Create" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Create New
+                <i class="bi bi-plus-circle"></i> Create
             </a>
         }
 
         <!-- Search + Tag Filter -->
-        <form asp-action="Index" method="get" class="d-flex gap-2">
+        <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
             <input type="text"
                    name="searchString"
                    value="@(currentSearch ?? string.Empty)"
@@ -39,7 +39,7 @@
 
     @if (!Model.Any())
     {
-        <div class="alert alert-warning">No results found.</div>
+        <div class="alert alert-brown">No results found.</div>
     }
 
     <div class="index-card">
