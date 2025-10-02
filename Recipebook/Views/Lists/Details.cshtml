@@ -37,17 +37,24 @@
 
         @if (Model.ListRecipes != null && Model.ListRecipes.Any())
         {
+            <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()">
+                <!--<option value="1">Sort by A-Z</option>
+                <option value="2">Sort by Z-A</option>-->
+            </select>
             <ul class="list-group">
                 @foreach (var lr in Model.ListRecipes)
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>@lr.Recipe?.Title</strong>
+                            <li class="list-group-item d-flex justify-content-between align-items-center my-1" style="border: 1px solid #ccc;background: linear-gradient(90deg, #fff 0%, #fff 50%, #fff0 75%, #fff0 100%), url(/img/food.jpg);background-repeat: no-repeat;background-size: 100%;background-position-y: 50%;">
+                        <div id="info">
+                            <strong>@lr.Recipe?.Title</strong>
+                            <p>@lr.Recipe?.Description</p>
+                        </div>
                         @if (lr.Recipe != null)
                         {
                             <a asp-controller="Recipes"
                                asp-action="Details"
                                asp-route-id="@lr.Recipe.Id"
-                               class="btn btn-sm btn-outline-primary">
+                               class="btn btn-sm btn-primary">
                                 View
                             </a>
                         }
@@ -70,3 +77,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    const sortSelect = document.querySelector("#sortSelect");
+    if (sortSelect) {
+        sortSelect.addEventListener("change", function () {
+            window.location.href = `?sortType=${this.value}`
+        })
+        sortSelect.querySelectorAll("option").forEach(item => {
+            if (item.value == new URLSearchParams(window.location.search).get("sortType")) {
+                item.selected = true
+            }
+        })
+    }
+</script>
