@@ -4,8 +4,28 @@
     ViewData["Title"] = "Recipe Details";
 }
 
-<div class="details-page">
-    <div class="details-header text-center">
+<div class="details-page position-relative">
+
+    <div class="details-actions-top d-flex justify-content-between w-100">
+        <a asp-action="Index" class="btn btn-brown">
+            <i class="bi bi-arrow-left-circle"></i>
+        </a>
+
+        <div class="d-flex gap-2">
+            @if (User.Identity.IsAuthenticated &&
+                        (User.Identity.Name == (string)ViewData["AuthorEmail"]))
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">
+                    <i class="bi bi-trash"></i>
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
 
         <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
@@ -53,19 +73,4 @@
         <h4 class="section-title mt-4">Directions</h4>
         <p>@Html.DisplayFor(model => model.Directions)</p>
     </div>
-
-    <div class="details-actions d-flex gap-3 mt-4">
-        @if (User.Identity.IsAuthenticated &&
-                (User.Identity.Name == (string)ViewData["AuthorEmail"]))
-        {
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
-                <i class="bi bi-pencil-square"></i> Edit
-            </a>
-        }
-
-        <a asp-action="Index" class="btn btn-brown">
-            <i class="bi bi-arrow-left-circle"></i> Back
-        </a>
-    </div>
-
 </div>

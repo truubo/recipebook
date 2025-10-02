@@ -20,7 +20,7 @@
             <thead class="table">
                 <tr>
                     <th>@Html.DisplayNameFor(model => model.Name)</th>
-                    <th>Author</th> <!-- NEW -->
+                    <th>Author</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -32,17 +32,17 @@
                             <strong>@item.Name</strong>
                         </td>
                         <td class="text-muted">
-                            <!-- NEW -->
                             @(owners?.GetValueOrDefault(item.OwnerId) ?? "(unknown)")
                         </td>
                         <td class="text-end">
                             <div class="btn-group" role="group">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
-                                    Edit
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
-                                    Delete
-                                </a>
+                                @if (User.Identity.IsAuthenticated && item.OwnerId == User.Identity.Name)
+                                {
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                                    </div>
+                                }
                             </div>
                         </td>
                     </tr>

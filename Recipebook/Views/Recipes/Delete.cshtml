@@ -28,9 +28,6 @@
                     }
                 </dd>
 
-                <dt class="col-sm-4 text-muted">Directions</dt>
-                <dd class="col-sm-8">@Model.Directions</dd>
-
                 <dt class="col-sm-4 text-muted">Categories</dt>
                 <dd class="col-sm-8">
                     @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
@@ -54,9 +51,6 @@
                         @(Model.Private ? "Private" : "Public")
                     </span>
                 </dd>
-
-                <dt class="col-sm-4 text-muted">Author ID</dt>
-                <dd class="col-sm-8">@Model.AuthorId</dd>
             </dl>
 
             <form asp-action="Delete" class="delete-actions">

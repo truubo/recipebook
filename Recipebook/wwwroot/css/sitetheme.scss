@@ -64,81 +64,6 @@ body {
 }
 
 // ------------------------------
-// Cards
-// ------------------------------
-.card {
-    background: linear-gradient(to bottom, $light-brown 0%, lighten($light-brown, 3%) 100%);
-    color: black;
-    border-radius: 0.75rem;
-    border: none;
-    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    transition: transform 0.2s, box-shadow 0.2s;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
-    }
-}
-
-// ------------------------------
-// Tables
-// ------------------------------
-.table {
-    width: 100%;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    background-color: $light-brown !important;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-bottom: 1rem;
-    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.05);
-
-    thead {
-        background-color: darken($light-brown, 8%) !important;
-        color: white !important;
-        font-weight: 600;
-    }
-
-    th,
-    td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid darken($light-brown, 15%);
-        vertical-align: middle;
-        background-color: $light-brown !important;
-        color: black;
-        transition: background-color 0.2s;
-    }
-
-    tbody tr:hover {
-        background-color: darken($light-brown, 6%) !important;
-        cursor: pointer;
-    }
-}
-
-// ------------------------------
-// Headers / Footers
-// ------------------------------
-.header,
-.footer {
-    background-color: $red;
-    color: white !important;
-    padding: 1rem 2rem;
-
-    a {
-        color: white !important;
-        text-decoration: none;
-
-        &:hover,
-        &:focus {
-            color: $light-red;
-            text-decoration: underline;
-        }
-    }
-}
-
-// ------------------------------
 // Navbar
 // ------------------------------
 .navbar {
@@ -195,6 +120,81 @@ body {
 }
 
 // ------------------------------
+// Headers / Footers
+// ------------------------------
+.header,
+.footer {
+    background-color: $red;
+    color: white !important;
+    padding: 1rem 2rem;
+
+    a {
+        color: white !important;
+        text-decoration: none;
+
+        &:hover,
+        &:focus {
+            color: $light-red;
+            text-decoration: underline;
+        }
+    }
+}
+
+// ------------------------------
+// Cards
+// ------------------------------
+.card {
+    background: linear-gradient(to bottom, $light-brown 0%, lighten($light-brown, 3%) 100%);
+    color: black;
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+    }
+}
+
+// ------------------------------
+// Tables
+// ------------------------------
+.table {
+    width: 100%;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: $light-brown !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.05);
+
+    thead {
+        background-color: darken($light-brown, 8%) !important;
+        color: white !important;
+        font-weight: 600;
+    }
+
+    th,
+    td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid darken($light-brown, 15%);
+        vertical-align: middle;
+        background-color: $light-brown !important;
+        color: black;
+        transition: background-color 0.2s;
+    }
+
+    tbody tr:hover {
+        background-color: darken($light-brown, 6%) !important;
+        cursor: pointer;
+    }
+}
+
+// ------------------------------
 // Buttons
 // ------------------------------
 .btn-primary {
@@ -236,6 +236,25 @@ body {
 // ------------------------------
 .accent {
     color: $light-red;
+}
+
+// ------------------------------
+// Form inputs / selects / textareas
+// ------------------------------
+input.form-control,
+select.form-select,
+textarea.form-control {
+    background-color: $beige;
+    border: 1px solid darken($light-brown, 20%);
+    border-radius: 0.5rem;
+    color: black;
+
+    &:focus {
+        background-color: $beige;
+        border-color: $red;
+        box-shadow: 0 0 0 0.2rem rgba($red, 0.25);
+        color: black;
+    }
 }
 
 // ------------------------------
@@ -409,7 +428,7 @@ main {
 }
 
 // ------------------------------
-// Index Page Styling
+// Recipe Index Page Styling
 // ------------------------------
 .index-page {
     display: flex;
@@ -443,12 +462,15 @@ main {
         .card-grid {
             display: grid;
             gap: 1.5rem;
+
             // mobile
             grid-template-columns: 1fr;
+
             // tablet
             @media (min-width: 768px) {
                 grid-template-columns: repeat(2, 1fr);
             }
+
             // desktop
             @media (min-width: 992px) {
                 grid-template-columns: repeat(3, 1fr);
@@ -470,7 +492,7 @@ main {
                 transform: translateY(-5px);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             }
-            // Full-card clickable overlay
+
             .card-overlay {
                 position: absolute;
                 top: 0;
@@ -478,11 +500,11 @@ main {
                 width: 100%;
                 height: 100%;
                 z-index: 1;
-                text-indent: -9999px; // hide text
+                text-indent: -9999px;
                 background: transparent;
-                border-radius: inherit; // match card corners
+                border-radius: inherit;
             }
-            // Content sits above overlay
+
             .card-header,
             .categories,
             .card-text,
@@ -491,7 +513,7 @@ main {
                 z-index: 2;
                 pointer-events: none; // allow overlay to catch clicks
             }
-            // Re-enable pointer events for interactive elements
+
             .card-header a,
             .categories a,
             .card-footer .btn-group a {

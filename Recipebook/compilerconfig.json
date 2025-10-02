@@ -6,5 +6,21 @@
   {
     "outputFile": "wwwroot/css/sitetheme.css",
     "inputFile": "wwwroot/css/sitetheme.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/delete.css",
+    "inputFile": "wwwroot/css/delete.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/createEdit.css",
+    "inputFile": "wwwroot/css/createEdit.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/details.css",
+    "inputFile": "wwwroot/css/details.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/index.css",
+    "inputFile": "wwwroot/css/index.scss"
   }
 ]

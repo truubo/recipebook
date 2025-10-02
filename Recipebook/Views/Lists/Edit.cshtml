@@ -4,56 +4,54 @@
     ViewData["Title"] = "Edit List";
 }
 
-<h2 class="mb-4">Edit List</h2>
+<div class="recipe-form-page">
+    <h1>Edit List</h1>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="List.Id" />
+    <div class="card shadow-sm recipe-form-card">
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="List.Id" />
 
-            <!-- List Name -->
-            <div class="mb-3">
-                <label asp-for="List.Name" class="form-label fw-bold"></label>
-                <input asp-for="List.Name" class="form-control" />
-                <span asp-validation-for="List.Name" class="text-danger"></span>
-            </div>
+                <div class="mb-3">
+                    <label asp-for="List.Name" class="form-label fw-bold"></label>
+                    <input asp-for="List.Name" class="form-control" />
+                    <span asp-validation-for="List.Name" class="text-danger"></span>
+                </div>
 
-            <!-- List Type -->
-            <div class="mb-3">
-                <label asp-for="List.ListType" class="form-label fw-bold"></label>
-                <select asp-for="List.ListType" class="form-select"
-                        asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"></select>
-                <span asp-validation-for="List.ListType" class="text-danger"></span>
-            </div>
+                <div class="mb-3">
+                    <label asp-for="List.ListType" class="form-label fw-bold"></label>
+                    <select asp-for="List.ListType" class="form-control"
+                            asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"></select>
+                    <span asp-validation-for="List.ListType" class="text-danger"></span>
+                </div>
 
-            <!-- Privacy -->
-            <div class="form-check mb-3">
-                <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
-                <label asp-for="List.Private" class="form-check-label" for="PrivateCheck"></label>
-            </div>
+                <div class="form-check mb-3">
+                    <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
+                    <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck"></label>
+                </div>
 
-            <!-- Recipes Multi-select -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">Recipes</label>
-                <select asp-for="SelectedRecipeIds" class="form-select" multiple size="10"
-                        asp-items="Model.RecipeChoices"></select>
-                <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
-                <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Recipes</label>
+                    <select asp-for="SelectedRecipeIds" class="form-control" multiple size="10"
+                            asp-items="Model.RecipeChoices"></select>
+                    <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
+                    <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
+                </div>
 
-            <!-- Form Actions -->
-            <div class="d-flex gap-2 mt-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Save
-                </button>
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancel
-                </a>
-            </div>
-        </form>
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-save"></i> Update
+                    </button>
+                    <a asp-action="Index" class="btn btn-brown btn-lg">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }

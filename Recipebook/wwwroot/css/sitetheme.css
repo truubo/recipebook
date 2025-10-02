@@ -11865,68 +11865,6 @@ body {
   font-family: "Segoe UI", Roboto, sans-serif;
 }
 
-.card {
-  background: linear-gradient(to bottom, #a78a7f 0%, rgb(173.2333333333, 146.2875, 136.0666666667) 100%);
-  color: black;
-  border-radius: 0.75rem;
-  border: none;
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
-}
-
-.table {
-  width: 100%;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background-color: #a78a7f !important;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-bottom: 1rem;
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
-}
-.table thead {
-  background-color: rgb(150.0444444444, 116.05, 103.1555555556) !important;
-  color: white !important;
-  font-weight: 600;
-}
-.table th,
-.table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgb(128.8888888889, 99.6875, 88.6111111111);
-  vertical-align: middle;
-  background-color: #a78a7f !important;
-  color: black;
-  transition: background-color 0.2s;
-}
-.table tbody tr:hover {
-  background-color: rgb(154.5333333333, 121.425, 108.8666666667) !important;
-  cursor: pointer;
-}
-
-.header,
-.footer {
-  background-color: #8c1c13;
-  color: white !important;
-  padding: 1rem 2rem;
-}
-.header a,
-.footer a {
-  color: white !important;
-  text-decoration: none;
-}
-.header a:hover, .header a:focus,
-.footer a:hover,
-.footer a:focus {
-  color: #bf4342;
-  text-decoration: underline;
-}
-
 .navbar {
   background-color: #8c1c13 !important;
   color: white !important;
@@ -11979,6 +11917,68 @@ body {
 }
 .navbar .btn:hover, .navbar .btn:focus, .navbar .btn:active {
   color: white !important;
+}
+
+.header,
+.footer {
+  background-color: #8c1c13;
+  color: white !important;
+  padding: 1rem 2rem;
+}
+.header a,
+.footer a {
+  color: white !important;
+  text-decoration: none;
+}
+.header a:hover, .header a:focus,
+.footer a:hover,
+.footer a:focus {
+  color: #bf4342;
+  text-decoration: underline;
+}
+
+.card {
+  background: linear-gradient(to bottom, #a78a7f 0%, rgb(173.2333333333, 146.2875, 136.0666666667) 100%);
+  color: black;
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+}
+
+.table {
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #a78a7f !important;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+.table thead {
+  background-color: rgb(150.0444444444, 116.05, 103.1555555556) !important;
+  color: white !important;
+  font-weight: 600;
+}
+.table th,
+.table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgb(128.8888888889, 99.6875, 88.6111111111);
+  vertical-align: middle;
+  background-color: #a78a7f !important;
+  color: black;
+  transition: background-color 0.2s;
+}
+.table tbody tr:hover {
+  background-color: rgb(154.5333333333, 121.425, 108.8666666667) !important;
+  cursor: pointer;
 }
 
 .btn-primary {
@@ -12074,6 +12074,23 @@ body {
 
 .accent {
   color: #bf4342;
+}
+
+input.form-control,
+select.form-select,
+textarea.form-control {
+  background-color: #e7d7c1;
+  border: 1px solid rgb(113.7777777778, 88, 78.2222222222);
+  border-radius: 0.5rem;
+  color: black;
+}
+input.form-control:focus,
+select.form-select:focus,
+textarea.form-control:focus {
+  background-color: #e7d7c1;
+  border-color: #8c1c13;
+  box-shadow: 0 0 0 0.2rem rgba(140, 28, 19, 0.25);
+  color: black;
 }
 
 .badge {

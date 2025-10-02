@@ -1,42 +1,40 @@
 ﻿@model Recipebook.Models.Category
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Category Details";
 }
 
-<h1 class="mb-4">Category Details</h1>
+<div class="details-page position-relative">
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <dl class="row mb-4">
-            <dt class="col-sm-3 fw-bold">
-                @Html.DisplayNameFor(model => model.Name)
-            </dt>
-            <dd class="col-sm-9">
-                @Html.DisplayFor(model => model.Name)
-            </dd>
-        </dl>
+    <div class="details-actions-top d-flex justify-content-between w-100">
+        <a asp-action="Index" class="btn btn-brown">
+            <i class="bi bi-arrow-left-circle"></i>
+        </a>
 
         <div class="d-flex gap-2">
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
-            <a asp-action="Index" class="btn btn-brown">
-                Back to List
-            </a>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">
+                    <i class="bi bi-trash"></i>
+                </a>
+            }
         </div>
     </div>
-</div>
 
-<!-- Recipes Section -->
-<div class="card shadow-sm">
-    <div class="card-body">
-        <h3 class="mb-3">
+    <div class="details-header text-center mt-5">
+        <h1 class="recipe-title">@Html.DisplayFor(model => model.Name)</h1>
+    </div>
+
+    <div class="details-body mt-4">
+        <h4 class="section-title mt-4 d-flex align-items-center gap-2">
             Recipes in this Category
             <span class="badge bg-brown">
                 @(Model.CategoryRecipes?.Count() ?? 0)
             </span>
-        </h3>
+        </h4>
 
         @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
         {
