@@ -127,7 +127,8 @@ namespace Recipebook.Controllers
         [Authorize]
         public IActionResult Create()
         {
-            _logger.LogInformation("{Who} -> /Categories/Create", Who());
+            
+
             return View();
         }
 
