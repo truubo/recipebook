@@ -297,6 +297,7 @@ textarea.form-control {
 .badge.bg-info {
     background-color: $dark-brown !important;
     color: white !important;
+    margin-top: 4px;
 }
 
 // Public / Private
@@ -696,6 +697,96 @@ main {
             small {
                 font-size: 0.85rem;
                 color: $dark-brown;
+            }
+        }
+    }
+}
+
+// ------------------------------
+// Ingredient Index Styling
+// ------------------------------
+.ingredient-index-page {
+
+    .ingredient-card-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(2, 1fr);
+
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (min-width: 1200px) {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    .ingredient-pill-card {
+        background-color: $light-brown;
+        border: 2px solid $dark-brown;
+        border-radius: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        height: 60px;
+        padding: 0.2rem 0.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.15s, box-shadow 0.15s;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            padding-bottom: 4px; // move ingredient name up slightly
+
+            .ingredient-name {
+                font-weight: 600;
+                font-size: 0.95rem;
+                color: $dark-brown;
+                margin-bottom: 0.1rem;
+            }
+        }
+
+        .btn-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            height: 20%;
+            min-height: 4px;
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            overflow: hidden;
+
+            .btn {
+                flex: 1 1 50%;
+                font-size: 0.75rem;
+                padding: 1px 0; // move button text up slightly without shrinking button
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .btn-primary {
+                border-right: 1px solid $dark-brown;
+            }
+
+            .btn-danger {
+                border-left: 0;
             }
         }
     }

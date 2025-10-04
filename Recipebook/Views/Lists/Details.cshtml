@@ -29,13 +29,7 @@
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Model.Name</h1>
 
-        <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
-            <div>
-                <span class="fw-bold">@Model.ListType:</span> @itemCount
-            </div>
-        </div>
-
-        <div class="author d-flex justify-content-center align-items-center gap-2 mt-3">
+        <div class="author d-flex justify-content-center align-items-center gap-2">
             <span>
                 List created by <a href="mailto:@ownerEmail">@ownerEmail</a>
             </span>
@@ -46,13 +40,18 @@
     </div>
 
     <div class="details-body mt-4">
-        <h4 class="section-title mt-4">@Model.ListType</h4>
-
         @if (Model.ListRecipes != null && Model.ListRecipes.Any())
         {
-            <div class="mb-3">
-                <label for="sortSelect" class="form-label fw-bold">Sort by:</label>
-                <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()" class="form-select w-auto d-inline-block"></select>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="section-title mb-0">
+                    @Model.ListType
+                    <span class="badge bg-success text-white">@itemCount</span>
+                </h4>
+
+                <div>
+                    <label for="sortSelect" class="form-label fw-bold me-2 mb-0">Sort by:</label>
+                    <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()" class="form-select d-inline-block w-auto"></select>
+                </div>
             </div>
 
             <ul class="list-group">

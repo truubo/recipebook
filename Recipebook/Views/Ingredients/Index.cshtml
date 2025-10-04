@@ -1,35 +1,57 @@
 ﻿@model IEnumerable<Recipebook.Models.Ingredient>
+@using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Ingredients";
+    var currentSearch = ViewBag.SearchString as string;
 }
 
-<h1>Index</h1>
+<div class="container ingredient-index-page">
+    <div class="index-header">
+        <h1>Ingredients</h1>
+        <p class="lead text-muted">Browse ingredients or create your own!</p>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-action="Create" class="btn btn-success btn-create">
+                <i class="bi bi-plus-circle"></i> Create
+            </a>
+        }
+
+        <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
+            <input type="text"
+                   name="searchString"
+                   value="@(currentSearch ?? string.Empty)"
+                   class="form-control"
+                   placeholder="Search by ingredient name..." />
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+        </form>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-brown">No ingredients found.</div>
+    }
+
+    <div class="ingredient-card-grid">
+        @foreach (var item in Model)
+        {
+            <div class="ingredient-pill-card">
+                <div class="card-body">
+                    <h5 class="ingredient-name">@item.Name</h5>
+
+                    @if (User.Identity.IsAuthenticated && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+                    {
+                        <div class="btn-container">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

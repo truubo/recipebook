@@ -30,13 +30,7 @@
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Model.Name</h1>
 
-        <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
-            <div>
-                <span class="fw-bold">Recipes:</span> @itemCount
-            </div>
-        </div>
-
-        <div class="author d-flex justify-content-center align-items-center gap-2 mt-3">
+        <div class="author d-flex justify-content-center align-items-center gap-2">
             <span>
                 Category created by <a href="mailto:@ownerEmail">@ownerEmail</a>
             </span>
@@ -44,7 +38,10 @@
     </div>
 
     <div class="details-body mt-4">
-        <h4 class="section-title mt-4">Recipes in this Category</h4>
+        <h4 class="section-title mt-4">
+            Recipes in this Category
+            <span class="badge bg-success text-white">@itemCount</span>
+        </h4>
 
         @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
         {

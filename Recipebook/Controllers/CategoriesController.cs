@@ -127,8 +127,6 @@ namespace Recipebook.Controllers
         [Authorize]
         public IActionResult Create()
         {
-            
-
             return View();
         }
 

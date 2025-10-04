@@ -12,10 +12,7 @@
 
     <div class="card delete-card">
         <div class="card-body">
-            <dl class="row mb-4">
-                <dt class="col-sm-4 text-muted">Category</dt>
-                <dd class="col-sm-8"><strong>@Model.Name</strong></dd>
-            </dl>
+            <p class="col-sm-auto text-center"><strong>@Model.Name</strong></p>
 
             <form asp-action="Delete" class="delete-actions">
                 <input type="hidden" asp-for="Id" />
