@@ -13,11 +13,6 @@
 //     happens here for now (could be moved to a service later to follow SRP).
 // ----------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -25,7 +20,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
+using Recipebook.Models.ViewModels;
 using Recipebook.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using static Recipebook.Services.CustomFormValidation;
 
 namespace Recipebook.Controllers
@@ -49,7 +50,6 @@ namespace Recipebook.Controllers
         private static string JoinNames(IEnumerable<string> names) =>
             "[" + string.Join(", ", names) + "]";
 
-        // --------------------------------- INDEX ---------------------------------
         // --------------------------------- INDEX ---------------------------------
         // GET: Recipes
         // Adds title search + tag (category) filter while preserving logging and author resolution.
@@ -126,6 +126,8 @@ namespace Recipebook.Controllers
             var recipe = await _context.Recipe
                 .Include(r => r.CategoryRecipes)
                     .ThenInclude(cr => cr.Category)
+                .Include(r => r.IngredientRecipes)       // <-- Include ingredients
+                    .ThenInclude(ir => ir.Ingredient)   // <-- Include ingredient details
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (recipe == null)
@@ -163,223 +165,297 @@ namespace Recipebook.Controllers
 
         // -------------------------------- CREATE ---------------------------------
         // GET: Recipes/Create
-        // Shows the blank form. Requires authentication.
         [Authorize]
         public IActionResult Create()
         {
-            // Populate the category multiselect (none preselected on GET)
-            ViewBag.AllCategories = new MultiSelectList(_context.Category, "Id", "Name");
-
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var who = uid ?? "anonymous";
             _logger.LogInformation("{Who} -> /Recipes/Create", who);
 
-            return View();
+            var vm = new RecipeCreateEditVm();
+
+            // Populate categories for multi-select
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name");
+
+            // Populate ingredients for dropdowns
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+
+            return View(vm);
         }
 
         // POST: Recipes/Create
-        // Accepts bound Recipe and array of selected category IDs. Creates the recipe
-        // then creates join rows in CategoryRecipe for any selections.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create(Recipe recipe, int[] selectedCategories)
+        public async Task<IActionResult> Create(RecipeCreateEditVm vm)
         {
-            // Stamp the author from the signed-in user. Fallback "" avoids null assignment.
-            recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            // --------------------- PREP: stamp author + normalize ---------------------
+            vm.Recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-            if (FormValid(ModelState))
+            if (string.IsNullOrWhiteSpace(vm.Recipe.AuthorId))
             {
-                try
-                {
-                    // 1) Insert the recipe so we have its generated Id
-                    _context.Add(recipe);
-                    await _context.SaveChangesAsync();
-
-                    // 2) Add join rows for any selected categories
-                    if (selectedCategories != null && selectedCategories.Length > 0)
-                    {
-                        foreach (var catId in selectedCategories)
-                        {
-                            _context.CategoryRecipes.Add(new CategoryRecipe
-                            {
-                                RecipeId = recipe.Id,
-                                CategoryId = catId
-                            });
-                        }
-                        await _context.SaveChangesAsync();
-                    }
-
-                    // For logging: resolve category names for a readable summary
-                    var catNames = (selectedCategories ?? Array.Empty<int>())
-                        .Distinct()
-                        .Join(_context.Category, id => id, c => c.Id, (id, c) => c.Name!)
-                        .ToList();
-
-                    var uid = recipe.AuthorId;
-                    var who = (await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync()) ?? uid;
-
-                    _logger.LogInformation(
-                        "{Who} created recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories}",
-                        who, recipe.Title, recipe.Id, recipe.Private, catNames.Count, JoinNames(catNames));
-
-                    TempData["Success"] = "Recipe created successfully.";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (Exception ex)
-                {
-                    // Log the exception (message + stack) but show a friendly alert to users
-                    _logger.LogError(ex, "Error creating recipe by user {UserId}.", recipe.AuthorId);
-                    TempData["Error"] = "An error occurred while creating the recipe.";
-                }
+                // Shouldn't happen due to [Authorize], but guard just in case
+                ModelState.AddModelError("", "You must be signed in to create a recipe.");
             }
 
-            // If validation fails or an exception occurred, we must re-populate the multiselect
-            ViewBag.AllCategories = new MultiSelectList(_context.Category, "Id", "Name", selectedCategories);
-            return View(recipe);
+            // Remove any blank ingredient rows (e.g., placeholder UI rows)
+            vm.Ingredients ??= new List<IngredientSelectViewModel>();
+            vm.Ingredients = vm.Ingredients.Where(i => i.IngredientId > 0).ToList();
+
+            // Re-validate AFTER cleaning the collection so ModelState isn't poisoned
+            ModelState.Clear();
+            TryValidateModel(vm);
+
+            // Custom form validation (keep your existing checks)
+            var formOk = FormValid(ModelState) && ModelState.IsValid;
+
+            if (!formOk)
+            {
+                // Dump precise reasons to the log to see what's blocking the post
+                var errors = ModelState
+                    .Where(kvp => kvp.Value?.Errors.Count > 0)
+                    .Select(kvp => $"{kvp.Key} => {string.Join(" | ", kvp.Value!.Errors.Select(e => e.ErrorMessage))}")
+                    .ToList();
+
+                _logger.LogWarning("Recipe Create blocked. Errors: {Errors}", string.Join("; ", errors));
+
+                // Re-populate dropdowns and return form
+                ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+                ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+                return View(vm);
+            }
+
+            // -------------------------- HAPPY PATH: save all --------------------------
+            // Use a transaction so Recipe + CategoryRecipe + IngredientRecipe are atomic
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1) Save the recipe to get its generated Id
+                _context.Add(vm.Recipe);
+
+                // Optional: quick visibility into what EF plans to write
+                var pending1 = _context.ChangeTracker.Entries()
+                    .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+                    .Select(e => $"{e.Entity.GetType().Name}:{e.State}")
+                    .ToList();
+                _logger.LogInformation("Before first SaveChanges -> {Pending}", string.Join(", ", pending1));
+
+                await _context.SaveChangesAsync();
+
+                // 2) Add selected categories
+                if (vm.SelectedCategories?.Length > 0)
+                {
+                    foreach (var catId in vm.SelectedCategories.Distinct())
+                    {
+                        _context.CategoryRecipes.Add(new CategoryRecipe
+                        {
+                            RecipeId = vm.Recipe.Id,
+                            CategoryId = catId
+                        });
+                    }
+                }
+
+                // 3) Add ingredients (already filtered to valid rows)
+                foreach (var ingredientVm in vm.Ingredients)
+                {
+                    _context.IngredientRecipes.Add(new IngredientRecipe
+                    {
+                        RecipeId = vm.Recipe.Id,
+                        IngredientId = ingredientVm.IngredientId,
+                        Quantity = ingredientVm.Quantity,
+                        Unit = ingredientVm.Unit   // Enum binder OK; EF converts to string per OnModelCreating
+                    });
+                }
+
+                var pending2 = _context.ChangeTracker.Entries()
+                    .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted)
+                    .Select(e => $"{e.Entity.GetType().Name}:{e.State}")
+                    .ToList();
+                _logger.LogInformation("Before second SaveChanges -> {Pending}", string.Join(", ", pending2));
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                // Logging (friendly)
+                var catNames = (vm.SelectedCategories ?? Array.Empty<int>())
+                    .Distinct()
+                    .Join(_context.Category, id => id, c => c.Id, (id, c) => c.Name!)
+                    .ToList();
+
+                var who = (await _context.Users
+                    .Where(u => u.Id == vm.Recipe.AuthorId)
+                    .Select(u => u.Email)
+                    .FirstOrDefaultAsync()) ?? vm.Recipe.AuthorId;
+
+                _logger.LogInformation(
+                    "{Who} created recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories}",
+                    who, vm.Recipe.Title, vm.Recipe.Id, vm.Recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]");
+
+                TempData["Success"] = "Recipe created successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+
+                var root = ex.GetBaseException();
+                _logger.LogError(ex, "Error creating recipe by user {UserId}. Root: {RootMsg}", vm.Recipe.AuthorId, root.Message);
+                TempData["Error"] = "An error occurred while creating the recipe.";
+            }
+
+            // ------------------------ FALLBACK: re-show the form ----------------------
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+            return View(vm);
         }
+
 
         // ---------------------------------- EDIT ---------------------------------
         // GET: Recipes/Edit/5
-        // Loads the recipe with its current category links. Only the author may edit.
+        // GET: Recipes/Edit/5
         [Authorize]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null) return NotFound();
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var who = uid ?? "anonymous";
+            _logger.LogInformation("{Who} -> /Recipes/Edit/{Id}", who, id);
 
             var recipe = await _context.Recipe
                 .Include(r => r.CategoryRecipes)
+                .Include(r => r.IngredientRecipes)
                 .FirstOrDefaultAsync(r => r.Id == id);
-            if (recipe == null) return NotFound();
 
-            // Author-only guard (server-side check)
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty; // CS8601 fix
-            if (recipe.AuthorId != userId)
+            if (recipe == null)
             {
-                _logger.LogWarning("Unauthorized edit attempt on recipe {RecipeId} by user {UserId}.", id, userId);
-                return Forbid();
+                _logger.LogWarning("Recipe {Id} not found for editing", id);
+                return NotFound();
             }
 
-            // Build the category multiselect, preselecting the currently linked categories
-            var allCategories = await _context.Category.ToListAsync();
-            ViewBag.AllCategories = new MultiSelectList(
-                allCategories, "Id", "Name",
-                recipe.CategoryRecipes.Select(cr => cr.CategoryId)
-            );
+            var vm = new RecipeCreateEditVm
+            {
+                Recipe = recipe,
+                SelectedCategories = recipe.CategoryRecipes.Select(cr => cr.CategoryId).ToArray(),
+                Ingredients = recipe.IngredientRecipes
+                    .Select(ir => new IngredientSelectViewModel
+                    {
+                        IngredientId = ir.IngredientId,
+                        Quantity = ir.Quantity,
+                        Unit = ir.Unit
+                    })
+                    .ToList()
+            };
 
-            var who = (await _context.Users.Where(u => u.Id == userId).Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
-            _logger.LogInformation("{Who} -> /Recipes/Edit/{Id} '{Title}' | selected={Count}",
-                who, recipe.Id, recipe.Title, recipe.CategoryRecipes.Count);
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
 
-            return View(recipe);
+            return View(vm);
         }
 
         // POST: Recipes/Edit/5
-        // Updates scalar fields and synchronizes the CategoryRecipe join rows, keeping
-        // only the selections provided by the user.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Directions,Description,Private")] Recipe recipe, int[] selectedCategories)
+        public async Task<IActionResult> Edit(int id, RecipeCreateEditVm vm)
         {
-            if (id != recipe.Id) return NotFound();
+            vm.Recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty; // CS8601 fix
-            recipe.AuthorId = userId; // Server owns AuthorId; never trust client on this
-
-            // Author-only guard against tampering: compare with original row
-            var original = await _context.Recipe.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
-            if (original == null) return NotFound();
-            if (original.AuthorId != userId)
+            if (string.IsNullOrWhiteSpace(vm.Recipe.AuthorId))
             {
-                _logger.LogWarning("Unauthorized edit POST on recipe {RecipeId} by user {UserId}.", id, userId);
-                return Forbid();
+                ModelState.AddModelError("", "You must be signed in to edit a recipe.");
             }
 
-            if (FormValid(ModelState))
+            // Clean blank ingredient rows
+            vm.Ingredients ??= new List<IngredientSelectViewModel>();
+            vm.Ingredients = vm.Ingredients.Where(i => i.IngredientId > 0).ToList();
+
+            // Re-validate after cleaning
+            ModelState.Clear();
+            TryValidateModel(vm);
+            var formOk = FormValid(ModelState) && ModelState.IsValid;
+
+            if (!formOk)
             {
-                try
+                var errors = ModelState
+                    .Where(kvp => kvp.Value?.Errors.Count > 0)
+                    .Select(kvp => $"{kvp.Key} => {string.Join(" | ", kvp.Value!.Errors.Select(e => e.ErrorMessage))}")
+                    .ToList();
+
+                _logger.LogWarning("Recipe Edit blocked. Errors: {Errors}", string.Join("; ", errors));
+
+                ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+                ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+                return View(vm);
+            }
+
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Update recipe basic info
+                _context.Update(vm.Recipe);
+                await _context.SaveChangesAsync();
+
+                // Update categories
+                var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id);
+                _context.CategoryRecipes.RemoveRange(existingCategories);
+
+                if (vm.SelectedCategories?.Length > 0)
                 {
-                    // Update the main Recipe row
-                    _context.Update(recipe);
-                    await _context.SaveChangesAsync();
-
-                    // Sync the join table CategoryRecipes to match the selections
-                    var existing = _context.CategoryRecipes
-                        .Where(cr => cr.RecipeId == recipe.Id)
-                        .ToList();
-
-                    // Remove any links that are no longer selected
-                    foreach (var link in existing)
+                    foreach (var catId in vm.SelectedCategories.Distinct())
                     {
-                        if (selectedCategories == null || !selectedCategories.Contains(link.CategoryId))
-                            _context.CategoryRecipes.Remove(link);
-                    }
-
-                    // Add links for any newly selected categories not already present
-                    if (selectedCategories != null)
-                    {
-                        foreach (var catId in selectedCategories)
+                        _context.CategoryRecipes.Add(new CategoryRecipe
                         {
-                            if (!existing.Any(ec => ec.CategoryId == catId))
-                            {
-                                _context.CategoryRecipes.Add(new CategoryRecipe
-                                {
-                                    RecipeId = recipe.Id,
-                                    CategoryId = catId
-                                });
-                            }
-                        }
+                            RecipeId = vm.Recipe.Id,
+                            CategoryId = catId
+                        });
                     }
-
-                    await _context.SaveChangesAsync();
-
-                    // For logging: compute added/removed names (optional, for readability)
-                    var addedIds = (selectedCategories ?? Array.Empty<int>()).Except(existing.Select(e => e.CategoryId)).ToArray();
-                    var removedIds = existing.Select(e => e.CategoryId).Except(selectedCategories ?? Array.Empty<int>()).ToArray();
-
-                    var addedTitles = addedIds.Length == 0
-                        ? new List<string>()
-                        : await _context.Category.Where(c => addedIds.Contains(c.Id)).Select(c => c.Name!).ToListAsync();
-                    var removedTitles = removedIds.Length == 0
-                        ? new List<string>()
-                        : await _context.Category.Where(c => removedIds.Contains(c.Id)).Select(c => c.Name!).ToListAsync();
-
-                    var who = (await _context.Users.Where(u => u.Id == userId).Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
-                    _logger.LogInformation(
-                        "{Who} updated recipe '{Title}' (Id {Id}) | added={Added} {AddedTitles} removed={Removed} {RemovedTitles}",
-                        who, recipe.Title, recipe.Id,
-                        addedTitles.Count, JoinNames(addedTitles),
-                        removedTitles.Count, JoinNames(removedTitles));
-
-                    TempData["Success"] = "Recipe updated successfully.";
-                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException ex)
+
+                // Update ingredients
+                var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id);
+                _context.IngredientRecipes.RemoveRange(existingIngredients);
+
+                foreach (var ingVm in vm.Ingredients)
                 {
-                    // If the row disappeared between fetch and save
-                    if (!RecipeExists(recipe.Id))
+                    _context.IngredientRecipes.Add(new IngredientRecipe
                     {
-                        _logger.LogWarning("Recipe {RecipeId} disappeared during update.", recipe.Id);
-                        return NotFound();
-                    }
-                    _logger.LogError(ex, "Concurrency error updating recipe {RecipeId} by user {UserId}.", recipe.Id, userId);
-                    throw; // let middleware show the developer page in Development
+                        RecipeId = vm.Recipe.Id,
+                        IngredientId = ingVm.IngredientId,
+                        Quantity = ingVm.Quantity,
+                        Unit = ingVm.Unit
+                    });
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error updating recipe {RecipeId} by user {UserId}.", recipe.Id, userId);
-                    TempData["Error"] = "An error occurred while updating the recipe.";
-                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                var catNames = (vm.SelectedCategories ?? Array.Empty<int>())
+                    .Distinct()
+                    .Join(_context.Category, id => id, c => c.Id, (id, c) => c.Name!)
+                    .ToList();
+
+                var who = (await _context.Users
+                    .Where(u => u.Id == vm.Recipe.AuthorId)
+                    .Select(u => u.Email)
+                    .FirstOrDefaultAsync()) ?? vm.Recipe.AuthorId;
+
+                _logger.LogInformation(
+                    "{Who} updated recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories}",
+                    who, vm.Recipe.Title, vm.Recipe.Id, vm.Recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]");
+
+                TempData["Success"] = "Recipe updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                var root = ex.GetBaseException();
+                _logger.LogError(ex, "Error updating recipe {Id} by user {UserId}. Root: {RootMsg}", vm.Recipe.Id, vm.Recipe.AuthorId, root.Message);
+                TempData["Error"] = "An error occurred while updating the recipe.";
             }
 
-            // If invalid, rebuild multiselect so user selections persist on redisplay
-            var allCategoriesReload = await _context.Category.ToListAsync();
-            ViewBag.AllCategories = new MultiSelectList(
-                allCategoriesReload, "Id", "Name", selectedCategories
-            );
-
-            return View(recipe);
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+            return View(vm);
         }
 
         // --------------------------------- DELETE --------------------------------

@@ -2,90 +2,64 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Recipes";
     var currentSearch = ViewBag.SearchString as string; // preserve current search text when reloading page
 }
 
-<h1 class="mb-4">Recipes</h1>
+<div class="container recipe-index-page">
+    <div class="index-header">
+        <h1>Recipes</h1>
+        <p class="lead text-muted">Browse, create, or edit your favorite recipes!</p>
+    </div>
 
-<div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <!-- Button to create a new recipe -->
-    <a asp-action="Create" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Create New
-    </a>
+    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Create
+            </a>
+        }
 
-    <!-- Search + Tag Filter (submitted via GET so URL stays shareable/bookmarkable) -->
-    <form asp-action="Index" method="get" class="d-flex gap-2">
-        <!-- Text search box (searches by title) -->
-        <input type="text"
-               name="searchString"
-               value="@(currentSearch ?? string.Empty)"
-        class="form-control"
-        placeholder="Search by title..." />
+        <!-- Search + Tag Filter -->
+        <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
+            <input type="text"
+                   name="searchString"
+                   value="@(currentSearch ?? string.Empty)"
+                   class="form-control"
+                   placeholder="Search by title..." />
 
-        <!-- Dropdown list of tags (built in controller into ViewBag.TagList) -->
-        <select name="tagId" class="form-select" asp-items="ViewBag.TagList">
-            <option value="">All Tags</option> <!-- default if no filter applied -->
-        </select>
+            <select name="tagId" class="form-select" asp-items="ViewBag.TagList">
+                <option value="">All Tags</option>
+            </select>
 
-        <!-- Submit + reset buttons -->
-        <button type="submit" class="btn btn-primary">Search</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
-    </form>
-</div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+        </form>
+    </div>
 
-<!-- Show message if no recipes were found -->
-@if (!Model.Any())
-{
-    <div class="alert alert-warning">No results found.</div>
-}
+    @if (!Model.Any())
+    {
+        <div class="alert alert-brown">No results found.</div>
+    }
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <!-- Column headers -->
-                    <th>@Html.DisplayNameFor(model => model.Title)</th>
-                    <th>@Html.DisplayNameFor(model => model.Description)</th>
-                    <th>@Html.DisplayNameFor(model => model.Directions)</th>
-                    <th>Categories</th>
-                    <th>Privacy</th>
-                    <th>@Html.DisplayNameFor(model => model.AuthorEmail)</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Loop through each recipe -->
-                @foreach (var item in Model)
+    <div class="index-card">
+        <div class="card-grid">
+            @foreach (var item in Model)
+            {
+                @if (!item.Private || item.AuthorEmail == User.Identity.Name)
                 {
-                    <tr>
-                        <!-- Recipe title -->
-                        <td><strong>@item.Title</strong></td>
+                    <div class="recipe-card">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="card-overlay">View Details</a>
 
-                        <!-- Description (truncate to 50 chars) -->
-                        <td>
-                            @if (!string.IsNullOrEmpty(item.Description))
+                        <div class="card-header d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">@item.Title</h5>
+                            @if (item.Private)
                             {
-                                @(item.Description.Length > 50
-                                    ? item.Description.Substring(0, 50) + "..."
-                                    : item.Description)
+                                <span class="badge bg-danger private-badge">Private</span>
                             }
-                            else
-                            {
-                                <span class="text-muted">None</span>
-                            }
-                        </td>
+                        </div>
 
-                        <!-- Directions (truncate to 50 chars) -->
-                        <td>
-                            @(item.Directions?.Length > 50
-                                ? item.Directions.Substring(0, 50) + "..."
-                                : item.Directions)
-                        </td>
-
-                        <!-- Categories (badges with links to category details) -->
-                        <td>
+                        <div class="categories mb-2">
                             @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
                             {
                                 @foreach (var cr in item.CategoryRecipes)
@@ -100,33 +74,35 @@
                             }
                             else
                             {
-                                <span class="text-muted">None</span>
+                                <span class="text-muted">No Categories</span>
                             }
-                        </td>
+                        </div>
 
-                        <!-- Privacy badge -->
-                        <td>
-                            <span class="badge @(item.Private ? "bg-danger" : "bg-success")">
-                                @(item.Private ? "Private" : "Public")
-                            </span>
-                        </td>
+                        @if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            <p class="card-text">
+                                @(item.Description.Length > 100 ? item.Description.Substring(0, 100) + "..." : item.Description)
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="card-text text-muted">No description available.</p>
+                        }
 
-                        <!-- Author email (click-to-email link) -->
-                        <td>
-                            <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a>
-                        </td>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <small class="text-muted">By <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a></small>
 
-                        <!-- Action buttons (Edit, Details, Delete) -->
-                        <td class="text-end">
-                            <div class="btn-group" role="group">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">Details</a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
-                            </div>
-                        </td>
-                    </tr>
+                            @if (User.Identity.IsAuthenticated && item.AuthorEmail == User.Identity.Name)
+                            {
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 }
-            </tbody>
-        </table>
+            }
+        </div>
     </div>
 </div>

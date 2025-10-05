@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Recipebook.Models;
+using System.Reflection.Emit;
 
 namespace Recipebook.Data
 {
@@ -16,7 +17,9 @@ namespace Recipebook.Data
         public DbSet<ListIngredient> ListIngredients { get; set; }
         public DbSet<Recipe> Recipe { get; set; } = default!; // singular to match _context.Recipe
         public DbSet<Category> Category { get; set; } = default!;
+        public DbSet<Ingredient> Ingredient { get; set; } = default!;
         public DbSet<CategoryRecipe> CategoryRecipes { get; set; }
+        public DbSet<IngredientRecipe> IngredientRecipes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -38,7 +41,12 @@ namespace Recipebook.Data
                 .WithMany(r => r.ListRecipes) // added Recipe.ListRecipes, so points here
                 .HasForeignKey(lr => lr.RecipeId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<IngredientRecipe>()
+            .Property(ir => ir.Unit)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasColumnType("varchar(20)");
         }
-        public DbSet<Recipebook.Models.Ingredient> Ingredient { get; set; } = default!;
     }
 }

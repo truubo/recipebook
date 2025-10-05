@@ -1,0 +1,16 @@
+﻿$dark-red: #5c0f0a; // delete button
+$red: #8c1c13; // header/footer
+$light-red: #bf4342; // accents
+$beige: #e7d7c1; // background
+$light-brown: #a78a7f; // cards, tables
+$brown: #735751; // edit button
+$dark-brown: #3f2d27; // details button
+
+// overrides
+$primary: $red;
+$secondary: $light-brown;
+$danger: $dark-red;
+$warning: $light-red;
+$info: $beige;
+$success: $brown;
+$dark: $dark-brown;

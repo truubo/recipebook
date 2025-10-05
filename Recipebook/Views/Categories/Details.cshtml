@@ -1,54 +1,82 @@
 ﻿@model Recipebook.Models.Category
-
+@using System.Security.Claims
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Category Details";
+    var ownerEmail = ViewBag.OwnerEmail as string;
+    var itemCount = Model.CategoryRecipes?.Count() ?? 0;
 }
 
-<h1 class="mb-4">Category Details</h1>
+<div class="details-page position-relative">
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <dl class="row mb-4">
-            <dt class="col-sm-3 fw-bold">
-                @Html.DisplayNameFor(model => model.Name)
-            </dt>
-            <dd class="col-sm-9">
-                @Html.DisplayFor(model => model.Name)
-            </dd>
-        </dl>
+    <div class="details-actions-top d-flex justify-content-between w-100">
+        <a onclick="history.back()" class="btn btn-brown">
+            <i class="bi bi-arrow-left-circle"></i>
+        </a>
 
         <div class="d-flex gap-2">
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
-            <a asp-action="Index" class="btn btn-secondary">
-                Back to List
-            </a>
+            @if (User.Identity.IsAuthenticated && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">
+                    <i class="bi bi-trash"></i>
+                </a>
+            }
         </div>
     </div>
-</div>
 
-<!-- Recipes Section -->
-<div class="card shadow-sm">
-    <div class="card-body">
-        <h3 class="mb-3">
-            Recipes in this Category
-            <span class="badge bg-secondary">
-                @(Model.CategoryRecipes?.Count() ?? 0)
+    <div class="details-header text-center mt-5">
+        <h1 class="recipe-title">@Model.Name</h1>
+
+        <div class="author d-flex justify-content-center align-items-center gap-2">
+            <span>
+                Category created by <a href="mailto:@ownerEmail">@ownerEmail</a>
             </span>
-        </h3>
+        </div>
+    </div>
+
+    <div class="details-body mt-4">
+        <h4 class="section-title mt-4">
+            Recipes in this Category
+            <span class="badge bg-success text-white">@itemCount</span>
+        </h4>
 
         @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
         {
             <ul class="list-group">
                 @foreach (var cr in Model.CategoryRecipes)
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        @cr.Recipe.Title
-                        <a asp-controller="Recipes" asp-action="Details" asp-route-id="@cr.Recipe.Id" class="btn btn-sm btn-outline-primary">
-                            View
+                    if (cr.Recipe != null)
+                    {
+                        <a asp-controller="Recipes"
+                           asp-action="Details"
+                           asp-route-id="@cr.Recipe.Id"
+                           class="list-group-item my-1 text-decoration-none custom-list-item">
+
+                            <div>
+                                <strong>@cr.Recipe.Title</strong>
+                                <p class="mb-0 small">
+                                    @{
+                                        var desc = cr.Recipe.Description ?? "";
+                                        if (string.IsNullOrWhiteSpace(desc))
+                                        {
+                                            @: <span class="fst-italic">No description available.</span>
+                                        }
+                                        else
+                                        {
+                                            if (desc.Length > 100)
+                                            {
+                                                desc = desc.Substring(0, 100) + "...";
+                                            }
+                                            @desc
+                                        }
+                                    }
+                                </p>
+                            </div>
                         </a>
-                    </li>
+                    }
                 }
             </ul>
         }

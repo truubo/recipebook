@@ -1,27 +1,41 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿// Controllers/IngredientsController.cs
+// ----------------------------------------------------------------------------------
+// PURPOSE
+//   CRUD controller for Ingredient entities. Ingredients can be owned by a user.
+//   Includes owner-only guards, logging, and search functionality.
+//
+// NOTES FOR REVIEWERS / CLASSMATES
+//   • Patterns: standard MVC CRUD, ModelState validation, TempData alerts,
+//     EF Core queries, Identity-based ownership checks, structured logs.
+//   • Identity integration: Ingredient has an OwnerId, checked on Edit/Delete.
+// ----------------------------------------------------------------------------------
+
+using System;
+using System.Linq;
+using System.Security.Claims; // for ClaimTypes
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging; // logger
 using Recipebook.Data;
 using Recipebook.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Recipebook.Controllers
 {
     public class IngredientsController : Controller
     {
+        // --------------------------- DEPENDENCIES -------------------------------
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<CategoriesController> _logger; // logging
+        private readonly ILogger<IngredientsController> _logger;
 
-        public IngredientsController(ApplicationDbContext context, ILogger<CategoriesController> logger)
+        public IngredientsController(ApplicationDbContext context, ILogger<IngredientsController> logger)
         {
             _context = context;
             _logger = logger;
         }
 
+        // --------------------------- UTILITY HELPERS ----------------------------
         private string Who()
         {
             var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
@@ -29,19 +43,29 @@ namespace Recipebook.Controllers
             return !string.IsNullOrWhiteSpace(email) ? email : (!string.IsNullOrWhiteSpace(uid) ? uid : "anonymous");
         }
 
+        // -------------------------------- INDEX ---------------------------------
         // GET: Ingredients
-        public async Task<IActionResult> Index()
+        // Supports optional search (?searchString=...)
+        public async Task<IActionResult> Index(string? searchString)
         {
-            var ingredients = await _context.Ingredient.ToListAsync();
+            var query = _context.Ingredient.AsQueryable();
 
-            _logger.LogInformation("{Who} -> /Ingredients/Index | count={Count}", Who(), ingredients.Count);
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                query = query.Where(i => i.Name.Contains(searchString));
+            }
 
-            ViewBag.OwnerEmails = await _context.Users
-                .Where(u => ingredients.Select(c => c.OwnerId).Distinct().Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.Email);
+            var ingredients = await query.ToListAsync();
+
+            _logger.LogInformation("{Who} -> /Ingredients/Index | count={Count} search='{Search}'",
+                Who(), ingredients.Count, searchString ?? string.Empty);
+
+            ViewBag.SearchString = searchString;
+
             return View(ingredients);
         }
 
+        // -------------------------------- DETAILS --------------------------------
         // GET: Ingredients/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -51,11 +75,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var ingredient = await _context.Ingredient
-                .Include(i => i.IngredientRecipes)
-                    .ThenInclude(ir => ir.Recipe)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var ingredient = await _context.Ingredient.FirstOrDefaultAsync(i => i.Id == id);
 
             if (ingredient == null)
             {
@@ -63,36 +83,29 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            // Collect recipe titles for readable logs
-            var recipeTitles = ingredient.IngredientRecipes
-                .Select(ir => ir.Recipe?.Title)
-                .Where(t => !string.IsNullOrWhiteSpace(t))
-                .ToList();
-
-            _logger.LogInformation("{Who} -> /Ingredients/Details/{Id} '{Name}' | recipes={Count} [{Titles}]",
-                Who(), ingredient.Id, ingredient.Name, recipeTitles.Count, string.Join(", ", recipeTitles));
+            _logger.LogInformation("{Who} -> /Ingredients/Details/{Id} '{Name}'",
+                Who(), ingredient.Id, ingredient.Name);
 
             return View(ingredient);
         }
 
+        // -------------------------------- CREATE --------------------------------
         // GET: Ingredients/Create
+        [Authorize]
         public IActionResult Create()
         {
-            _logger.LogInformation("{Who} -> /Ingredients/Create", Who());
             return View();
         }
 
         // POST: Ingredients/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Ingredient ingredient)
         {
             if (ModelState.IsValid)
             {
-                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-                ingredient.OwnerId = uid;
+                ingredient.OwnerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
                 _context.Add(ingredient);
                 await _context.SaveChangesAsync();
@@ -108,13 +121,23 @@ namespace Recipebook.Controllers
             return View(ingredient);
         }
 
-
+        // ---------------------------------- EDIT --------------------------------
+        // GET: Ingredients/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+            {
+                _logger.LogInformation("{Who} -> /Ingredients/Edit (null id)", Who());
+                return NotFound();
+            }
 
             var ingredient = await _context.Ingredient.FindAsync(id);
-            if (ingredient == null) return NotFound();
+            if (ingredient == null)
+            {
+                _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} | not found", Who(), id);
+                return NotFound();
+            }
 
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
@@ -123,17 +146,29 @@ namespace Recipebook.Controllers
                 return Forbid();
             }
 
+            _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} '{Name}'", Who(), ingredient.Id, ingredient.Name);
             return View(ingredient);
         }
 
+        // POST: Ingredients/Edit/5
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Ingredient ingredient)
         {
-            if (id != ingredient.Id) return NotFound();
+            if (id != ingredient.Id)
+            {
+                _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} | route/body mismatch", Who(), id);
+                TempData["Warning"] = "Route/body mismatch.";
+                return NotFound();
+            }
 
             var existing = await _context.Ingredient.FirstOrDefaultAsync(i => i.Id == id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+            {
+                _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} | disappeared during edit", Who(), id);
+                return NotFound();
+            }
 
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             if (!string.Equals(existing.OwnerId, uid, StringComparison.Ordinal))
@@ -146,7 +181,7 @@ namespace Recipebook.Controllers
             {
                 try
                 {
-                    existing.Name = ingredient.Name; // only allow editing name
+                    existing.Name = ingredient.Name;
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("{Who} updated ingredient (Id {Id}) -> '{Name}'", Who(), existing.Id, existing.Name);
@@ -156,22 +191,43 @@ namespace Recipebook.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!IngredientExists(existing.Id)) return NotFound();
-                    throw;
+                    if (!IngredientExists(existing.Id))
+                    {
+                        _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} | disappeared during update", Who(), existing.Id);
+                        TempData["Warning"] = "Ingredient no longer exists.";
+                        return NotFound();
+                    }
+                    else
+                    {
+                        _logger.LogError("Concurrency error updating ingredient (Id {Id}) by {Who}", existing.Id, Who());
+                        TempData["Error"] = "A concurrency error occurred while updating the ingredient.";
+                        throw;
+                    }
                 }
             }
 
+            _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} | validation failed ({Errors} errors)", Who(), id, ModelState.ErrorCount);
+            TempData["Error"] = "Please fix the errors and try again.";
             return View(existing);
         }
 
-
+        // --------------------------------- DELETE --------------------------------
         // GET: Ingredients/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+            {
+                _logger.LogInformation("{Who} -> /Ingredients/Delete (null id)", Who());
+                return NotFound();
+            }
 
-            var ingredient = await _context.Ingredient.FirstOrDefaultAsync(m => m.Id == id);
-            if (ingredient == null) return NotFound();
+            var ingredient = await _context.Ingredient.FirstOrDefaultAsync(i => i.Id == id);
+            if (ingredient == null)
+            {
+                _logger.LogInformation("{Who} -> /Ingredients/Delete/{Id} | not found", Who(), id);
+                return NotFound();
+            }
 
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
@@ -180,15 +236,23 @@ namespace Recipebook.Controllers
                 return Forbid();
             }
 
+            _logger.LogInformation("{Who} -> /Ingredients/Delete/{Id} '{Name}'", Who(), ingredient.Id, ingredient.Name);
             return View(ingredient);
         }
 
+        // POST: Ingredients/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var ingredient = await _context.Ingredient.FindAsync(id);
-            if (ingredient == null) return RedirectToAction(nameof(Index));
+            if (ingredient == null)
+            {
+                _logger.LogInformation("{Who} -> /Ingredients/Delete/{Id} | already gone", Who(), id);
+                TempData["Warning"] = "This ingredient no longer exists.";
+                return RedirectToAction(nameof(Index));
+            }
 
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
@@ -201,36 +265,12 @@ namespace Recipebook.Controllers
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("{Who} deleted ingredient '{Name}' (Id {Id})", Who(), ingredient.Name, ingredient.Id);
-            TempData["Success"] = $"Ingredient '{ingredient.Name}' deleted.";
 
+            TempData["Success"] = $"Ingredient '{ingredient.Name}' deleted.";
             return RedirectToAction(nameof(Index));
         }
 
-        //public async Task<IActionResult> Index(string? searchString)
-        //{
-        //    var query = _context.Ingredient.AsQueryable();
-
-        //    if (!string.IsNullOrWhiteSpace(searchString))
-        //    {
-        //        query = query.Where(i => i.Name.Contains(searchString));
-        //    }
-
-        //    var ingredients = await query.ToListAsync();
-
-        //    _logger.LogInformation("{Who} -> /Ingredients/Index | count={Count} search='{Search}'",
-        //        Who(), ingredients.Count, searchString ?? string.Empty);
-
-        //    var ownerIds = ingredients.Select(i => i.OwnerId).Distinct().ToList();
-        //    ViewBag.OwnerEmails = await _context.Users
-        //        .Where(u => ownerIds.Contains(u.Id))
-        //        .ToDictionaryAsync(u => u.Id, u => u.Email);
-
-        //    ViewBag.SearchString = searchString;
-
-        //    return View(ingredients);
-        //}
-
-
+        // --------------------------- EXISTENCE CHECK ---------------------------
         private bool IngredientExists(int id)
         {
             return _context.Ingredient.Any(e => e.Id == id);

@@ -1,0 +1,1122 @@
+﻿@import "../../../node_modules/bootstrap/scss/bootstrap";
+@import "variables";
+
+// ------------------------------
+// Mixins
+// ------------------------------
+@mixin button-states($bg, $border: null, $text: white) {
+    background-color: $bg;
+    border-color: if($border != null, $border, $bg);
+    color: $text;
+    transition: all 0.2s ease-in-out;
+
+    &:hover,
+    &:focus,
+    &:active,
+    &.active,
+    &:not(:disabled):not(.disabled):hover {
+        background-color: darken($bg, 10%);
+        border-color: darken(if($border != null, $border, $bg), 10%);
+        color: $text;
+    }
+
+    &:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+}
+
+@mixin alert-style($bg, $text: white, $border: null) {
+    background-color: $bg;
+    color: $text;
+    border: 1px solid if($border != null, $border, darken($bg, 10%));
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.05);
+    transition: all 0.2s;
+
+    &:hover,
+    &:focus {
+        background-color: darken($bg, 5%);
+        color: $text;
+        border-color: darken(if($border != null, $border, darken($bg, 10%)), 5%);
+        cursor: pointer;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: underline;
+
+        &:hover {
+            text-decoration: none;
+        }
+    }
+}
+
+// ------------------------------
+// Body
+// ------------------------------
+body {
+    background-color: $beige;
+    color: black;
+    font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+// ------------------------------
+// Navbar
+// ------------------------------
+.navbar {
+    background-color: $red !important;
+    color: white !important;
+    padding: 0.75rem 1.5rem;
+
+    a.nav-link,
+    .navbar-brand {
+        color: white !important;
+        text-decoration: none;
+
+        &:hover,
+        &:focus {
+            color: $light-red;
+            text-decoration: underline;
+        }
+    }
+
+    .navbar-toggler {
+        border-color: $beige;
+
+        &:hover,
+        &:focus {
+            background-color: $beige;
+            color: $red;
+        }
+    }
+
+    .dropdown-menu {
+        background-color: $light-brown;
+
+        a.dropdown-item {
+            color: black;
+
+            &:hover, &:focus {
+                background-color: darken($light-brown, 5%);
+                color: white;
+            }
+        }
+    }
+
+    .btn {
+        @include button-states($light-red);
+        margin-left: 0.5rem;
+        color: white !important;
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: white !important;
+        }
+    }
+}
+
+// ------------------------------
+// Headers / Footers
+// ------------------------------
+.header,
+.footer {
+    background-color: $red;
+    color: white !important;
+    padding: 1rem 2rem;
+
+    a {
+        color: white !important;
+        text-decoration: none;
+
+        &:hover,
+        &:focus {
+            color: $light-red;
+            text-decoration: underline;
+        }
+    }
+}
+
+.index-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    h1 {
+        margin-bottom: 1rem;
+    }
+
+    p {
+        font-size: 1.1rem;
+        color: $dark-brown;
+    }
+
+    .btn-create {
+        margin-top: 1rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+    }
+}
+
+// ------------------------------
+// Cards
+// ------------------------------
+.card {
+    background: linear-gradient(to bottom, $light-brown 0%, lighten($light-brown, 3%) 100%);
+    color: black;
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+    }
+}
+
+// ------------------------------
+// Tables
+// ------------------------------
+.table {
+    width: 100%;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: $light-brown !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.05);
+
+    thead {
+        background-color: darken($light-brown, 8%) !important;
+        color: white !important;
+        font-weight: 600;
+    }
+
+    th,
+    td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid darken($light-brown, 15%);
+        vertical-align: middle;
+        background-color: $light-brown !important;
+        color: black;
+        transition: background-color 0.2s;
+    }
+
+    tbody tr:hover {
+        background-color: darken($light-brown, 6%) !important;
+        cursor: pointer;
+    }
+}
+
+// ------------------------------
+// Buttons
+// ------------------------------
+
+.mb-3.d-flex {
+    flex-wrap: wrap;
+
+    .btn-success,
+    .btn-create {
+        margin-bottom: 0.5rem;
+        margin-left: 0;
+
+        @media (min-width: 768px) {
+            margin-left: auto;
+            margin-bottom: 0;
+        }
+    }
+
+    form {
+        flex: 1 1 auto;
+    }
+}
+
+.btn-primary {
+    @include button-states($red);
+}
+
+.btn-secondary {
+    @include button-states($light-brown);
+}
+
+.btn-danger {
+    @include button-states($dark-red);
+}
+
+.btn-info {
+    @include button-states($dark-brown);
+}
+
+.btn-success {
+    @include button-states($light-red);
+}
+
+.btn-outline-primary {
+    border-color: $red;
+    color: $red;
+    transition: all 0.2s ease-in-out;
+
+    &:hover,
+    &:focus,
+    &:active {
+        background-color: $red;
+        color: white;
+        border-color: $red;
+    }
+}
+
+// ------------------------------
+// Accent text
+// ------------------------------
+.accent {
+    color: $light-red;
+}
+
+// ------------------------------
+// Form inputs / selects / textareas
+// ------------------------------
+input.form-control,
+select.form-select,
+textarea.form-control {
+    background-color: $beige;
+    border: 1px solid darken($light-brown, 20%);
+    border-radius: 0.5rem;
+    color: black;
+
+    &:focus {
+        background-color: $beige;
+        border-color: $red;
+        box-shadow: 0 0 0 0.2rem rgba($red, 0.25);
+        color: black;
+    }
+}
+
+// ------------------------------
+// Badges
+// ------------------------------
+.badge {
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.35em 0.6em;
+    color: white !important;
+    transition: all 0.2s;
+
+    &:hover {
+        opacity: 0.85;
+        text-decoration: none;
+    }
+}
+
+// Categories badges
+.badge.bg-info {
+    background-color: $dark-brown !important;
+    color: white !important;
+    margin-top: 4px;
+}
+
+// Public / Private
+.badge.bg-success {
+    background-color: $light-red !important;
+    color: white !important;
+}
+
+.badge.bg-danger {
+    background-color: $dark-red !important;
+    color: white !important;
+}
+
+// ------------------------------
+// Form inputs
+// ------------------------------
+.form-control {
+    background-color: $beige;
+    border: 1px solid darken($light-brown, 20%);
+    border-radius: 0.5rem;
+    color: black;
+
+    &:focus {
+        background-color: $beige;
+        border-color: $red;
+        box-shadow: 0 0 0 0.2rem rgba($red, 0.25);
+        color: black;
+    }
+}
+
+// ------------------------------
+// Lists
+// ------------------------------
+.list-group-item {
+    background-color: $brown;
+    border: 1px solid darken($dark-brown, 20%);
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: darken($light-brown, 5%);
+    }
+}
+
+.custom-list-item {
+    background-color: $brown;
+    border: 1px solid $dark-brown;
+    color: white; // or $text-dark if brown is light
+
+    &:hover, &:focus {
+        background-color: $beige;
+        color: black; // adjust for readability
+    }
+}
+
+// ------------------------------
+// Compact spacing for tables and cards
+// ------------------------------
+.table th,
+.table td,
+.card-body {
+    padding: 0.5rem 0.75rem;
+}
+
+// ------------------------------
+// Links
+// ------------------------------
+a {
+    color: $red;
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+        color: $light-red;
+        text-decoration: underline;
+    }
+}
+
+// ------------------------------
+// Brown implementations
+// ------------------------------
+
+// Buttons
+.btn-brown {
+    @include button-states($brown);
+}
+
+// Alerts
+.alert-brown {
+    @include alert-style($brown, white);
+}
+
+// Utility Color Overrides
+.bg-brown {
+    background-color: $brown !important;
+    color: white !important;
+}
+
+.text-brown {
+    color: $brown !important;
+}
+
+.border-brown {
+    border-color: $brown !important;
+}
+
+html, body {
+    height: 100%; // make full height available
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; // ensure body fills viewport
+}
+
+main {
+    flex: 1; // pushes footer down when content is short
+}
+
+// ------------------------------
+// Delete Page Styling
+// ------------------------------
+.delete-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80vh;
+
+    .delete-header {
+        text-align: center;
+        margin-bottom: 2rem;
+
+        h1 {
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+        }
+    }
+
+    .delete-card {
+        max-width: 700px;
+        margin: 0 auto; // horizontally center
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+    }
+
+    .delete-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        .btn {
+            min-width: 120px; // consistent button width
+        }
+    }
+}
+
+// ------------------------------
+// Recipe Index Styling
+// ------------------------------
+.recipe-index-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 80vh;
+    padding: 2rem;
+
+    .index-card {
+        padding: 0;
+
+        .card-grid {
+            display: grid;
+            gap: 1.5rem;
+
+            // mobile
+            grid-template-columns: 1fr;
+
+            // tablet
+            @media (min-width: 768px) {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            // desktop
+            @media (min-width: 992px) {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .recipe-card {
+            position: relative;
+            background-color: $light-brown;
+            border: 2px solid $dark-brown;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+
+            &:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+            .card-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                text-indent: -9999px;
+                background: transparent;
+                border-radius: inherit;
+            }
+
+            .card-header,
+            .categories,
+            .card-text,
+            .card-footer {
+                position: relative;
+                z-index: 2;
+                pointer-events: none; // allow overlay to catch clicks
+            }
+
+            .card-header a,
+            .categories a,
+            .card-footer .btn-group a {
+                pointer-events: auto;
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 0.5rem;
+
+                .private-badge {
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.5rem;
+                }
+            }
+
+            .card-title {
+                color: $dark-brown;
+                font-weight: 700;
+                font-size: 1.25rem;
+                margin: 0;
+            }
+
+            .card-text {
+                color: black;
+                line-height: 1.5;
+                margin-bottom: 0.5rem;
+            }
+
+            .categories {
+                .badge {
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.5rem;
+                }
+            }
+
+            .card-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 1rem;
+
+                .btn-group .btn {
+                    font-size: 1rem;
+                    padding: 0.5rem 0.6rem;
+                }
+
+                small a {
+                    text-decoration: none;
+                    color: $dark-brown;
+                }
+            }
+        }
+    }
+}
+
+// ------------------------------
+// Category Index Styling
+// ------------------------------
+.category-index-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 80vh;
+    padding: 2rem;
+
+    .category-card-grid {
+        display: grid;
+        gap: 0.75rem;
+        // mobile
+        grid-template-columns: repeat(2, 1fr);
+        // tablet
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        // desktop
+        @media (min-width: 1200px) {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    .category-pill-card {
+        position: relative;
+        background-color: $light-brown;
+        border: 2px solid $dark-brown;
+        border-radius: 50px; // pill shape
+        padding: 0.2rem 0.6rem; // skinnier height
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+        }
+
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            text-indent: -9999px;
+            background: transparent;
+            border-radius: inherit;
+        }
+
+        .card-body {
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+
+            .category-name {
+                font-weight: 600;
+                font-size: 1rem;
+                color: $dark-brown;
+                margin-bottom: 0.25rem;
+            }
+
+            small {
+                font-size: 0.85rem;
+                color: $dark-brown;
+            }
+        }
+    }
+}
+
+// ------------------------------
+// Ingredient Index Styling
+// ------------------------------
+.ingredient-index-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 80vh;
+    padding: 2rem;
+
+    .ingredient-card-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(2, 1fr);
+
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (min-width: 1200px) {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    .ingredient-pill-card {
+        background-color: $light-brown;
+        border: 2px solid $dark-brown;
+        border-radius: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        height: 50px;
+        padding: 0.2rem 0.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            padding-bottom: 4px;
+
+            .ingredient-name {
+                font-weight: 600;
+                font-size: 0.95rem;
+                color: $dark-brown;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        .btn-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            height: 20%;
+            min-height: 4px;
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            overflow: hidden;
+
+            .btn {
+                flex: 1 1 50%;
+                font-size: 0.75rem;
+                padding: 1px 0;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .btn-primary {
+                border-right: 1px solid $dark-brown;
+            }
+
+            .btn-danger {
+                border-left: 0;
+            }
+        }
+    }
+}
+
+// ------------------------------
+// List Index Styling
+// ------------------------------
+.list-index-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 80vh;
+    padding: 2rem;
+
+    .card-grid {
+        display: grid;
+        gap: 1.5rem;
+        // mobile
+        grid-template-columns: 1fr;
+        // tablet
+        @media (min-width: 768px) {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        // desktop
+        @media (min-width: 992px) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .list-card {
+            position: relative;
+            background-color: $light-brown;
+            border: 2px solid $dark-brown;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+
+            &:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+
+            .card-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                text-indent: -9999px;
+                background: transparent;
+                border-radius: inherit;
+            }
+
+            .card-header,
+            .card-text,
+            .card-footer {
+                position: relative;
+                z-index: 2;
+                pointer-events: none; // overlay catches clicks
+            }
+
+            .card-header a,
+            .card-footer .btn-group a {
+                pointer-events: auto;
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: start;
+                margin-bottom: 0.5rem;
+
+                .private-badge {
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.5rem;
+                }
+            }
+
+            .card-title {
+                color: $dark-brown;
+                font-weight: 700;
+                font-size: 1.25rem;
+                margin: 0;
+            }
+
+            .card-text {
+                color: black;
+                line-height: 1.5;
+                margin-bottom: 0.5rem;
+            }
+
+            .card-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 1rem;
+
+                .btn-group .btn {
+                    font-size: 1rem;
+                    padding: 0.5rem 0.6rem;
+                }
+
+                small a {
+                    text-decoration: none;
+                    color: $dark-brown;
+                }
+            }
+        }
+    }
+
+    .nav-tabs {
+        .nav-link {
+            color: white;
+            background-color: $light-brown;
+
+            &.active {
+                background-color: $light-red;
+                color: white;
+            }
+        }
+    }
+}
+
+// ------------------------------
+// Home Page Styling
+// ------------------------------
+.home-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 70vh;
+    padding: 2rem;
+
+    h1 {
+        margin-bottom: 1.5rem;
+    }
+
+    p.lead {
+        margin-bottom: 3rem;
+        font-size: 1.2rem;
+        color: $dark-brown;
+    }
+
+    .home-cards {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        justify-content: center;
+
+        .col-md-4 {
+            display: flex;
+            flex: 1 1 300px; // responsive width
+        }
+
+        .card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+            }
+
+            .btn {
+                align-self: center;
+            }
+        }
+    }
+}
+
+// ------------------------------
+// Create/Edit Page Styling
+// ------------------------------
+.recipe-form-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 2rem;
+
+    h1 {
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .card {
+        max-width: 1200px;
+        width: 100%;
+        padding: 1.5rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+
+            .d-flex {
+                justify-content: center;
+                margin-top: 1rem;
+
+                .btn {
+                    min-width: 120px;
+                }
+            }
+        }
+    }
+
+    .form-label {
+        font-weight: 600;
+    }
+
+    .form-control, select, textarea {
+        border-radius: 0.5rem;
+    }
+
+    .recipe-form-card {
+        width: 90%;
+        min-width: 400px;
+    }
+
+    .ingredient-labels {
+        .col {
+            text-align: center;
+        }
+
+        margin-bottom: 0.5rem;
+    }
+
+    .ingredient-row {
+        width: 100%;
+        margin-bottom: 0.5rem;
+
+        .row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+
+            .col {
+                flex: 1; // equal width for all inputs
+            }
+        }
+
+        .remove-ingredient-btn {
+            display: block;
+            margin: 0.5rem auto 0; // center horizontally
+            width: 25%;
+        }
+
+        hr {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+    }
+}
+
+// ------------------------------
+// Details Page Styling
+// ------------------------------
+.details-page {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: $light-brown;
+    border: 2px solid $dark-brown;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+
+    .details-header {
+        .recipe-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: $dark-brown;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-info {
+            .badge {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        .author {
+            font-size: 1rem;
+            color: $text-muted;
+            margin-top: 0.75rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+        }
+    }
+
+    .details-body {
+        margin-top: 1.5rem;
+
+        .section-title {
+            font-weight: 600;
+            color: black;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: 1rem;
+            color: black;
+        }
+    }
+
+    .details-actions {
+        justify-content: center;
+
+        .btn {
+            min-width: 130px;
+            font-weight: 500;
+            border-radius: 0.5rem;
+        }
+
+        .btn-brown {
+            background-color: $dark-brown;
+            color: #fff;
+
+            &:hover {
+                background-color: darken($dark-brown, 7%);
+            }
+        }
+    }
+}

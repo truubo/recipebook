@@ -3,6 +3,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Recipebook.Models
 {
+    public enum Unit
+    {
+        Piece,
+        Gram,
+        Kilogram,
+        Milliliter,
+        Liter,
+        Cup,
+        Tablespoon,
+        Teaspoon
+    }
+
     public class IngredientRecipe
     {
         [Required]
@@ -27,6 +39,6 @@ namespace Recipebook.Models
 
         [Required, MaxLength(20)]
         [Column(TypeName = "varchar(20)")]
-        public string Unit { get; set; }
+        public Unit Unit { get; set; }
     }
 }

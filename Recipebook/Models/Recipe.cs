@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 
@@ -38,8 +40,11 @@ namespace Recipebook.Models
         public string AuthorId { get; set; }
 
         // author emails may change, so AuthorEmail will be set locally whenever needed
+        // 🔧 Not persisted, not posted, not validated
         [NotMapped]
-        public string AuthorEmail { get; set; }
+        [BindNever]
+        [ValidateNever]
+        public string? AuthorEmail { get; set; }   // <-- make nullable
 
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
