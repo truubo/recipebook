@@ -12754,6 +12754,34 @@ main {
   width: 90%;
   min-width: 400px;
 }
+.recipe-form-page .ingredient-labels {
+  margin-bottom: 0.5rem;
+}
+.recipe-form-page .ingredient-labels .col {
+  text-align: center;
+}
+.recipe-form-page .ingredient-row {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+.recipe-form-page .ingredient-row .row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.recipe-form-page .ingredient-row .row .col {
+  flex: 1;
+}
+.recipe-form-page .ingredient-row .remove-ingredient-btn {
+  display: block;
+  margin: 0.5rem auto 0;
+  width: 25%;
+}
+.recipe-form-page .ingredient-row hr {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-color: rgba(0, 0, 0, 0.1);
+}
 
 .details-page {
   max-width: 900px;
