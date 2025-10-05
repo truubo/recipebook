@@ -126,6 +126,8 @@ namespace Recipebook.Controllers
             var recipe = await _context.Recipe
                 .Include(r => r.CategoryRecipes)
                     .ThenInclude(cr => cr.Category)
+                .Include(r => r.IngredientRecipes)       // <-- Include ingredients
+                    .ThenInclude(ir => ir.Ingredient)   // <-- Include ingredient details
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (recipe == null)
