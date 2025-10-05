@@ -11937,6 +11937,22 @@ body {
   text-decoration: underline;
 }
 
+.index-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.index-header h1, .index-header .h1 {
+  margin-bottom: 1rem;
+}
+.index-header p {
+  font-size: 1.1rem;
+  color: #3f2d27;
+}
+.index-header .btn-create {
+  margin-top: 1rem;
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+}
+
 .card {
   background: linear-gradient(to bottom, #a78a7f 0%, rgb(173.2333333333, 146.2875, 136.0666666667) 100%);
   color: black;
@@ -12294,21 +12310,6 @@ main {
   min-height: 80vh;
   padding: 2rem;
 }
-.recipe-index-page .index-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-.recipe-index-page .index-header h1, .recipe-index-page .index-header .h1 {
-  margin-bottom: 1rem;
-}
-.recipe-index-page .index-header p {
-  font-size: 1.1rem;
-  color: #3f2d27;
-}
-.recipe-index-page .index-header .btn-create {
-  margin-top: 1rem;
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
-}
 .recipe-index-page .index-card {
   padding: 0;
 }
@@ -12413,21 +12414,6 @@ main {
   min-height: 80vh;
   padding: 2rem;
 }
-.category-index-page .index-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-.category-index-page .index-header h1, .category-index-page .index-header .h1 {
-  margin-bottom: 1rem;
-}
-.category-index-page .index-header p {
-  font-size: 1.1rem;
-  color: #3f2d27;
-}
-.category-index-page .index-header .btn-create {
-  margin-top: 1rem;
-  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
-}
 .category-index-page .category-card-grid {
   display: grid;
   gap: 0.75rem;
@@ -12491,6 +12477,13 @@ main {
   color: #3f2d27;
 }
 
+.ingredient-index-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  min-height: 80vh;
+  padding: 2rem;
+}
 .ingredient-index-page .ingredient-card-grid {
   display: grid;
   gap: 0.75rem;
@@ -12515,15 +12508,15 @@ main {
   justify-content: center;
   align-items: center;
   text-align: center;
-  height: 60px;
+  height: 50px;
   padding: 0.2rem 0.5rem;
   position: relative;
   overflow: hidden;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .ingredient-index-page .ingredient-pill-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
 }
 .ingredient-index-page .ingredient-pill-card .card-body {
   display: flex;
@@ -12537,7 +12530,7 @@ main {
   font-weight: 600;
   font-size: 0.95rem;
   color: #3f2d27;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0.5rem;
 }
 .ingredient-index-page .ingredient-pill-card .btn-container {
   position: absolute;
@@ -12575,17 +12568,6 @@ main {
   justify-content: start;
   min-height: 80vh;
   padding: 2rem;
-}
-.list-index-page .index-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-.list-index-page .index-header h1, .list-index-page .index-header .h1 {
-  margin-bottom: 0.5rem;
-}
-.list-index-page .index-header p {
-  font-size: 1.1rem;
-  color: #3f2d27;
 }
 .list-index-page .card-grid {
   display: grid;
@@ -12673,6 +12655,14 @@ main {
 .list-index-page .card-grid .list-card .card-footer small a, .list-index-page .card-grid .list-card .card-footer .small a {
   text-decoration: none;
   color: #3f2d27;
+}
+.list-index-page .nav-tabs .nav-link {
+  color: white;
+  background-color: #a78a7f;
+}
+.list-index-page .nav-tabs .nav-link.active {
+  background-color: #bf4342;
+  color: white;
 }
 
 .home-page {

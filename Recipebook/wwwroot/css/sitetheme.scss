@@ -140,6 +140,25 @@ body {
     }
 }
 
+.index-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    h1 {
+        margin-bottom: 1rem;
+    }
+
+    p {
+        font-size: 1.1rem;
+        color: $dark-brown;
+    }
+
+    .btn-create {
+        margin-top: 1rem;
+        box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
+    }
+}
+
 // ------------------------------
 // Cards
 // ------------------------------
@@ -469,25 +488,6 @@ main {
     min-height: 80vh;
     padding: 2rem;
 
-    .index-header {
-        text-align: center;
-        margin-bottom: 3rem;
-
-        h1 {
-            margin-bottom: 1rem;
-        }
-
-        p {
-            font-size: 1.1rem;
-            color: $dark-brown;
-        }
-
-        .btn-create {
-            margin-top: 1rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-        }
-    }
-
     .index-card {
         padding: 0;
 
@@ -614,25 +614,6 @@ main {
     min-height: 80vh;
     padding: 2rem;
 
-    .index-header {
-        text-align: center;
-        margin-bottom: 3rem;
-
-        h1 {
-            margin-bottom: 1rem;
-        }
-
-        p {
-            font-size: 1.1rem;
-            color: $dark-brown;
-        }
-
-        .btn-create {
-            margin-top: 1rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-        }
-    }
-
     .category-card-grid {
         display: grid;
         gap: 0.75rem;
@@ -706,6 +687,11 @@ main {
 // Ingredient Index Styling
 // ------------------------------
 .ingredient-index-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    min-height: 80vh;
+    padding: 2rem;
 
     .ingredient-card-grid {
         display: grid;
@@ -730,15 +716,15 @@ main {
         justify-content: center;
         align-items: center;
         text-align: center;
-        height: 60px;
+        height: 50px;
         padding: 0.2rem 0.5rem;
         position: relative;
         overflow: hidden;
-        transition: transform 0.15s, box-shadow 0.15s;
+        transition: transform 0.2s, box-shadow 0.2s;
 
         &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
         }
 
         .card-body {
@@ -747,13 +733,13 @@ main {
             align-items: center;
             justify-content: center;
             z-index: 1;
-            padding-bottom: 4px; // move ingredient name up slightly
+            padding-bottom: 4px;
 
             .ingredient-name {
                 font-weight: 600;
                 font-size: 0.95rem;
                 color: $dark-brown;
-                margin-bottom: 0.1rem;
+                margin-bottom: 0.5rem;
             }
         }
 
@@ -772,7 +758,7 @@ main {
             .btn {
                 flex: 1 1 50%;
                 font-size: 0.75rem;
-                padding: 1px 0; // move button text up slightly without shrinking button
+                padding: 1px 0;
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
@@ -801,20 +787,6 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
-
-    .index-header {
-        text-align: center;
-        margin-bottom: 2rem;
-
-        h1 {
-            margin-bottom: 0.5rem;
-        }
-
-        p {
-            font-size: 1.1rem;
-            color: $dark-brown;
-        }
-    }
 
     .card-grid {
         display: grid;
@@ -911,6 +883,18 @@ main {
                     text-decoration: none;
                     color: $dark-brown;
                 }
+            }
+        }
+    }
+
+    .nav-tabs {
+        .nav-link {
+            color: white;
+            background-color: $light-brown;
+
+            &.active {
+                background-color: $light-red;
+                color: white;
             }
         }
     }
