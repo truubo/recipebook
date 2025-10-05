@@ -43,9 +43,10 @@ namespace Recipebook.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<IngredientRecipe>()
-                .Property(ir => ir.Unit)
-                .HasConversion<string>() // store enum name as string
-                .HasMaxLength(20);
+            .Property(ir => ir.Unit)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasColumnType("varchar(20)");
         }
     }
 }
