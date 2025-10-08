@@ -1,18 +1,31 @@
 ﻿@model IEnumerable<Recipebook.Models.Recipe>
 @using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Security.Claims
 
 @{
     ViewData["Title"] = "Recipes";
-    var currentSearch = ViewBag.SearchString as string; // preserve current search text when reloading page
+
+    // Maintain current search text across tabs / search submissions
+    var currentSearch = ViewBag.SearchString as string; // preserve current search text
+
+    // Active scope tab: "all" | "mine" | "favorites"
+    var scope = (string?)ViewBag.Scope ?? "all";
+
+    // Convenience variables to keep query parameters when switching tabs
+    string q = currentSearch ?? string.Empty;
+    string tag = (ViewBag.TagId is int t) ? t.ToString() : "";
 }
 
 <div class="container recipe-index-page">
+    <!-- ===================== Page Header ===================== -->
     <div class="index-header">
         <h1>Recipes</h1>
         <p class="lead text-muted">Browse, create, or edit your favorite recipes!</p>
     </div>
 
+    <!-- ===================== Create + Search/Filter ===================== -->
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        @* Create button shown only to authenticated users *@
         @if (User.Identity.IsAuthenticated)
         {
             <a asp-action="Create" class="btn btn-success">
@@ -20,7 +33,7 @@
             </a>
         }
 
-        <!-- Search + Tag Filter -->
+        <!-- Search + Tag Filter (GET keeps results shareable) -->
         <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
             <input type="text"
                    name="searchString"
@@ -28,71 +41,155 @@
                    class="form-control"
                    placeholder="Search by title..." />
 
+            @* Tag list comes from ViewBag.TagList (SelectList).
+            First option is neutral "All Tags". *@
             <select name="tagId" class="form-select" asp-items="ViewBag.TagList">
                 <option value="">All Tags</option>
             </select>
+
+            @* Preserve the current tab when searching *@
+            <input type="hidden" name="scope" value="@scope" />
 
             <button type="submit" class="btn btn-primary">Search</button>
             <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
         </form>
     </div>
 
-    @if (!Model.Any())
+    <!-- ===================== Tabs: All / My Recipes / Favorites ===================== -->
+    <div class="btn-group mb-3" role="group" aria-label="Recipe scope">
+        <a class="btn @(scope=="all" ? "btn-secondary" : "btn-outline-secondary")"
+           asp-action="Index"
+           asp-route-scope="all"
+           asp-route-searchString="@q"
+           asp-route-tagId="@tag">All</a>
+
+        <a class="btn @(scope=="mine" ? "btn-secondary" : "btn-outline-secondary")"
+           asp-action="Index"
+           asp-route-scope="mine"
+           asp-route-searchString="@q"
+           asp-route-tagId="@tag">My Recipes</a>
+
+        <a class="btn @(scope=="favorites" ? "btn-secondary" : "btn-outline-secondary")"
+           asp-action="Index"
+           asp-route-scope="favorites"
+           asp-route-searchString="@q"
+           asp-route-tagId="@tag">Favorites</a>
+    </div>
+
+    <!-- ===================== Empty-state ===================== -->
+    @if (!(Model?.Any() ?? false))
     {
         <div class="alert alert-brown">No results found.</div>
     }
 
+    <!-- ===================== Results Grid ===================== -->
     <div class="index-card">
         <div class="card-grid">
-            @foreach (var item in Model)
+            @foreach (var item in Model ?? Enumerable.Empty<Recipebook.Models.Recipe>())
             {
-                @if (!item.Private || item.AuthorEmail == User.Identity.Name)
+                // Show if recipe is public or owned by current user
+                if (!item.Private || item.AuthorEmail == User.Identity.Name)
                 {
-                    <div class="recipe-card">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="card-overlay">View Details</a>
+                    <div class="recipe-card" style="position:relative;">
+                        @{
+                            // Current user id (for favorite detection)
+                            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                            // Is this item a favorite for the current user?
+                            var isFav = User.Identity.IsAuthenticated && (item.Favorites?.Any(f => f.UserId == uid) ?? false);
+                            // Owner check (for Edit/Delete visibility in footer)
+                            var isOwner = User.Identity.IsAuthenticated && item.AuthorEmail == User.Identity.Name;
+                        }
 
-                        <div class="card-header d-flex justify-content-between align-items-start">
-                            <h5 class="card-title">@item.Title</h5>
-                            @if (item.Private)
-                            {
-                                <span class="badge bg-danger private-badge">Private</span>
-                            }
+                        <!-- ===================== Card Header ===================== -->
+                        @* Keep header on top so body stretched-link won't cover it *@
+                        <div class="card-header d-flex justify-content-between align-items-start"
+                             style="position:relative; z-index:2; pointer-events:auto;">
+                            <h5 class="card-title mb-0">
+                                <a asp-action="Details"
+                                   asp-route-id="@item.Id"
+                                   class="text-decoration-none">
+                                    @item.Title
+                                </a>
+                            </h5>
+
+                            <div class="d-flex align-items-center gap-2" style="pointer-events:auto;">
+                                @* Private badge (if applicable) *@
+                                @if (item.Private)
+                                {
+                                    <span class="badge bg-danger private-badge">Private</span>
+                                }
+
+                                @* ===================== Favorite Star (KEEP HERE) =====================
+                        - Visible to ANY authenticated user
+                        - POST to Favorites/Toggle with antiforgery & returnUrl
+                        - AJAX handler (below) prevents full-page reload
+                        =================================================================== *@
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <form asp-controller="Favorites"
+                                          asp-action="Toggle"
+                                          method="post"
+                                          class="d-inline"
+                                          title="Toggle favorite"
+                                          aria-label="Toggle favorite">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="recipeId" value="@item.Id" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                        <button type="submit"
+                                                class="btn btn-link p-0"
+                                                style="pointer-events:auto;">
+                                            <i class="bi @(isFav ? "bi-star-fill text-warning" : "bi-star")"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
                         </div>
 
-                        <div class="categories mb-2">
-                            @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
-                            {
-                                @foreach (var cr in item.CategoryRecipes)
+                        <!-- ===================== Card Body ===================== -->
+                        <div class="card-body position-relative">
+                            <div class="categories mb-2">
+                                @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
                                 {
-                                    <a asp-controller="Categories"
-                                       asp-action="Details"
-                                       asp-route-id="@cr.Category.Id"
-                                       class="badge bg-info text-dark me-1 text-decoration-none">
-                                        @cr.Category.Name
-                                    </a>
+                                    foreach (var cr in item.CategoryRecipes)
+                                    {
+                                        <a asp-controller="Categories"
+                                           asp-action="Details"
+                                           asp-route-id="@cr.Category.Id"
+                                           class="badge bg-info text-dark me-1 text-decoration-none">
+                                            @cr.Category.Name
+                                        </a>
+                                    }
                                 }
+                                else
+                                {
+                                    <span class="text-muted">No Categories</span>
+                                }
+                            </div>
+
+                            @* Clamp long descriptions to ~100 chars for tidy cards *@
+                            @if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                <p class="card-text">
+                                    @(item.Description.Length > 100
+                                        ? item.Description.Substring(0, 100) + "..."
+                                        : item.Description)
+                                </p>
                             }
                             else
                             {
-                                <span class="text-muted">No Categories</span>
+                                <p class="card-text text-muted">No description available.</p>
                             }
+
+                            @* Body is clickable to Details; header/footer remain interactive *@
+                            <a asp-action="Details" asp-route-id="@item.Id" class="stretched-link"></a>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(item.Description))
-                        {
-                            <p class="card-text">
-                                @(item.Description.Length > 100 ? item.Description.Substring(0, 100) + "..." : item.Description)
-                            </p>
-                        }
-                        else
-                        {
-                            <p class="card-text text-muted">No description available.</p>
-                        }
-
+                        <!-- ===================== Card Footer ===================== -->
                         <div class="card-footer d-flex justify-content-between align-items-center">
                             <small class="text-muted">By <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a></small>
 
-                            @if (User.Identity.IsAuthenticated && item.AuthorEmail == User.Identity.Name)
+                            @* Owner-only controls (unchanged) *@
+                            @if (isOwner)
                             {
                                 <div class="btn-group">
                                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>
@@ -105,4 +202,38 @@
             }
         </div>
     </div>
+
+    <!-- ===================== Scripts ===================== -->
+    @section Scripts {
+        <script>
+            // Intercept favorite toggle POSTs and do them via fetch to avoid a full page reload.
+            // This keeps scroll position stable and prevents extra history entries.
+            document.addEventListener('submit', async (e) => {
+                const form = e.target;
+                // Only intercept our Favorites/Toggle forms
+                if (!form.matches('form[action*="Favorites/Toggle"]')) return;
+                e.preventDefault();
+
+                const fd = new FormData(form);
+                try {
+                    await fetch(form.action, {
+                        method: 'POST',
+                        body: fd,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' } // signal AJAX to server
+                    });
+
+                    // Optimistic UI: flip the star icon immediately
+                    const icon = form.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('bi-star');
+                        icon.classList.toggle('bi-star-fill');
+                        icon.classList.toggle('text-warning');
+                    }
+                } catch {
+                    // Optionally show a toast/alert; ignoring for now to keep UX smooth
+                }
+                // No redirect or scrolling — user stays in place
+            });
+        </script>
+    }
 </div>

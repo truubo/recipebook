@@ -52,13 +52,12 @@ namespace Recipebook.Controllers
 
         // --------------------------------- INDEX ---------------------------------
         // GET: Recipes
-        // Adds title search + tag (category) filter while preserving logging and author resolution.
-        public async Task<IActionResult> Index(string? searchString, int? tagId)
+        public async Task<IActionResult> Index(string? searchString, int? tagId, string? scope)
         {
-            // Base query with eager loading (so the view can show category names without extra DB calls)
+            // Base query with eager loading
             var query = _context.Recipe
-                .Include(r => r.CategoryRecipes)
-                    .ThenInclude(cr => cr.Category)
+                .Include(r => r.CategoryRecipes).ThenInclude(cr => cr.Category)
+                .Include(r => r.Favorites) // needed for star state
                 .AsQueryable();
 
             // Apply title search
@@ -67,12 +66,22 @@ namespace Recipebook.Controllers
                 query = query.Where(r => r.Title.Contains(searchString));
             }
 
-            // Apply tag filter (CategoryId) if provided
+            // Apply tag filter
             if (tagId.HasValue)
             {
                 int cid = tagId.Value;
                 query = query.Where(r => r.CategoryRecipes.Any(cr => cr.CategoryId == cid));
             }
+
+            // Tabs: all / mine / favorites
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            scope = string.IsNullOrWhiteSpace(scope) ? "all" : scope.ToLowerInvariant();
+
+            if (scope == "mine" && uid != null)
+                query = query.Where(r => r.AuthorId == uid);
+
+            if (scope == "favorites" && uid != null)
+                query = query.Where(r => _context.Favorites.Any(f => f.UserId == uid && f.RecipeId == r.Id));
 
             var recipes = await query.ToListAsync();
 
@@ -86,18 +95,16 @@ namespace Recipebook.Controllers
             }
 
             // Actor for logging: email if signed-in, else "anonymous"
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             string who = (uid == null)
                 ? "anonymous"
                 : (await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync()) ?? uid;
 
-            // Log with filter context
             _logger.LogInformation(
-                "{Who} -> /Recipes/Index | count={Count} search='{Search}' tagId={TagId}",
-                who, recipes.Count, searchString ?? string.Empty, tagId?.ToString() ?? "null"
+                "{Who} -> /Recipes/Index | count={Count} search='{Search}' tagId={TagId} scope={Scope}",
+                who, recipes.Count, searchString ?? string.Empty, tagId?.ToString() ?? "null", scope
             );
 
-            // ? Populate dropdown AND preserve selection
+            // Dropdown + preserve selection
             ViewBag.TagList = new SelectList(
                 await _context.Category.OrderBy(c => c.Name).ToListAsync(),
                 "Id", "Name", tagId
@@ -105,9 +112,11 @@ namespace Recipebook.Controllers
 
             ViewBag.SearchString = searchString;
             ViewBag.TagId = tagId;
+            ViewBag.Scope = scope;
 
             return View(recipes);
         }
+
 
 
 
@@ -128,6 +137,7 @@ namespace Recipebook.Controllers
                     .ThenInclude(cr => cr.Category)
                 .Include(r => r.IngredientRecipes)       // <-- Include ingredients
                     .ThenInclude(ir => ir.Ingredient)   // <-- Include ingredient details
+                .Include(r => r.Favorites)               // ? ADDED (favorites) - for star state
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (recipe == null)
@@ -510,6 +520,10 @@ namespace Recipebook.Controllers
                 // Remove join rows first to avoid orphaned links (if cascade not set)
                 var categoryLinks = _context.CategoryRecipes.Where(cr => cr.RecipeId == id);
                 _context.CategoryRecipes.RemoveRange(categoryLinks);
+
+                // ? ADDED (favorites): remove favorites pointing to this recipe
+                var favoriteLinks = _context.Favorites.Where(f => f.RecipeId == id);
+                _context.Favorites.RemoveRange(favoriteLinks);
 
                 _context.Recipe.Remove(recipe);
                 await _context.SaveChangesAsync();
