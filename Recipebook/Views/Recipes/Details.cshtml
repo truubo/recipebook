@@ -65,30 +65,6 @@
                     <i class="bi bi-trash"></i>
                 </a>
             }
-            @* ------------------------------
-            Favorite toggle (AJAX enhanced)
-            - Shown to any authenticated user
-            - Optimistically flips icon on success
-            ------------------------------ *@
-            @if (User.Identity.IsAuthenticated)
-            {
-                <form asp-controller="Favorites"
-                      asp-action="Toggle"
-                      method="post"
-                      class="d-inline js-fav-toggle"
-                      title="Toggle favorite"
-                      aria-label="Toggle favorite">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="recipeId" value="@Model.Id" />
-                    @* returnUrl is a graceful fallback if JS is disabled *@
-                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-
-                    @* Star icon sits BY the Edit/Delete buttons because it's in the same action group *@
-                    <button type="submit" class="btn btn-link p-0">
-                        <i class="bi @(isFav ? "bi-star-fill text-warning" : "bi-star")"></i>
-                    </button>
-                </form>
-            }
         </div>
     </div>
 
@@ -128,6 +104,27 @@
             </span>
             <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
+            </span>
+            <span>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <form asp-controller="Favorites"
+                          asp-action="Toggle"
+                          method="post"
+                          class="d-inline js-fav-toggle"
+                          title="Toggle favorite"
+                          aria-label="Toggle favorite">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="recipeId" value="@Model.Id" />
+                        @* returnUrl is a graceful fallback if JS is disabled *@
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                        @* Updated star button *@
+                        <button type="submit" class="btn btn-link p-0 star-btn">
+                            <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
+                        </button>
+                    </form>
+                }
             </span>
         </div>
     </div>

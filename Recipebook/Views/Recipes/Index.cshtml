@@ -136,9 +136,9 @@
                                         <input type="hidden" name="recipeId" value="@item.Id" />
                                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                                         <button type="submit"
-                                                class="btn btn-link p-0"
+                                                class="btn btn-link p-0 star-btn"
                                                 style="pointer-events:auto;">
-                                            <i class="bi @(isFav ? "bi-star-fill text-warning" : "bi-star")"></i>
+                                            <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
                                         </button>
                                     </form>
                                 }
@@ -227,7 +227,7 @@
                     if (icon) {
                         icon.classList.toggle('bi-star');
                         icon.classList.toggle('bi-star-fill');
-                        icon.classList.toggle('text-warning');
+                        icon.classList.toggle('unchecked');
                     }
                 } catch {
                     // Optionally show a toast/alert; ignoring for now to keep UX smooth

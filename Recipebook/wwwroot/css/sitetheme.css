@@ -11919,6 +11919,42 @@ body {
   color: white !important;
 }
 
+.star {
+  color: #ffc107;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+  vertical-align: middle;
+  font-size: 1.2rem;
+}
+
+.star.unchecked {
+  color: #bf4342;
+}
+
+.btn-link.star-btn {
+  outline: none;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-link.star-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.star-btn i.star,
+.star-btn i.star.unchecked {
+  vertical-align: middle;
+  line-height: 1;
+  font-size: 1.2rem;
+  position: relative;
+  top: -2px;
+}
+
 .header,
 .footer {
   background-color: #8c1c13;
@@ -12188,12 +12224,6 @@ textarea.form-control:focus {
 .custom-list-item:hover, .custom-list-item:focus {
   background-color: #e7d7c1;
   color: black;
-}
-
-.table th,
-.table td,
-.card-body {
-  padding: 0.5rem 0.75rem;
 }
 
 a {
@@ -12791,6 +12821,14 @@ main {
   border: 2px solid #3f2d27;
   border-radius: 0.75rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+.details-page .star-btn i.star,
+.details-page .star-btn i.star.unchecked {
+  vertical-align: middle;
+  line-height: 1;
+  font-size: 1.2rem;
+  position: relative;
+  top: -1px;
 }
 .details-page .details-header .recipe-title {
   font-size: 2.2rem;
