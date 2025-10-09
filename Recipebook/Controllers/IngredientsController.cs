@@ -99,13 +99,13 @@ namespace Recipebook.Controllers
 
         // POST: Ingredients/Create
         [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
+        //[Authorize]
+        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Ingredient ingredient)
         {
             if (ModelState.IsValid)
             {
-                ingredient.OwnerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                ingredient.OwnerId = string.Empty;
 
                 _context.Add(ingredient);
                 await _context.SaveChangesAsync();
