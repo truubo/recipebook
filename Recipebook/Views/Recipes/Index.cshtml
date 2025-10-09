@@ -57,19 +57,19 @@
 
     <!-- ===================== Tabs: All / My Recipes / Favorites ===================== -->
     <div class="btn-group mb-3" role="group" aria-label="Recipe scope">
-        <a class="btn @(scope=="all" ? "btn-secondary" : "btn-outline-secondary")"
+        <a class="btn @(scope=="all" ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="all"
            asp-route-searchString="@q"
            asp-route-tagId="@tag">All</a>
 
-        <a class="btn @(scope=="mine" ? "btn-secondary" : "btn-outline-secondary")"
+        <a class="btn @(scope=="mine" ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="mine"
            asp-route-searchString="@q"
            asp-route-tagId="@tag">My Recipes</a>
 
-        <a class="btn @(scope=="favorites" ? "btn-secondary" : "btn-outline-secondary")"
+        <a class="btn @(scope=="favorites" ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="favorites"
            asp-route-searchString="@q"

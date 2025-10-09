@@ -53,6 +53,19 @@
 
         <div class="d-flex align-items-center gap-2">
             @* ------------------------------
+            Owner-only actions
+            - Only the author sees Edit/Delete
+            ------------------------------ *@
+            @if (isOwner)
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </a>
+            }
+            @* ------------------------------
             Favorite toggle (AJAX enhanced)
             - Shown to any authenticated user
             - Optimistically flips icon on success
@@ -75,20 +88,6 @@
                         <i class="bi @(isFav ? "bi-star-fill text-warning" : "bi-star")"></i>
                     </button>
                 </form>
-            }
-
-            @* ------------------------------
-            Owner-only actions
-            - Only the author sees Edit/Delete
-            ------------------------------ *@
-            @if (isOwner)
-            {
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger" title="Delete">
-                    <i class="bi bi-trash"></i>
-                </a>
             }
         </div>
     </div>
