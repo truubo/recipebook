@@ -120,6 +120,46 @@ body {
 }
 
 // ------------------------------
+// Favorites star
+// ------------------------------
+.star {
+    color: $yellow;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+    vertical-align: middle;
+    font-size: 1.2rem;
+}
+
+.star.unchecked {
+    color: $light-red;
+}
+
+.btn-link.star-btn {
+    outline: none;
+    box-shadow: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-link.star-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.star-btn i.star,
+.star-btn i.star.unchecked {
+    vertical-align: middle;
+    line-height: 1;
+    font-size: 1.2rem;
+    position: relative;
+    top: -2px;
+}
+
+
+// ------------------------------
 // Headers / Footers
 // ------------------------------
 .header,
@@ -379,7 +419,6 @@ textarea.form-control {
 .table th,
 .table td,
 .card-body {
-    padding: 0.5rem 0.75rem;
 }
 
 // ------------------------------
@@ -494,15 +533,12 @@ main {
         .card-grid {
             display: grid;
             gap: 1.5rem;
-
             // mobile
             grid-template-columns: 1fr;
-
             // tablet
             @media (min-width: 768px) {
                 grid-template-columns: repeat(2, 1fr);
             }
-
             // desktop
             @media (min-width: 992px) {
                 grid-template-columns: repeat(3, 1fr);
@@ -1058,6 +1094,15 @@ main {
     border: 2px solid $dark-brown;
     border-radius: 0.75rem;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+
+    .star-btn i.star,
+    .star-btn i.star.unchecked {
+        vertical-align: middle;
+        line-height: 1;
+        font-size: 1.2rem;
+        position: relative;
+        top: -1px;
+    }
 
     .details-header {
         .recipe-title {

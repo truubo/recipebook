@@ -20,6 +20,7 @@ namespace Recipebook.Data
         public DbSet<Ingredient> Ingredient { get; set; } = default!;
         public DbSet<CategoryRecipe> CategoryRecipes { get; set; }
         public DbSet<IngredientRecipe> IngredientRecipes { get; set; }
+        public DbSet<Favorite> Favorites { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -43,10 +44,23 @@ namespace Recipebook.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<IngredientRecipe>()
-            .Property(ir => ir.Unit)
-            .HasConversion<string>()
-            .HasMaxLength(20)
-            .HasColumnType("varchar(20)");
+                .Property(ir => ir.Unit)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .HasColumnType("varchar(20)");
+
+            // ADD: Favorites mapping (composite key + indexes + FK)
+            builder.Entity<Favorite>(cfg =>
+            {
+                cfg.HasKey(x => new { x.UserId, x.RecipeId }); // composite PK
+                cfg.HasIndex(x => x.UserId);
+                cfg.HasIndex(x => x.RecipeId);
+
+                cfg.HasOne(x => x.Recipe)
+                   .WithMany(r => r.Favorites) // ✅ fixed: wire back to Recipe.Favorites
+                   .HasForeignKey(x => x.RecipeId)
+                   .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

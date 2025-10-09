@@ -52,6 +52,8 @@ namespace Recipebook.Models
         public ICollection<Category> Categories { get; set; } = new List<Category>();
 
         public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();
+
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
     }
 
 }

@@ -107,7 +107,7 @@ namespace Recipebook.Controllers
         //   • MyLists: lists you own
         //   • AllLists: lists you own OR any lists marked public (Private == false)
         // Adds optional search by list Name via ?searchString=...
-        public async Task<IActionResult> Index(string? searchString)
+        public async Task<IActionResult> Index(string? searchString, string? scope)
         {
             // Identity basics: Get current user's Id and Email for personalization/logs.
             var uid = _userManager.GetUserId(User)!;
@@ -119,34 +119,36 @@ namespace Recipebook.Controllers
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
             // Base queries (deferred); include recipe link counts for display.
-            var myListsQ = _context.Lists
+            IQueryable<List> listQ = null;
+            if (scope == "mine")
+            {
+                listQ = _context.Lists
                 .Where(l => l.OwnerId == uid)
                 .Include(l => l.ListRecipes)
                 .AsNoTracking();
-
-            var allListsQ = _context.Lists
+            } else
+            {
+                listQ = _context.Lists
                 .Where(l => l.OwnerId == uid || l.Private == false)
                 .Include(l => l.ListRecipes)
                 .AsNoTracking();
+            }
 
             // Optional title search (applies to both buckets)
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                myListsQ = myListsQ.Where(l => l.Name.Contains(searchString));
-                allListsQ = allListsQ.Where(l => l.Name.Contains(searchString));
+                listQ = listQ.Where(l => l.Name.Contains(searchString));
             }
 
-            var myLists = await myListsQ.OrderBy(l => l.Name).ToListAsync();
-            var allLists = await allListsQ.OrderBy(l => l.Name).ToListAsync();
+            var lists = await listQ.OrderBy(l => l.Name).ToListAsync();
 
             // Logging example required by assignment/narrative.
             _logger.LogInformation(
-                "{Email} navigated to /Views/Lists/Index, loaded {MyCount} my list, loaded {AllCount} all list, search='{Search}'",
-                myEmail, myLists.Count, allLists.Count, searchString ?? string.Empty);
+                "{Email} navigated to /Views/Lists/Index, loaded {AllCount} all list, search='{Search}'",
+                myEmail, lists.Count, searchString ?? string.Empty);
 
             // For the view: map OwnerId -> OwnerEmail so we can display who owns what.
-            var ownerIds = myLists.Select(l => l.OwnerId)
-                .Concat(allLists.Select(l => l.OwnerId))
+            var ownerIds = lists.Select(l => l.OwnerId)
                 .Distinct()
                 .ToList();
 
@@ -156,12 +158,12 @@ namespace Recipebook.Controllers
 
             ViewBag.OwnerEmails = ownerEmails; // simple pass-through container
             ViewBag.SearchString = searchString; // keep input sticky in the view
+            ViewBag.Scope = scope;
 
             // ViewModel tailored for the Index view
             var vm = new ListsIndexVm
             {
-                MyLists = myLists,
-                AllLists = allLists,
+                Lists = lists,
                 MyEmail = myEmail,
                 MyUserId = uid
             };

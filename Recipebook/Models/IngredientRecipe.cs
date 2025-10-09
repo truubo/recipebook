@@ -12,7 +12,9 @@ namespace Recipebook.Models
         Liter,
         Cup,
         Tablespoon,
-        Teaspoon
+        Teaspoon,
+        Unit,
+        Ounce
     }
 
     public class IngredientRecipe
