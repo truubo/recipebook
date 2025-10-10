@@ -56,6 +56,7 @@ namespace Recipebook.Controllers
         {
             // Base query with eager loading
             var query = _context.Recipe
+                .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes).ThenInclude(cr => cr.Category)
                 .Include(r => r.Favorites) // needed for star state
                 .AsQueryable();
@@ -63,14 +64,14 @@ namespace Recipebook.Controllers
             // Apply title search
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(r => r.Title.Contains(searchString));
+                query = query.Where(r => r.Title.Contains(searchString) && !r.IsArchived);
             }
 
             // Apply tag filter
             if (tagId.HasValue)
             {
                 int cid = tagId.Value;
-                query = query.Where(r => r.CategoryRecipes.Any(cr => cr.CategoryId == cid));
+                query = query.Where(r => r.CategoryRecipes.Where(cr => !cr.Recipe.IsArchived).Any(cr => cr.CategoryId == cid));
             }
 
             // Tabs: all / mine / favorites
@@ -78,12 +79,12 @@ namespace Recipebook.Controllers
             scope = string.IsNullOrWhiteSpace(scope) ? "all" : scope.ToLowerInvariant();
 
             if (scope == "mine" && uid != null)
-                query = query.Where(r => r.AuthorId == uid);
+                query = query.Where(r => r.AuthorId == uid && !r.IsArchived);
 
             if (scope == "favorites" && uid != null)
-                query = query.Where(r => _context.Favorites.Any(f => f.UserId == uid && f.RecipeId == r.Id));
+                query = query.Where(r => _context.Favorites.Any(f => f.UserId == uid && f.RecipeId == r.Id) && !r.IsArchived);
 
-            var recipes = await query.ToListAsync();
+            var recipes = await query.Where(r => !r.IsArchived).ToListAsync();
 
             // Resolve AuthorEmail for display
             foreach (var r in recipes)
@@ -133,6 +134,7 @@ namespace Recipebook.Controllers
             }
 
             var recipe = await _context.Recipe
+                .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes)
                     .ThenInclude(cr => cr.Category)
                 .Include(r => r.IngredientRecipes)       // <-- Include ingredients
@@ -185,10 +187,10 @@ namespace Recipebook.Controllers
             var vm = new RecipeCreateEditVm();
 
             // Populate categories for multi-select
-            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name");
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name");
 
             // Populate ingredients for dropdowns
-            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
 
             return View(vm);
         }
@@ -230,8 +232,8 @@ namespace Recipebook.Controllers
                 _logger.LogWarning("Recipe Create blocked. Errors: {Errors}", string.Join("; ", errors));
 
                 // Re-populate dropdowns and return form
-                ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
-                ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+                ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+                ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
                 return View(vm);
             }
 
@@ -314,8 +316,8 @@ namespace Recipebook.Controllers
             }
 
             // ------------------------ FALLBACK: re-show the form ----------------------
-            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
-            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
             return View(vm);
         }
 
@@ -331,6 +333,7 @@ namespace Recipebook.Controllers
             _logger.LogInformation("{Who} -> /Recipes/Edit/{Id}", who, id);
 
             var recipe = await _context.Recipe
+                .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes)
                 .Include(r => r.IngredientRecipes)
                 .FirstOrDefaultAsync(r => r.Id == id);
@@ -355,8 +358,8 @@ namespace Recipebook.Controllers
                     .ToList()
             };
 
-            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
-            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
 
             return View(vm);
         }
@@ -392,8 +395,8 @@ namespace Recipebook.Controllers
 
                 _logger.LogWarning("Recipe Edit blocked. Errors: {Errors}", string.Join("; ", errors));
 
-                ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
-                ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+                ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+                ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
                 return View(vm);
             }
 
@@ -405,7 +408,7 @@ namespace Recipebook.Controllers
                 await _context.SaveChangesAsync();
 
                 // Update categories
-                var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id);
+                var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id && !cr.Recipe.IsArchived);
                 _context.CategoryRecipes.RemoveRange(existingCategories);
 
                 if (vm.SelectedCategories?.Length > 0)
@@ -421,7 +424,7 @@ namespace Recipebook.Controllers
                 }
 
                 // Update ingredients
-                var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id);
+                var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id && !ir.Recipe.IsArchived);
                 _context.IngredientRecipes.RemoveRange(existingIngredients);
 
                 foreach (var ingVm in vm.Ingredients)
@@ -463,8 +466,8 @@ namespace Recipebook.Controllers
                 TempData["Error"] = "An error occurred while updating the recipe.";
             }
 
-            ViewBag.AllCategories = new MultiSelectList(_context.Category.OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
-            ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
+            ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
+            ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
             return View(vm);
         }
 
@@ -477,6 +480,7 @@ namespace Recipebook.Controllers
             if (id == null) return NotFound();
 
             var recipe = await _context.Recipe
+                .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes)
                     .ThenInclude(cr => cr.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -497,16 +501,23 @@ namespace Recipebook.Controllers
         }
 
         // POST: Recipes/Delete/5
-        // Performs the actual delete (after confirmation) and redirects to Index.
+        // Soft-deletes the recipe and removes join rows
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty; // CS8601 fix
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-            var recipe = await _context.Recipe.FindAsync(id);
-            if (recipe == null) return RedirectToAction(nameof(Index));
+            // Include join rows so we can remove them
+            var recipe = await _context.Recipe
+                .Include(r => r.CategoryRecipes)
+                .Include(r => r.IngredientRecipes)
+                .Include(r => r.Favorites)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+                return RedirectToAction(nameof(Index));
 
             // Author-only guard
             if (recipe.AuthorId != userId)
@@ -517,19 +528,31 @@ namespace Recipebook.Controllers
 
             try
             {
-                // Remove join rows first to avoid orphaned links (if cascade not set)
-                var categoryLinks = _context.CategoryRecipes.Where(cr => cr.RecipeId == id);
-                _context.CategoryRecipes.RemoveRange(categoryLinks);
+                // Soft delete
+                recipe.IsArchived = true;
+                _context.Update(recipe);
 
-                // ? ADDED (favorites): remove favorites pointing to this recipe
-                var favoriteLinks = _context.Favorites.Where(f => f.RecipeId == id);
-                _context.Favorites.RemoveRange(favoriteLinks);
+                // Remove all join rows
+                if (recipe.CategoryRecipes != null && recipe.CategoryRecipes.Any())
+                    _context.CategoryRecipes.RemoveRange(recipe.CategoryRecipes);
 
-                _context.Recipe.Remove(recipe);
+                if (recipe.IngredientRecipes != null && recipe.IngredientRecipes.Any())
+                    _context.IngredientRecipes.RemoveRange(recipe.IngredientRecipes);
+
+                if (recipe.Favorites != null && recipe.Favorites.Any())
+                    _context.Favorites.RemoveRange(recipe.Favorites);
+
                 await _context.SaveChangesAsync();
 
-                var who = (await _context.Users.Where(u => u.Id == userId).Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
-                _logger.LogInformation("{Who} deleted recipe '{Title}' (Id {Id})", who, recipe.Title, recipe.Id);
+                var who = (await _context.Users.Where(u => u.Id == userId)
+                    .Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
+
+                _logger.LogInformation("{Who} archived recipe '{Title}' (Id {Id}) and removed join rows: Categories={CatCount}, Ingredients={IngCount}, Favorites={FavCount}",
+                    who, recipe.Title, recipe.Id,
+                    recipe.CategoryRecipes?.Count ?? 0,
+                    recipe.IngredientRecipes?.Count ?? 0,
+                    recipe.Favorites?.Count ?? 0
+                );
 
                 TempData["Success"] = "Recipe deleted successfully.";
             }
@@ -543,6 +566,6 @@ namespace Recipebook.Controllers
         }
 
         // Utility to check if a recipe exists (used in concurrency handling)
-        private bool RecipeExists(int id) => _context.Recipe.Any(e => e.Id == id);
+        private bool RecipeExists(int id) => _context.Recipe.Where(r => !r.IsArchived).Any(e => e.Id == id);
     }
 }
