@@ -9,7 +9,7 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form asp-action="Edit" method="post">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                 <input type="hidden" asp-for="Recipe.Id" />
 
@@ -86,7 +86,11 @@
                     <textarea asp-for="Recipe.Directions" class="form-control" rows="5"></textarea>
                     <span asp-validation-for="Recipe.Directions" class="text-danger"></span>
                 </div>
-
+                <div class="form-group">
+                    <label asp-for="ImageFile">Recipe Image</label>
+                    <input asp-for="ImageFile" type="file" class="form-control" />
+                    <span asp-validation-for="ImageFile" class="text-danger"></span>
+                </div>
                 <div class="d-flex justify-content-center gap-2">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-save"></i> Update

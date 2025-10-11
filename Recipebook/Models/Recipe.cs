@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Http;
 
 
 
@@ -52,6 +53,8 @@ namespace Recipebook.Models
         public ICollection<Category> Categories { get; set; } = new List<Category>();
 
         public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();
+
+        public string? ImageFileName { get; set; } // optional for display later
     }
 
 }

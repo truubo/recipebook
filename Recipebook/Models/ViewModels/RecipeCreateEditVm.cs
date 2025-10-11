@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 using Recipebook.Models;
 
 namespace Recipebook.Models.ViewModels
@@ -10,6 +11,8 @@ namespace Recipebook.Models.ViewModels
         public List<IngredientSelectViewModel> Ingredients { get; set; } = new List<IngredientSelectViewModel>();
 
         public int[] SelectedCategories { get; set; } = new int[0];
+
+        public IFormFile? ImageFile { get; set; }
     }
 
     public class IngredientSelectViewModel
@@ -21,5 +24,6 @@ namespace Recipebook.Models.ViewModels
         public int Quantity { get; set; } = 1;
 
         public Unit Unit { get; set; } = Unit.Piece;
+
     }
 }

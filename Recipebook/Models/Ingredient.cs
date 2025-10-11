@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace Recipebook.Models
 {
     public class Ingredient
@@ -17,5 +18,6 @@ namespace Recipebook.Models
         public ICollection<IngredientRecipe>? IngredientRecipes { get; set; }
 
         public string OwnerId { get; set; } = string.Empty;
+
     }
 }

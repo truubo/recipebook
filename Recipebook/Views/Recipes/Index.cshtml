@@ -51,6 +51,17 @@
                     <div class="recipe-card">
                         <a asp-action="Details" asp-route-id="@item.Id" class="card-overlay">View Details</a>
 
+                        @if (!string.IsNullOrEmpty(item.ImageFileName))
+                        {
+                            <div class="recipe-image text-center mb-2">
+                                <img src="~/img/recipes/@item.ImageFileName"
+                                     alt="Recipe Image"
+                                     class="img-fluid rounded"
+                                     style="max-height:200px; object-fit:cover;" />
+                            </div>
+                        }
+
+
                         <div class="card-header d-flex justify-content-between align-items-start">
                             <h5 class="card-title">@item.Title</h5>
                             @if (item.Private)

@@ -1,14 +1,14 @@
-// Controllers/RecipesController.cs
+﻿// Controllers/RecipesController.cs
 // ----------------------------------------------------------------------------------
 // PURPOSE
 //   CRUD controller for Recipe entities. Also includes author-only guards and structured
 //   logging for clear audit trails.
 //
 // NOTES FOR REVIEWERS / CLASSMATES
-//   � Look for SECTION HEADERS to navigate (INDEX, DETAILS, CREATE, EDIT, DELETE).
-//   � Common patterns used: eager loading (Include/ThenInclude), ModelState validation,
+//   • Look for SECTION HEADERS to navigate (INDEX, DETAILS, CREATE, EDIT, DELETE).
+//   • Common patterns used: eager loading (Include/ThenInclude), ModelState validation,
 //     PRG (Post/Redirect/Get), TempData alerts, and Identity-based ownership checks.
-//   � Controllers orchestrate: validate ? call EF/service ? redirect. Relationship
+//   • Controllers orchestrate: validate ? call EF/service ? redirect. Relationship
 //     definitions belong in the Model/DbContext; syncing selections to join rows
 //     happens here for now (could be moved to a service later to follow SRP).
 // ----------------------------------------------------------------------------------
@@ -230,6 +230,28 @@ namespace Recipebook.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                // ----------------------- HANDLE IMAGE UPLOAD -----------------------
+                // ----------------------- HANDLE IMAGE UPLOAD -----------------------
+                if (vm.ImageFile != null)
+                {
+                    string imgDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "recipes");
+                    Directory.CreateDirectory(imgDir); // ensure folder exists
+
+                    // ✅ Corrected lines:
+                    string originalFileName = Path.GetFileNameWithoutExtension(vm.ImageFile.FileName);
+                    string ext = Path.GetExtension(vm.ImageFile.FileName);
+                    string safeFile = $"{originalFileName}_{Guid.NewGuid()}{ext}";
+                    string fullPath = Path.Combine(imgDir, safeFile);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await vm.ImageFile.CopyToAsync(stream);
+                    }
+
+                    vm.Recipe.ImageFileName = safeFile;
+                }
+
+
                 // 1) Save the recipe to get its generated Id
                 _context.Add(vm.Recipe);
 
@@ -368,7 +390,6 @@ namespace Recipebook.Controllers
             vm.Ingredients ??= new List<IngredientSelectViewModel>();
             vm.Ingredients = vm.Ingredients.Where(i => i.IngredientId > 0).ToList();
 
-            // Re-validate after cleaning
             ModelState.Clear();
             TryValidateModel(vm);
             var formOk = FormValid(ModelState) && ModelState.IsValid;
@@ -390,11 +411,51 @@ namespace Recipebook.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Update recipe basic info
+                // ----------------------- LOAD EXISTING RECIPE -----------------------
+                var existingRecipe = await _context.Recipe.AsNoTracking().FirstOrDefaultAsync(r => r.Id == vm.Recipe.Id);
+                if (existingRecipe == null)
+                {
+                    TempData["Error"] = "Recipe not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // ----------------------- HANDLE IMAGE UPLOAD -----------------------
+                if (vm.ImageFile != null)
+                {
+                    string imgDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "recipes");
+                    Directory.CreateDirectory(imgDir);
+
+                    // Optional: delete old image if exists
+                    if (!string.IsNullOrEmpty(existingRecipe.ImageFileName))
+                    {
+                        string oldPath = Path.Combine(imgDir, existingRecipe.ImageFileName);
+                        if (System.IO.File.Exists(oldPath))
+                            System.IO.File.Delete(oldPath);
+                    }
+
+                    string originalFileName = Path.GetFileNameWithoutExtension(vm.ImageFile.FileName);
+                    string ext = Path.GetExtension(vm.ImageFile.FileName);
+                    string safeFile = $"{originalFileName}_{Guid.NewGuid()}{ext}";
+                    string fullPath = Path.Combine(imgDir, safeFile);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await vm.ImageFile.CopyToAsync(stream);
+                    }
+
+                    vm.Recipe.ImageFileName = safeFile; // new image
+                }
+                else
+                {
+                    // ✅ Keep old image if no new one uploaded
+                    vm.Recipe.ImageFileName = existingRecipe.ImageFileName;
+                }
+
+                // ----------------------- UPDATE BASIC INFO -----------------------
                 _context.Update(vm.Recipe);
                 await _context.SaveChangesAsync();
 
-                // Update categories
+                // ----------------------- UPDATE CATEGORIES -----------------------
                 var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id);
                 _context.CategoryRecipes.RemoveRange(existingCategories);
 
@@ -410,7 +471,7 @@ namespace Recipebook.Controllers
                     }
                 }
 
-                // Update ingredients
+                // ----------------------- UPDATE INGREDIENTS -----------------------
                 var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id);
                 _context.IngredientRecipes.RemoveRange(existingIngredients);
 
@@ -428,20 +489,6 @@ namespace Recipebook.Controllers
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                var catNames = (vm.SelectedCategories ?? Array.Empty<int>())
-                    .Distinct()
-                    .Join(_context.Category, id => id, c => c.Id, (id, c) => c.Name!)
-                    .ToList();
-
-                var who = (await _context.Users
-                    .Where(u => u.Id == vm.Recipe.AuthorId)
-                    .Select(u => u.Email)
-                    .FirstOrDefaultAsync()) ?? vm.Recipe.AuthorId;
-
-                _logger.LogInformation(
-                    "{Who} updated recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories}",
-                    who, vm.Recipe.Title, vm.Recipe.Id, vm.Recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]");
-
                 TempData["Success"] = "Recipe updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
@@ -457,6 +504,7 @@ namespace Recipebook.Controllers
             ViewBag.AllIngredients = new SelectList(_context.Ingredient.OrderBy(i => i.Name), "Id", "Name");
             return View(vm);
         }
+
 
         // --------------------------------- DELETE --------------------------------
         // GET: Recipes/Delete/5
