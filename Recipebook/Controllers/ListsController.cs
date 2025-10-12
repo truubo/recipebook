@@ -126,7 +126,8 @@ namespace Recipebook.Controllers
                 .Where(l => l.OwnerId == uid)
                 .Include(l => l.ListRecipes)
                 .AsNoTracking();
-            } else
+            }
+            else
             {
                 listQ = _context.Lists
                 .Where(l => l.OwnerId == uid || l.Private == false)
@@ -511,6 +512,74 @@ namespace Recipebook.Controllers
 
             TempData["Success"] = $"List '{list.Name}' deleted.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // -------------------- ADD: QUICK ACTION FROM RECIPE PAGE ------------------
+        // POST: Lists/AddToList
+        // Minimal endpoint to support "Add to List" button on Recipe pages.
+        // Requirements covered:
+        //  • Owner-only mutation of lists
+        //  • Avoid duplicate ListRecipe rows
+        //  • Redirect back to Recipe details (or a local returnUrl, if provided)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToList(int listId, int recipeId, string? returnUrl = null)
+        {
+            var uid = _userManager.GetUserId(User)!;
+            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+
+            using var _ = BeginUserScope(uid, myEmail, "Lists/AddToList(POST)");
+
+            // Load target list and enforce owner-only edits
+            var list = await _context.Lists.FirstOrDefaultAsync(l => l.Id == listId);
+            if (list is null)
+            {
+                _logger.LogInformation("{Email} tried AddToList: list {ListId} not found", myEmail, listId);
+                return NotFound();
+            }
+            if (list.OwnerId != uid)
+            {
+                _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
+                return Forbid();
+            }
+
+            // Ensure the recipe exists (prevents FK violations)
+            var recipeExists = await _context.Recipe.AnyAsync(r => r.Id == recipeId);
+            if (!recipeExists)
+            {
+                _logger.LogInformation("{Email} tried AddToList: recipe {RecipeId} not found", myEmail, recipeId);
+                return NotFound();
+            }
+
+            // Avoid duplicates
+            var alreadyLinked = await _context.ListRecipes
+                .AnyAsync(lr => lr.ListId == listId && lr.RecipeId == recipeId);
+
+            if (!alreadyLinked)
+            {
+                _context.ListRecipes.Add(new ListRecipe { ListId = listId, RecipeId = recipeId });
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("{Email} added recipe {RecipeId} to list '{ListName}' (Id {ListId})",
+                    myEmail, recipeId, list.Name, list.Id);
+
+                TempData["Success"] = $"Added to list '{list.Name}'.";
+            }
+            else
+            {
+                _logger.LogInformation("{Email} AddToList skipped: recipe {RecipeId} already in list '{ListName}' (Id {ListId})",
+                    myEmail, recipeId, list.Name, list.Id);
+
+                TempData["Info"] = $"Already in list '{list.Name}'.";
+            }
+
+            // Prefer returning to the caller page if it's local; otherwise go to Recipe details
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("Details", "Recipes", new { id = recipeId });
         }
     }
 }

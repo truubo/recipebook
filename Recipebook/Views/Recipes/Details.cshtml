@@ -8,6 +8,7 @@
 
 @model Recipebook.Models.Recipe
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Mvc.Rendering  @* needed for SelectListItem cast below *@
 
 @{
     ViewData["Title"] = "Recipe Details";
@@ -30,6 +31,9 @@
 
     // Is the current user the author? (used to gate Edit/Delete)
     var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string)ViewData["AuthorEmail"]);
+
+    // Lists for Add-to-List modal (provided by controller; safe if null)
+    var userLists = ViewBag.UserLists as IEnumerable<SelectListItem>;
 }
 
 <div class="details-page position-relative">
@@ -37,13 +41,11 @@
     @* ===============================================================
     TOP ACTION BAR
     - Left: Back button (links to backUrl; no history.back())
-    - Right: (A) Favorite star (if logged in) and
+    - Right: (A) Add to List button (if logged in),
     (B) Edit/Delete (if current user is the owner)
     Notes:
-    • We render the star outside of the owner-only block so that
-    *any* authenticated user can favorite/unfavorite the recipe.
-    • The star sits visually "by" Edit/Delete because they're within
-    the same container (d-flex gap-2).
+    • We render Add-to-List for any authenticated user.
+    • The star toggle remains below in the header (unchanged).
     =============================================================== *@
     <div class="details-actions-top d-flex justify-content-between align-items-center w-100">
         @* Back to Recipes/tabs without multiple clicks *@
@@ -52,6 +54,18 @@
         </a>
 
         <div class="d-flex align-items-center gap-2">
+            @* Add to List opens a modal; form posts to Lists/AddToList *@
+            @if (User.Identity.IsAuthenticated)
+            {
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addToListModal"
+                        title="Add to List">
+                    <i class="bi bi-list-check"></i>
+                </button>
+            }
+
             @* ------------------------------
             Owner-only actions
             - Only the author sees Edit/Delete
@@ -71,6 +85,7 @@
     @* ===============================================================
     HEADER: Title, categories, author, privacy badge
     We removed the old star under the title and moved it above.
+    (Existing placement of star below is intentionally left intact.)
     =============================================================== *@
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
@@ -178,6 +193,65 @@
         <p>@Html.DisplayFor(model => model.Directions)</p>
     </div>
 </div>
+
+@* ===============================================================
+   Add-to-List Modal
+   - Appears only for authenticated users
+   - Expects ViewBag.UserLists as IEnumerable<SelectListItem>
+   - Posts to Lists/AddToList (normal POST; PRG shows TempData alert)
+   =============================================================== *@
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="modal fade" id="addToListModal" tabindex="-1" aria-labelledby="addToListLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="addToListLabel" class="modal-title">Add “@Model.Title” to a List</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form asp-controller="Lists"
+                      asp-action="AddToList"
+                      method="post">
+                    <div class="modal-body">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="recipeId" value="@Model.Id" />
+                        @* Allow controller to redirect back here with TempData alert *@
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                        @if (userLists != null && userLists.Any())
+                        {
+                            <div class="mb-3">
+                                <label for="listId" class="form-label">Choose a list</label>
+                                <select id="listId" name="listId" class="form-select" required>
+                                    @foreach (var item in userLists)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info mb-0">
+                                You don’t have any lists yet.
+                                <a asp-controller="Lists" asp-action="Index" class="alert-link">Create one</a>
+                                and try again.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-secondary" @(userLists == null || !userLists.Any() ? "disabled" : null)>
+                            <i class="bi bi-plus-circle"></i> Add to List
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
 
 @section Scripts {
     <script>

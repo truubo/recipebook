@@ -122,8 +122,6 @@ namespace Recipebook.Controllers
 
         // -------------------------------- DETAILS --------------------------------
         // GET: Recipes/Details/5
-        // Loads a single recipe and its categories. Redirects to a friendly NotFound
-        // page if id is null or the record doesn't exist.
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -133,11 +131,9 @@ namespace Recipebook.Controllers
             }
 
             var recipe = await _context.Recipe
-                .Include(r => r.CategoryRecipes)
-                    .ThenInclude(cr => cr.Category)
-                .Include(r => r.IngredientRecipes)       // <-- Include ingredients
-                    .ThenInclude(ir => ir.Ingredient)   // <-- Include ingredient details
-                .Include(r => r.Favorites)               // ? ADDED (favorites) - for star state
+                .Include(r => r.CategoryRecipes).ThenInclude(cr => cr.Category)
+                .Include(r => r.IngredientRecipes).ThenInclude(ir => ir.Ingredient)
+                .Include(r => r.Favorites) // for star state
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (recipe == null)
@@ -153,7 +149,7 @@ namespace Recipebook.Controllers
                 .FirstOrDefaultAsync();
             ViewData["AuthorEmail"] = authorEmail;
 
-            // Build actor for logging (email if possible)
+            // Current viewer identity (email if possible) for logs
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             string who = (uid == null)
                 ? "anonymous"
@@ -166,9 +162,30 @@ namespace Recipebook.Controllers
                 .Cast<string>()
                 .ToList();
 
+            // ?? NEW: Provide the lists for the "Add to List" modal
+            // Expects your List entity to have an OwnerId (string) and Name (string)
+            // Adjust property names if yours differ.
+            IEnumerable<SelectListItem> userLists = Enumerable.Empty<SelectListItem>();
+            if (User.Identity?.IsAuthenticated == true && !string.IsNullOrEmpty(uid))
+            {
+                userLists = await _context.Lists
+                    .AsNoTracking()
+                    .Where(l => l.OwnerId == uid)        // <-- adjust if you use a different owner field
+                    .OrderBy(l => l.Name)
+                    .Select(l => new SelectListItem
+                    {
+                        Value = l.Id.ToString(),
+                        Text = l.Name
+                    })
+                    .ToListAsync();
+            }
+            ViewBag.UserLists = userLists;
+
             _logger.LogInformation(
-                "{Who} -> /Recipes/Details/{Id} '{Title}' | author={AuthorEmail} private={Private} categories={Count} {Categories}",
-                who, recipe.Id, recipe.Title, authorEmail, recipe.Private, catNames.Count, JoinNames(catNames));
+                "{Who} -> /Recipes/Details/{Id} '{Title}' | author={AuthorEmail} private={Private} categories={Count} {Categories} | listsLoaded={ListCount}",
+                who, recipe.Id, recipe.Title, authorEmail, recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]",
+                userLists.Count()
+            );
 
             return View(recipe);
         }
