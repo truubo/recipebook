@@ -54,6 +54,12 @@ namespace Recipebook.Models
         public bool Private { get; set; } = true;
 
         /// <summary>
+        /// Whether the list is archived or not.
+        /// </summary>
+        [Column(TypeName = "bit")]
+        public bool IsArchived { get; set; } = false;
+
+        /// <summary>
         /// Many-to-many: Recipes associated with this list.
         /// </summary>
         public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();

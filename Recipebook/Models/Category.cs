@@ -18,5 +18,8 @@ namespace Recipebook.Models
 
         // NEW: who owns this category
         public string OwnerId { get; set; } = string.Empty;
+
+        [Column(TypeName = "bit")]
+        public bool IsArchived { get; set; } = false;
     }
 }

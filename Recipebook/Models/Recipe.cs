@@ -46,6 +46,9 @@ namespace Recipebook.Models
         [ValidateNever]
         public string? AuthorEmail { get; set; }   // <-- make nullable
 
+        [Column(TypeName = "bit")]
+        public bool IsArchived { get; set; } = false;
+
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
         public ICollection<CategoryRecipe> CategoryRecipes { get; set; } = new List<CategoryRecipe>();
