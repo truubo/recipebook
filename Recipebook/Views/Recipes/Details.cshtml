@@ -1,9 +1,7 @@
 ﻿@* ===============================================================
    Recipe Details View
-   - Goal: Keep "Back" behavior stable (returns to Recipes list or tab)
-   - Move the Favorite (star) toggle to the top-right, next to Edit/Delete
-   - Keep star toggle AJAX-only to avoid polluting browser history
-   - EXTENSIVE MARKUP COMMENTS added for clarity (no logic changes)
+   - Back button: simple link to /Recipes/Index (no auto-redirect)
+   - Favorites + Add-to-List unchanged
    =============================================================== *@
 
 @model Recipebook.Models.Recipe
@@ -13,20 +11,10 @@
 @{
     ViewData["Title"] = "Recipe Details";
 
-    // Compute a stable "Back" target.
-    // If the user arrived from any /Recipes URL, send them back there (preserves tab/search).
-    // Otherwise, fall back to Recipes/Index.
-    var referer = Context?.Request?.Headers["Referer"].ToString() ?? "";
-    var backUrl =
-        (!string.IsNullOrWhiteSpace(referer) && referer.Contains("/Recipes", StringComparison.OrdinalIgnoreCase))
-            ? referer
-            : Url.Action("Index", "Recipes");
-
     // Determine current user's Id for favorite-state detection
     var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     // A recipe is "favorited" if any Favorite row exists for (this user, this recipe).
-    // (null-propagation to be safe when Favorites is not included)
     var isFav = User.Identity.IsAuthenticated && (Model.Favorites?.Any(f => f.UserId == uid) ?? false);
 
     // Is the current user the author? (used to gate Edit/Delete)
@@ -40,21 +28,18 @@
 
     @* ===============================================================
     TOP ACTION BAR
-    - Left: Back button (links to backUrl; no history.back())
-    - Right: (A) Add to List button (if logged in),
-    (B) Edit/Delete (if current user is the owner)
-    Notes:
-    • We render Add-to-List for any authenticated user.
-    • The star toggle remains below in the header (unchanged).
+    - Left: Back button (static link to Recipes/Index; no JS)
+    - Right: Add to List (if logged in) + Edit/Delete (if owner)
     =============================================================== *@
     <div class="details-actions-top d-flex justify-content-between align-items-center w-100">
-        @* Back to Recipes/tabs without multiple clicks *@
-        <a href="@backUrl" class="btn btn-brown" title="Back to recipes">
+        @* Back button — only navigates when clicked *@
+        <a href="/Recipes/Index"
+           class="btn btn-brown"
+           title="Back to recipes">
             <i class="bi bi-arrow-left-circle"></i>
         </a>
 
         <div class="d-flex align-items-center gap-2">
-            @* Add to List opens a modal; form posts to Lists/AddToList *@
             @if (User.Identity.IsAuthenticated)
             {
                 <button type="button"
@@ -66,10 +51,6 @@
                 </button>
             }
 
-            @* ------------------------------
-            Owner-only actions
-            - Only the author sees Edit/Delete
-            ------------------------------ *@
             @if (isOwner)
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
@@ -84,15 +65,12 @@
 
     @* ===============================================================
     HEADER: Title, categories, author, privacy badge
-    We removed the old star under the title and moved it above.
-    (Existing placement of star below is intentionally left intact.)
     =============================================================== *@
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
 
         <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
             <div>
-                @* Category badges (link to Category Details) *@
                 @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
                 {
                     foreach (var cr in Model.CategoryRecipes)
@@ -112,7 +90,6 @@
             </div>
         </div>
 
-        @* Author + Privacy badge *@
         <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
             <span>
                 By <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
@@ -134,7 +111,6 @@
                         @* returnUrl is a graceful fallback if JS is disabled *@
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
-                        @* Updated star button *@
                         <button type="submit" class="btn btn-link p-0 star-btn">
                             <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
                         </button>
@@ -146,12 +122,8 @@
 
     @* ===============================================================
     BODY: Description, Ingredients, Directions
-    Keep content structure identical; only added comments and subtle guards.
     =============================================================== *@
     <div class="details-body mt-4">
-        @* ------------------------------
-        Description
-        ------------------------------ *@
         <h4 class="section-title mt-4">Description</h4>
         @if (!string.IsNullOrEmpty(Model.Description))
         {
@@ -162,10 +134,6 @@
             <p class="text-muted">No description available.</p>
         }
 
-        @* ------------------------------
-        Ingredients
-        - Renders as a simple list with pluralized unit label
-        ------------------------------ *@
         <h4 class="section-title mt-4">Ingredients</h4>
         @if (Model.IngredientRecipes != null && Model.IngredientRecipes.Any())
         {
@@ -174,7 +142,6 @@
                 {
                     var unitStr = ir.Unit.ToString();
                     var pluralUnit = ir.Quantity == 1 ? unitStr : unitStr + "s";
-
                     <li class="list-group-item bg-brown border-brown rounded-2">
                         @ir.Quantity @pluralUnit of @ir.Ingredient.Name
                     </li>
@@ -186,9 +153,6 @@
             <p class="text-muted">No ingredients added.</p>
         }
 
-        @* ------------------------------
-        Directions
-        ------------------------------ *@
         <h4 class="section-title mt-4">Directions</h4>
         <p>@Html.DisplayFor(model => model.Directions)</p>
     </div>
@@ -199,6 +163,7 @@
    - Appears only for authenticated users
    - Expects ViewBag.UserLists as IEnumerable<SelectListItem>
    - Posts to Lists/AddToList (normal POST; PRG shows TempData alert)
+   - Stays on Details after POST (controller should redirect back to Details)
    =============================================================== *@
 @if (User.Identity.IsAuthenticated)
 {
@@ -216,7 +181,7 @@
                     <div class="modal-body">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="recipeId" value="@Model.Id" />
-                        @* Allow controller to redirect back here with TempData alert *@
+                        @* Controller can use this to redirect right back to Details *@
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
                         @if (userLists != null && userLists.Any())
@@ -256,11 +221,7 @@
 @section Scripts {
     <script>
         // ===============================================================
-        // AJAX Favorite Toggle
-        // - Prevents full-page POST redirects which would create extra
-        //   history entries (so Back always returns to Recipes once).
-        // - Uses optimistic UI to flip the star icon immediately.
-        // - Keeps the user in place; no scrolling or navigation.
+        // AJAX Favorite Toggle (unchanged)
         // ===============================================================
         document.addEventListener('submit', async (e) => {
             const form = e.target;
@@ -268,15 +229,12 @@
             e.preventDefault();
 
             const fd = new FormData(form);
-
             try {
                 await fetch(form.action, {
                     method: 'POST',
                     body: fd,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' } // lets server know it's an AJAX request
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
-
-                // Flip the star appearance immediately (optimistic UI)
                 const icon = form.querySelector('i');
                 if (icon) {
                     icon.classList.toggle('bi-star');
@@ -284,8 +242,7 @@
                     icon.classList.toggle('text-warning');
                 }
             } catch {
-                // Silently ignore errors for now.
-                // (Optional: you could show a toast/alert if desired.)
+                // Optional: add user feedback here if desired
             }
         });
     </script>

@@ -517,16 +517,16 @@ namespace Recipebook.Controllers
         // -------------------- ADD: QUICK ACTION FROM RECIPE PAGE ------------------
         // POST: Lists/AddToList
         // Minimal endpoint to support "Add to List" button on Recipe pages.
-        // Requirements covered:
-        //  • Owner-only mutation of lists
-        //  • Avoid duplicate ListRecipe rows
-        //  • Redirect back to Recipe details (or a local returnUrl, if provided)
+        // Owner-only, prevents duplicates, and redirects back to the recipe (not index).
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToList(int listId, int recipeId, string? returnUrl = null)
         {
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users
+                .Where(u => u.Id == uid)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/AddToList(POST)");
 
@@ -535,12 +535,14 @@ namespace Recipebook.Controllers
             if (list is null)
             {
                 _logger.LogInformation("{Email} tried AddToList: list {ListId} not found", myEmail, listId);
-                return NotFound();
+                TempData["Error"] = "That list wasn’t found.";
+                return SafeRedirect(returnUrl);
             }
             if (list.OwnerId != uid)
             {
                 _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
-                return Forbid();
+                TempData["Error"] = "You don’t have permission to modify that list.";
+                return SafeRedirect(returnUrl);
             }
 
             // Ensure the recipe exists (prevents FK violations)
@@ -548,7 +550,8 @@ namespace Recipebook.Controllers
             if (!recipeExists)
             {
                 _logger.LogInformation("{Email} tried AddToList: recipe {RecipeId} not found", myEmail, recipeId);
-                return NotFound();
+                TempData["Error"] = "That recipe wasn’t found.";
+                return SafeRedirect(returnUrl);
             }
 
             // Avoid duplicates
@@ -573,13 +576,24 @@ namespace Recipebook.Controllers
                 TempData["Info"] = $"Already in list '{list.Name}'.";
             }
 
-            // Prefer returning to the caller page if it's local; otherwise go to Recipe details
+            // ✅ NEW LOGIC:
+            // Respect returnUrl so we stay on the same Recipe Details page.
+            // Fall back safely if returnUrl is missing or not local.
+            return SafeRedirect(returnUrl);
+        }
+
+        // Helper method to prevent open redirects
+        private IActionResult SafeRedirect(string? returnUrl)
+        {
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
             }
 
-            return RedirectToAction("Details", "Recipes", new { id = recipeId });
+            // fallback if no returnUrl given
+            return RedirectToAction("Index", "Recipes");
         }
+
+
     }
 }
