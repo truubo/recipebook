@@ -56,9 +56,9 @@
                         <div class="ingredient-row mb-3">
                             <div class="row g-2 align-items-center">
                                 <div class="col">
-                                    <select asp-for="Ingredients[@i].IngredientId" class="form-control" asp-items="ViewBag.AllIngredients">
+                                    <!--<select asp-for="Ingredients[@i].IngredientId" class="form-control" asp-items="ViewBag.AllIngredients">
                                         <option value="">-- Select Ingredient --</option>
-                                    </select>
+                                        </select>-->
                                 </div>
                                 <div class="col">
                                     <input asp-for="Ingredients[@i].Quantity" class="form-control" type="number" min="1" />
@@ -100,13 +100,24 @@
                 <div class="ingredient-row mb-3">
                     <div class="row g-2 align-items-center">
                         <div class="col">
-                            <select name="Ingredients[__index__].IngredientId" class="form-control">
+                            <!--<select name="Ingredients[__index__].IngredientId" class="form-control">
                                 <option value="">-- Select Ingredient --</option>
                                 @foreach (var item in (SelectList)ViewBag.AllIngredients)
                                 {
                                     <option value="@item.Value">@item.Text</option>
                                 }
-                            </select>
+                            </select>-->
+                            <input hidden name="Ingredients[__index__].IngredientId" value="">
+                            <div class="dropdown">
+                                <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this)">
+                                    Select ingredient...
+                                </button>
+                                <ul class="dropdown-menu p-2">
+                                    <input type="text" class="form-control my-2" placeholder="Search..." />
+                                    <li><a class="dropdown-item btn-success" href="#"><b>+</b> Create new ingredient</a></li>
+                                    <li id="loadingIngredientsText">Loading ingredients...</li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="col">
                             <input name="Ingredients[__index__].Quantity" class="form-control" type="number" min="1" />
@@ -133,6 +144,7 @@
 
     <script>
         let ingredientIndex = @Model.Ingredients.Count;
+        let cachedIngredients;
         const container = document.querySelector(".ingredients-container");
         const template = document.querySelector(".ingredient-template").innerHTML;
 
@@ -162,6 +174,64 @@
                 updateLabels();
             }
         });
+
+        // ---------- Ingredient dropdown handling ---------- //
+
+        function promptNewIngredient() {
+            // tbd
+        }
+
+        function createIngredient() {
+            // tbd
+        }
+
+        function selectIngredient(element) {
+            // tbd
+        }
+
+        function populateDropdown(element) {
+            // get list of ingredients
+            const ul = element.parentElement.querySelector(".dropdown-menu");
+            cachedIngredients.forEach(ingredient => {
+                // create the elements for the dropdown
+                var li = document.createElement("li")
+                var a = document.createElement("a")
+                a.className = "dropdown-item"
+                a.href = "#"
+                a.textContent = ingredient.name;
+                a.dataset.id = ingredient.id;
+                li.appendChild(a)
+                ul.appendChild(li)
+            });
+            element.removeAttribute("onclick");
+            ul.querySelector("#loadingIngredientsText").remove();
+        }
+
+        async function fetchIngredients(element) {
+            console.log("fetchIngredients called")
+            // if cachedIngredients already exists, populate dropdown
+            if (cachedIngredients) 
+            { 
+                populateDropdown(element); 
+                return;
+            }
+
+            const dropdownMenu = element.nextElementSibling;
+            // fetch ingredients from server
+            const ingredientListResponse = await window.fetch("/Ingredients/All");
+
+            if (!ingredientListResponse.ok) {
+                // todo: add user friendly error
+                throw new Error("Failed to retrieve ingredient list.")
+            }
+            // get json from API and set cachedIngredients
+            const result = await ingredientListResponse.json();
+            cachedIngredients = result;
+            // populate dropdown
+            await populateDropdown(element);
+            // the dropdown should already be populated, so sever connection to this method
+            return;
+        }
 
         // Initialize labels on page load
         updateLabels();

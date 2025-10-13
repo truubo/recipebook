@@ -270,6 +270,16 @@ namespace Recipebook.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Ingredients/All
+        // API endpoint. Retrieves all ingredients and returns them as JSON.
+        public async Task<IActionResult> All()
+        {
+            var ingredients = await _context.Ingredient
+                .Select(i => new { i.Id, i.Name })
+                .ToListAsync();
+            return Json(ingredients);
+        }
+
         // --------------------------- EXISTENCE CHECK ---------------------------
         private bool IngredientExists(int id)
         {
