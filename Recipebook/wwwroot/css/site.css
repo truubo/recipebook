@@ -20,3 +20,120 @@ html {
 body {
   margin-bottom: 60px;
 }
+/* =========================================
+   Add to List Feature — Final Correct Reds
+   ========================================= */
+
+/* ---------- Top-right Add to List button (next to Edit/Delete) ---------- */
+.details-page .details-actions-top button.btn[data-bs-target="#addToListModal"] {
+    background-color: #8b0000 !important; /* site red */
+    border-color: #8b0000 !important;
+    color: #fff !important;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    padding: 0.4rem 0.6rem;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+    .details-page .details-actions-top button.btn[data-bs-target="#addToListModal"]:hover,
+    .details-page .details-actions-top button.btn[data-bs-target="#addToListModal"]:focus {
+        background-color: #5c0a0a !important; /* dark red hover (delete tone) */
+        border-color: #5c0a0a !important;
+        color: #fff !important;
+        transform: translateY(-1px);
+    }
+
+    .details-page .details-actions-top button.btn[data-bs-target="#addToListModal"] i {
+        color: #fff !important;
+    }
+
+/* ---------- Add to List Modal ---------- */
+#addToListModal .modal-content {
+    background-color: #f5e6c8; /* beige */
+    border: 2px solid #5c3a28; /* dark brown */
+    border-radius: 0.75rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+#addToListModal .modal-header {
+    background-color: #8b0000; /* site red header */
+    color: #fff;
+    border: none;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+#addToListModal .modal-title {
+    font-weight: 700;
+}
+
+#addToListModal .btn-close {
+    filter: invert(1);
+    opacity: 0.9;
+}
+
+    #addToListModal .btn-close:hover,
+    #addToListModal .btn-close:focus {
+        opacity: 1;
+    }
+
+#addToListModal .modal-body label {
+    font-weight: 600;
+    color: #5c3a28;
+}
+
+#addToListModal .modal-body select.form-select {
+    border: 1px solid #5c3a28;
+    border-radius: 0.5rem;
+}
+
+#addToListModal .modal-footer {
+    border: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+    /* ---------- Modal Buttons ---------- */
+
+    /* Add button inside modal */
+    #addToListModal .modal-footer button.btn[type="submit"] {
+        background-color: #8b0000 !important; /* same site red as Edit */
+        border-color: #8b0000 !important;
+        color: #fff !important;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+    }
+
+        #addToListModal .modal-footer button.btn[type="submit"]:hover,
+        #addToListModal .modal-footer button.btn[type="submit"]:focus {
+            background-color: #5c0a0a !important; /* dark red hover */
+            border-color: #5c0a0a !important;
+            color: #fff !important;
+            transform: translateY(-1px);
+        }
+
+        #addToListModal .modal-footer button.btn[type="submit"] i {
+            color: #fff !important;
+        }
+
+    /* Cancel button */
+    #addToListModal .modal-footer button.btn.btn-outline-secondary,
+    #addToListModal .modal-footer button.btn-cancel {
+        background-color: #b3926a !important; /* light brown */
+        border: 1px solid #5c3a28 !important;
+        color: #000 !important;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+        #addToListModal .modal-footer button.btn.btn-outline-secondary:hover,
+        #addToListModal .modal-footer button.btn-cancel:hover,
+        #addToListModal .modal-footer button.btn.btn-outline-secondary:focus,
+        #addToListModal .modal-footer button.btn-cancel:focus {
+            background-color: #8a6a4a !important;
+            border-color: #3d2517 !important;
+            color: #fff !important;
+        }
+
