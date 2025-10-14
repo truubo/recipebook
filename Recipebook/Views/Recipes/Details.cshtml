@@ -42,13 +42,9 @@
         <div class="d-flex align-items-center gap-2">
             @if (User.Identity.IsAuthenticated)
             {
-                <button type="button"
-                        class="btn btn-secondary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addToListModal"
-                        title="Add to List">
+                <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target=".add-to-list-modal" title="Add to List">
                     <i class="bi bi-list-check"></i>
-                </button>
+                </a>
             }
 
             @if (isOwner)
@@ -167,12 +163,11 @@
    =============================================================== *@
 @if (User.Identity.IsAuthenticated)
 {
-    <div class="modal fade" id="addToListModal" tabindex="-1" aria-labelledby="addToListLabel" aria-hidden="true">
+    <div class="modal fade add-to-list-modal" tabindex="-1" aria-labelledby="addToListLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 id="addToListLabel" class="modal-title">Add “@Model.Title” to a List</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title add-to-list-label">Add “@Model.Title” to a List</h5>
                 </div>
 
                 <form asp-controller="Lists"
@@ -181,7 +176,6 @@
                     <div class="modal-body">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="recipeId" value="@Model.Id" />
-                        @* Controller can use this to redirect right back to Details *@
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
                         @if (userLists != null && userLists.Any())
