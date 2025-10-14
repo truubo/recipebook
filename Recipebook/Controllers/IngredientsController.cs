@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging; // logger
+using Microsoft.Net.Http.Headers; // for HeaderNames
 using Recipebook.Data;
 using Recipebook.Models;
 
@@ -113,6 +114,12 @@ namespace Recipebook.Controllers
                 _logger.LogInformation("{Who} created ingredient '{Name}' (Id {Id})", Who(), ingredient.Name, ingredient.Id);
 
                 TempData["Success"] = $"Ingredient '{ingredient.Name}' created.";
+
+                var acceptHeader = Request.Headers[HeaderNames.Accept].ToString();
+                if (acceptHeader.Contains("application/json", StringComparison.OrdinalIgnoreCase))
+                {
+                    return CreatedAtAction(nameof(Details), new { id = ingredient.Id, name = ingredient.Name }, ingredient);
+                }
                 return RedirectToAction(nameof(Index));
             }
 

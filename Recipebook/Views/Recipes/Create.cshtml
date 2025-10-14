@@ -3,7 +3,12 @@
 @{
     ViewData["Title"] = "Create";
 }
-
+<style>
+    /* CSS relevant to this page only */
+    .dropdown-item {
+        cursor: pointer;
+    }
+</style>
 <div class="recipe-form-page">
     <h1>Create New Recipe</h1>
 
@@ -107,14 +112,14 @@
                                     <option value="@item.Value">@item.Text</option>
                                 }
                             </select>-->
-                            <input hidden name="Ingredients[__index__].IngredientId" value="">
-                            <div class="dropdown">
-                                <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this)">
+                            <div class="dropdown" id="Ingredients[__index__]">
+                                <input hidden name="Ingredients[__index__].IngredientId" class="ingredientIdInput" value="">
+                                <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
                                     Select ingredient...
                                 </button>
                                 <ul class="dropdown-menu p-2">
                                     <input type="text" class="form-control my-2" placeholder="Search..." />
-                                    <li><a class="dropdown-item btn-success" href="#"><b>+</b> Create new ingredient</a></li>
+                                    <li><a class="dropdown-item btn-success" onclick="promptNewIngredient(this)"><b>+</b> Create new ingredient</a></li>
                                     <li id="loadingIngredientsText">Loading ingredients...</li>
                                 </ul>
                             </div>
@@ -135,9 +140,34 @@
                     <hr />
                 </div>
             </div>
+
+
         </div>
     </div>
 </div>
+<div class="modal" id="createIngredientModal" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Create new ingredient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <form class="form-control">
+                          <label for="ingredientName" class="form-label">Name</label>
+                          <input id="ingredientName" class="form-control" />
+                      </form>
+                  </div>
+                  <div class="modal-footer">
+                    <div class="spinner-border" style="display:none;" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createIngredient()">Create</button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
@@ -145,6 +175,7 @@
     <script>
         let ingredientIndex = @Model.Ingredients.Count;
         let cachedIngredients;
+        let targetElement;
         const container = document.querySelector(".ingredients-container");
         const template = document.querySelector(".ingredient-template").innerHTML;
 
@@ -177,19 +208,64 @@
 
         // ---------- Ingredient dropdown handling ---------- //
 
-        function promptNewIngredient() {
-            // tbd
+        function promptNewIngredient(element) {
+            console.log("summoning ingredient creation modal");
+            targetElement = element.closest("div.dropdown");
+            new bootstrap.Modal(document.getElementById("createIngredientModal"), {}).show();
         }
 
-        function createIngredient() {
+        function setIngredient(id, name) {
+            console.log(`setting ingredient with id ${id} and name ${name}`)
+            targetElement.querySelector("button").innerText = name;
+            targetElement.querySelector(".ingredientIdInput").value = id;
+        }
+
+        async function createIngredient() {
+            const name = document.querySelector("#createIngredientModal").querySelector("input#ingredientName").value
+            let formData = new FormData();
+            formData.append("Name", name)
+            const createIngredientRequest = await window.fetch("/Ingredients/Create", {
+                method: "POST",
+                body: formData,
+                headers: {"Accept": "application/json"}
+            })
+            if (!createIngredientRequest.ok) {
+                throw new Error(`Error creating ingredient: ${createIngredientRequest.statusCode}`)
+            }
+            const result = await createIngredientRequest.json();
+            console.log("seems like the ingredient was created!")
+            cachedIngredients = null;
+            setIngredient(result.id, result.name)
+            alert("Created!")
+        }
+
+        async function downloadIngredients() {
+            const ingredientListResponse = await window.fetch("/Ingredients/All");
+
+            if (!ingredientListResponse.ok) {
+                // todo: add user friendly error
+                throw new Error("Failed to retrieve ingredient list.")
+            }
+            console.log("successfully retrieved ingredients")
+            // get json from API and set cachedIngredients
+            const result = await ingredientListResponse.json();
+            return result;
+        }
+
+        // overloading would be REALLY convenient here...
+        function selectIngredientFromId() {
             // tbd
         }
 
         function selectIngredient(element) {
-            // tbd
+            console.log(`selectIngredient called from ${element}`)
+            const ingredientId = element.dataset.id;
+            targetElement = element.closest("div.dropdown");
+            setIngredient(ingredientId, element.innerText);
         }
 
         function populateDropdown(element) {
+            console.log("populateDropdown called")
             // get list of ingredients
             const ul = element.parentElement.querySelector(".dropdown-menu");
             cachedIngredients.forEach(ingredient => {
@@ -197,12 +273,14 @@
                 var li = document.createElement("li")
                 var a = document.createElement("a")
                 a.className = "dropdown-item"
-                a.href = "#"
                 a.textContent = ingredient.name;
                 a.dataset.id = ingredient.id;
+                a.setAttribute("onclick", "selectIngredient(this)")
                 li.appendChild(a)
                 ul.appendChild(li)
+                console.log(`created li for ${ingredient.name}`)
             });
+            console.log("finished creating list items")
             element.removeAttribute("onclick");
             ul.querySelector("#loadingIngredientsText").remove();
         }
@@ -212,21 +290,15 @@
             // if cachedIngredients already exists, populate dropdown
             if (cachedIngredients) 
             { 
+                console.log("ingredients already fetched")
                 populateDropdown(element); 
                 return;
             }
 
             const dropdownMenu = element.nextElementSibling;
             // fetch ingredients from server
-            const ingredientListResponse = await window.fetch("/Ingredients/All");
-
-            if (!ingredientListResponse.ok) {
-                // todo: add user friendly error
-                throw new Error("Failed to retrieve ingredient list.")
-            }
-            // get json from API and set cachedIngredients
-            const result = await ingredientListResponse.json();
-            cachedIngredients = result;
+            console.log("retrieving ingredients...")
+            cachedIngredients = await downloadIngredients();
             // populate dropdown
             await populateDropdown(element);
             // the dropdown should already be populated, so sever connection to this method
