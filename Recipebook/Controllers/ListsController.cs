@@ -129,7 +129,8 @@ namespace Recipebook.Controllers
                 .Include(l => l.ListRecipes)
                 .ThenInclude(lr => lr.Recipe)
                 .AsNoTracking();
-            } else
+            }
+            else
             {
                 listQ = _context.Lists
                 .Where(l => !l.IsArchived)
@@ -539,5 +540,87 @@ namespace Recipebook.Controllers
             TempData["Success"] = $"List '{list.Name}' deleted.";
             return RedirectToAction(nameof(Index));
         }
+
+        // -------------------- ADD: QUICK ACTION FROM RECIPE PAGE ------------------
+        // POST: Lists/AddToList
+        // Minimal endpoint to support "Add to List" button on Recipe pages.
+        // Owner-only, prevents duplicates, and redirects back to the recipe (not index).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToList(int listId, int recipeId, string? returnUrl = null)
+        {
+            var uid = _userManager.GetUserId(User)!;
+            var myEmail = await _context.Users
+                .Where(u => u.Id == uid)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            using var _ = BeginUserScope(uid, myEmail, "Lists/AddToList(POST)");
+
+            // Load target list and enforce owner-only edits
+            var list = await _context.Lists.FirstOrDefaultAsync(l => l.Id == listId);
+            if (list is null)
+            {
+                _logger.LogInformation("{Email} tried AddToList: list {ListId} not found", myEmail, listId);
+                TempData["Error"] = "That list wasn’t found.";
+                return SafeRedirect(returnUrl);
+            }
+            if (list.OwnerId != uid)
+            {
+                _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
+                TempData["Error"] = "You don’t have permission to modify that list.";
+                return SafeRedirect(returnUrl);
+            }
+
+            // Ensure the recipe exists (prevents FK violations)
+            var recipeExists = await _context.Recipe.AnyAsync(r => r.Id == recipeId);
+            if (!recipeExists)
+            {
+                _logger.LogInformation("{Email} tried AddToList: recipe {RecipeId} not found", myEmail, recipeId);
+                TempData["Error"] = "That recipe wasn’t found.";
+                return SafeRedirect(returnUrl);
+            }
+
+            // Avoid duplicates
+            var alreadyLinked = await _context.ListRecipes
+                .AnyAsync(lr => lr.ListId == listId && lr.RecipeId == recipeId);
+
+            if (!alreadyLinked)
+            {
+                _context.ListRecipes.Add(new ListRecipe { ListId = listId, RecipeId = recipeId });
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("{Email} added recipe {RecipeId} to list '{ListName}' (Id {ListId})",
+                    myEmail, recipeId, list.Name, list.Id);
+
+                TempData["Success"] = $"Added to list '{list.Name}'.";
+            }
+            else
+            {
+                _logger.LogInformation("{Email} AddToList skipped: recipe {RecipeId} already in list '{ListName}' (Id {ListId})",
+                    myEmail, recipeId, list.Name, list.Id);
+
+                TempData["Info"] = $"Already in list '{list.Name}'.";
+            }
+
+            // ✅ NEW LOGIC:
+            // Respect returnUrl so we stay on the same Recipe Details page.
+            // Fall back safely if returnUrl is missing or not local.
+            return SafeRedirect(returnUrl);
+        }
+
+        // Helper method to prevent open redirects
+        private IActionResult SafeRedirect(string? returnUrl)
+        {
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            // fallback if no returnUrl given
+            return RedirectToAction("Index", "Recipes");
+        }
+
+
     }
 }

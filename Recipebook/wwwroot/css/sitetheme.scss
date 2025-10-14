@@ -1093,7 +1093,7 @@ main {
     background-color: $light-brown;
     border: 2px solid $dark-brown;
     border-radius: 0.75rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 
     .star-btn i.star,
     .star-btn i.star.unchecked {
@@ -1161,6 +1161,120 @@ main {
 
             &:hover {
                 background-color: darken($dark-brown, 7%);
+            }
+        }
+    }
+    // ------------------------------
+    // Add to List Modal Trigger Button
+    // ------------------------------
+    .details-actions-top {
+        button.btn[data-bs-target=".add-to-list-modal"] {
+            background-color: $light-red !important;
+            border-color: $light-red !important;
+            color: #fff !important;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            padding: 0.4rem 0.6rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+
+            &:hover,
+            &:focus {
+                background-color: darken($light-red, 15%) !important;
+                border-color: darken($light-red, 15%) !important;
+                transform: translateY(-1px);
+            }
+
+            i {
+                color: #fff !important;
+            }
+        }
+    }
+}
+
+// ------------------------------
+// Add to List Modal Styling
+// ------------------------------
+.add-to-list-modal {
+    .modal-content {
+        background-color: $light-brown;
+        border: 2px solid $dark-brown;
+        border-radius: 0.75rem;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .modal-header {
+        background-color: $light-red;
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem 0.75rem 0 0;
+    }
+
+    .modal-title {
+        font-weight: 700;
+    }
+
+    .btn-close {
+        filter: invert(1);
+        opacity: 0.9;
+
+        &:hover,
+        &:focus {
+            opacity: 1;
+        }
+    }
+
+    .modal-body {
+        label {
+            font-weight: 600;
+            color: $dark-brown;
+        }
+
+        select.form-select {
+            border: 1px solid $dark-brown;
+            border-radius: 0.5rem;
+        }
+    }
+
+    .modal-footer {
+        border: none;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        // Add button
+        button.btn[type="submit"] {
+            background-color: $light-red !important;
+            border-color: $light-red !important;
+            color: #fff !important;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+
+            &:hover,
+            &:focus {
+                background-color: darken($light-red, 15%) !important;
+                border-color: darken($light-red, 15%) !important;
+                transform: translateY(-1px);
+            }
+
+            i {
+                color: #fff !important;
+            }
+        }
+        // Cancel button
+        button.btn.btn-outline-secondary,
+        button.btn-cancel {
+            background-color: $beige !important;
+            border: 1px solid $dark-brown !important;
+            color: #000 !important;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+
+            &:hover,
+            &:focus {
+                background-color: darken($light-brown, 15%) !important;
+                border-color: darken($dark-brown, 15%) !important;
+                color: #fff !important;
             }
         }
     }
