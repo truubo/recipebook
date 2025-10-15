@@ -1,0 +1,100 @@
+﻿@model IEnumerable<Recipebook.Models.Recipe>
+
+@{
+    ViewData["Title"] = "My Favorites";
+}
+
+<h1 class="mb-3">My Favorites</h1>
+
+<!-- 🟤 Empty state if user has no favorites -->
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        You don’t have any favorites yet.
+        <a asp-controller="Recipes" asp-action="Index">Browse all recipes</a> and click the ⭐ star to add some!
+    </div>
+}
+else
+{
+    <!-- 🟤 Table layout to list favorite recipes -->
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th style="width:40px;"></th>
+                <th>Title</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <!-- 🟡 Star toggle button (always filled here since all are favorites) -->
+                <td>
+                    <form asp-controller="Favorites" asp-action="Toggle" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="recipeId" value="@r.Id" />
+                        <button type="submit" class="btn btn-link p-0" title="Unfavorite" aria-label="Unfavorite">
+                            <i class="bi bi-star-fill text-warning"></i>
+                        </button>
+                    </form>
+                </td>
+
+                <!-- 🟤 Recipe title and author info -->
+                <td>
+                    <a asp-controller="Recipes" asp-action="Details" asp-route-id="@r.Id">
+                        @r.Title
+                    </a>
+                    <div class="small text-muted">
+                        by <a href="mailto:@r.AuthorEmail">@r.AuthorEmail</a>
+                        @if (r.Private)
+                        {
+                            <span class="badge bg-danger ms-2">Private</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success ms-2">Public</span>
+                        }
+                    </div>
+
+                    <!-- 🟤 Categories (optional, for parity with Recipes page) -->
+                    @if (r.CategoryRecipes != null && r.CategoryRecipes.Any())
+                    {
+                        <div class="mt-1">
+                            @foreach (var cr in r.CategoryRecipes)
+                            {
+                                <a asp-controller="Categories"
+                                   asp-action="Details"
+                                   asp-route-id="@cr.Category.Id"
+                                   class="badge bg-info text-dark text-decoration-none me-1">
+                                    @cr.Category.Name
+                                </a>
+                            }
+                        </div>
+                    }
+                </td>
+
+                <!-- 🟤 Action buttons -->
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary"
+                       asp-controller="Recipes"
+                       asp-action="Details"
+                       asp-route-id="@r.Id">
+                        View
+                    </a>
+
+                    @if (User.Identity?.IsAuthenticated == true && r.AuthorEmail == User.Identity?.Name)
+                    {
+                        <a class="btn btn-sm btn-outline-secondary"
+                           asp-controller="Recipes"
+                           asp-action="Edit"
+                           asp-route-id="@r.Id">
+                            Edit
+                        </a>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

@@ -17,5 +17,8 @@ namespace Recipebook.Models
         public ICollection<IngredientRecipe>? IngredientRecipes { get; set; }
 
         public string OwnerId { get; set; } = string.Empty;
+
+        [Column(TypeName = "bit")]
+        public bool IsArchived { get; set; } = false;
     }
 }

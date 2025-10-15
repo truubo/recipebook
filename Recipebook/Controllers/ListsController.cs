@@ -86,6 +86,7 @@ namespace Recipebook.Controllers
         {
             var recipes = await _context.Recipe
                 .AsNoTracking() // faster reads; we won't modify these entities here
+                .Where(r => !r.IsArchived)
                 .Where(r => r.AuthorId == currentUserId || r.Private == false)
                 .OrderBy(r => r.Title)
                 .Select(r => new { r.Id, r.Title })
@@ -107,7 +108,7 @@ namespace Recipebook.Controllers
         //   • MyLists: lists you own
         //   • AllLists: lists you own OR any lists marked public (Private == false)
         // Adds optional search by list Name via ?searchString=...
-        public async Task<IActionResult> Index(string? searchString)
+        public async Task<IActionResult> Index(string? searchString, string? scope)
         {
             // Identity basics: Get current user's Id and Email for personalization/logs.
             var uid = _userManager.GetUserId(User)!;
@@ -119,34 +120,41 @@ namespace Recipebook.Controllers
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
             // Base queries (deferred); include recipe link counts for display.
-            var myListsQ = _context.Lists
+            IQueryable<List> listQ = null;
+            if (scope == "mine")
+            {
+                listQ = _context.Lists
+                .Where(l => !l.IsArchived)
                 .Where(l => l.OwnerId == uid)
                 .Include(l => l.ListRecipes)
+                .ThenInclude(lr => lr.Recipe)
                 .AsNoTracking();
-
-            var allListsQ = _context.Lists
+            }
+            else
+            {
+                listQ = _context.Lists
+                .Where(l => !l.IsArchived)
                 .Where(l => l.OwnerId == uid || l.Private == false)
                 .Include(l => l.ListRecipes)
+                .ThenInclude(lr => lr.Recipe)
                 .AsNoTracking();
+            }
 
             // Optional title search (applies to both buckets)
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                myListsQ = myListsQ.Where(l => l.Name.Contains(searchString));
-                allListsQ = allListsQ.Where(l => l.Name.Contains(searchString));
+                listQ = listQ.Where(l => l.Name.Contains(searchString) && !l.IsArchived);
             }
 
-            var myLists = await myListsQ.OrderBy(l => l.Name).ToListAsync();
-            var allLists = await allListsQ.OrderBy(l => l.Name).ToListAsync();
+            var lists = await listQ.Where(l => !l.IsArchived).OrderBy(l => l.Name).ToListAsync();
 
             // Logging example required by assignment/narrative.
             _logger.LogInformation(
-                "{Email} navigated to /Views/Lists/Index, loaded {MyCount} my list, loaded {AllCount} all list, search='{Search}'",
-                myEmail, myLists.Count, allLists.Count, searchString ?? string.Empty);
+                "{Email} navigated to /Views/Lists/Index, loaded {AllCount} all list, search='{Search}'",
+                myEmail, lists.Count, searchString ?? string.Empty);
 
             // For the view: map OwnerId -> OwnerEmail so we can display who owns what.
-            var ownerIds = myLists.Select(l => l.OwnerId)
-                .Concat(allLists.Select(l => l.OwnerId))
+            var ownerIds = lists.Select(l => l.OwnerId)
                 .Distinct()
                 .ToList();
 
@@ -156,12 +164,12 @@ namespace Recipebook.Controllers
 
             ViewBag.OwnerEmails = ownerEmails; // simple pass-through container
             ViewBag.SearchString = searchString; // keep input sticky in the view
+            ViewBag.Scope = scope;
 
             // ViewModel tailored for the Index view
             var vm = new ListsIndexVm
             {
-                MyLists = myLists,
-                AllLists = allLists,
+                Lists = lists,
                 MyEmail = myEmail,
                 MyUserId = uid
             };
@@ -182,6 +190,7 @@ namespace Recipebook.Controllers
             using var _ = BeginUserScope(uid, myEmail, "Lists/Details");
 
             var list = await _context.Lists
+                .Where(l => !l.IsArchived)
                 .Include(l => l.ListRecipes)!.ThenInclude(lr => lr.Recipe)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(l =>
@@ -202,10 +211,10 @@ namespace Recipebook.Controllers
             switch ((SortType)sortType)
             {
                 case SortType.AlphabeticalAsc:
-                    list.ListRecipes = list.ListRecipes.OrderBy(l => l.Recipe.Title).ToList();
+                    list.ListRecipes = list.ListRecipes.Where(lr => !lr.Recipe.IsArchived).OrderBy(l => l.Recipe.Title).ToList();
                     break;
                 case SortType.AlphabeticalDesc:
-                    list.ListRecipes = list.ListRecipes.OrderByDescending(l => l.Recipe.Title).ToList();
+                    list.ListRecipes = list.ListRecipes.Where(cr => !cr.Recipe.IsArchived).OrderByDescending(l => l.Recipe.Title).ToList();
                     break;
             }
 
@@ -219,6 +228,7 @@ namespace Recipebook.Controllers
 
             // Build a readable list of recipe titles for the log line.
             var titles = (list.ListRecipes ?? new List<ListRecipe>())
+                .Where(lr => !lr.Recipe.IsArchived)
                 .Select(lr => lr.Recipe?.Title)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
                 .Cast<string>()
@@ -308,7 +318,7 @@ namespace Recipebook.Controllers
                 // Optional: pull recipe titles only for logging readability.
                 var addedIds = links.Select(l => l.RecipeId).ToArray();
                 var addedTitles = await _context.Recipe
-                    .Where(r => addedIds.Contains(r.Id))
+                    .Where(r => addedIds.Contains(r.Id) && !r.IsArchived)
                     .Select(r => r.Title)
                     .ToListAsync();
 
@@ -336,6 +346,7 @@ namespace Recipebook.Controllers
             using var _ = BeginUserScope(uid, myEmail, "Lists/Edit(GET)");
 
             var list = await _context.Lists
+                .Where(l => !l.IsArchived)
                 .Include(l => l.ListRecipes)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
@@ -377,6 +388,7 @@ namespace Recipebook.Controllers
             using var _ = BeginUserScope(uid, myEmail, "Lists/Edit(POST)");
 
             var list = await _context.Lists
+                .Where(l => !l.IsArchived)
                 .Include(l => l.ListRecipes)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
@@ -415,7 +427,7 @@ namespace Recipebook.Controllers
                 .Select(rid => new ListRecipe { ListId = list.Id, RecipeId = rid })
                 .ToList();
 
-            var toRemove = list.ListRecipes.Where(lr => !selected.Contains(lr.RecipeId)).ToList();
+            var toRemove = list.ListRecipes.Where(lr => !selected.Contains(lr.RecipeId) && !lr.Recipe.IsArchived).ToList();
 
             _context.ListRecipes.RemoveRange(toRemove);
             _context.ListRecipes.AddRange(toAdd);
@@ -426,9 +438,9 @@ namespace Recipebook.Controllers
             var removedIds = toRemove.Select(r => r.RecipeId).ToArray();
 
             var addedTitles = addedIds.Length == 0 ? new List<string>() :
-                await _context.Recipe.Where(r => addedIds.Contains(r.Id)).Select(r => r.Title).ToListAsync();
+                await _context.Recipe.Where(r => addedIds.Contains(r.Id) && !r.IsArchived).Select(r => r.Title).ToListAsync();
             var removedTitles = removedIds.Length == 0 ? new List<string>() :
-                await _context.Recipe.Where(r => removedIds.Contains(r.Id)).Select(r => r.Title).ToListAsync();
+                await _context.Recipe.Where(r => removedIds.Contains(r.Id) && !r.IsArchived).Select(r => r.Title).ToListAsync();
 
             _logger.LogInformation(
                 "{Email} updated list '{Name}' (Id {ListId}), added {Added} recipes {AddedTitles}, removed {Removed} recipes {RemovedTitles}",
@@ -442,7 +454,6 @@ namespace Recipebook.Controllers
 
         // --------------------------------- DELETE --------------------------------
         // GET: Lists/Delete/5 (owner-only)
-        // Displays a confirmation page—does not actually delete yet.
         public async Task<IActionResult> Delete(int? id)
         {
             if (id is null) return NotFound();
@@ -453,6 +464,7 @@ namespace Recipebook.Controllers
 
             var list = await _context.Lists
                 .AsNoTracking()
+                .Where(l => !l.IsArchived)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
             if (list is null)
@@ -480,35 +492,135 @@ namespace Recipebook.Controllers
         }
 
         // POST: Lists/Delete/5 (owner-only)
-        // Actually deletes the list and redirects back to Index. Uses PRG.
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users
+                .Where(u => u.Id == uid)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Delete(POST)");
 
-            var list = await _context.Lists.FirstOrDefaultAsync(l => l.Id == id);
+            // Include join rows so we can remove them
+            var list = await _context.Lists
+                .Include(l => l.ListRecipes)
+                .Where(l => !l.IsArchived)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
             if (list is null)
             {
                 _logger.LogInformation("{Email} submitted /Views/Lists/Delete/{ListId}, not found", myEmail, id);
                 return NotFound();
             }
+
             if (list.OwnerId != uid)
             {
                 _logger.LogInformation("{Email} submitted /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
                 return Forbid();
             }
 
-            _context.Lists.Remove(list);
+            // Soft delete the list
+            list.IsArchived = true;
+            _context.Update(list);
+
+            // Remove all associated join rows
+            if (list.ListRecipes != null && list.ListRecipes.Any())
+            {
+                _context.ListRecipes.RemoveRange(list.ListRecipes);
+            }
+
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("{Email} deleted list '{Name}' (Id {ListId})", myEmail, list.Name, list.Id);
+            _logger.LogInformation("{Email} archived list '{Name}' (Id {ListId}) and removed {Count} join rows",
+                myEmail, list.Name, list.Id, list.ListRecipes?.Count ?? 0);
 
             TempData["Success"] = $"List '{list.Name}' deleted.";
             return RedirectToAction(nameof(Index));
         }
+
+        // -------------------- ADD: QUICK ACTION FROM RECIPE PAGE ------------------
+        // POST: Lists/AddToList
+        // Minimal endpoint to support "Add to List" button on Recipe pages.
+        // Owner-only, prevents duplicates, and redirects back to the recipe (not index).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToList(int listId, int recipeId, string? returnUrl = null)
+        {
+            var uid = _userManager.GetUserId(User)!;
+            var myEmail = await _context.Users
+                .Where(u => u.Id == uid)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            using var _ = BeginUserScope(uid, myEmail, "Lists/AddToList(POST)");
+
+            // Load target list and enforce owner-only edits
+            var list = await _context.Lists.FirstOrDefaultAsync(l => l.Id == listId);
+            if (list is null)
+            {
+                _logger.LogInformation("{Email} tried AddToList: list {ListId} not found", myEmail, listId);
+                TempData["Error"] = "That list wasn’t found.";
+                return SafeRedirect(returnUrl);
+            }
+            if (list.OwnerId != uid)
+            {
+                _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
+                TempData["Error"] = "You don’t have permission to modify that list.";
+                return SafeRedirect(returnUrl);
+            }
+
+            // Ensure the recipe exists (prevents FK violations)
+            var recipeExists = await _context.Recipe.AnyAsync(r => r.Id == recipeId);
+            if (!recipeExists)
+            {
+                _logger.LogInformation("{Email} tried AddToList: recipe {RecipeId} not found", myEmail, recipeId);
+                TempData["Error"] = "That recipe wasn’t found.";
+                return SafeRedirect(returnUrl);
+            }
+
+            // Avoid duplicates
+            var alreadyLinked = await _context.ListRecipes
+                .AnyAsync(lr => lr.ListId == listId && lr.RecipeId == recipeId);
+
+            if (!alreadyLinked)
+            {
+                _context.ListRecipes.Add(new ListRecipe { ListId = listId, RecipeId = recipeId });
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("{Email} added recipe {RecipeId} to list '{ListName}' (Id {ListId})",
+                    myEmail, recipeId, list.Name, list.Id);
+
+                TempData["Success"] = $"Added to list '{list.Name}'.";
+            }
+            else
+            {
+                _logger.LogInformation("{Email} AddToList skipped: recipe {RecipeId} already in list '{ListName}' (Id {ListId})",
+                    myEmail, recipeId, list.Name, list.Id);
+
+                TempData["Info"] = $"Already in list '{list.Name}'.";
+            }
+
+            // ✅ NEW LOGIC:
+            // Respect returnUrl so we stay on the same Recipe Details page.
+            // Fall back safely if returnUrl is missing or not local.
+            return SafeRedirect(returnUrl);
+        }
+
+        // Helper method to prevent open redirects
+        private IActionResult SafeRedirect(string? returnUrl)
+        {
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            // fallback if no returnUrl given
+            return RedirectToAction("Index", "Recipes");
+        }
+
+
     }
 }
