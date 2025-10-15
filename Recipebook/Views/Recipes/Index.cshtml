@@ -90,6 +90,7 @@
                 // Show if recipe is public or owned by current user
                 if (!item.Private || item.AuthorEmail == User.Identity.Name)
                 {
+
                     <div class="recipe-card" style="position:relative;">
                         @{
                             // Current user id (for favorite detection)
@@ -102,67 +103,89 @@
 
                         <!-- ===================== Card Header ===================== -->
                         @* Keep header on top so body stretched-link won't cover it *@
-                        <div class="card-header d-flex justify-content-between align-items-start"
-                             style="position:relative; z-index:2; pointer-events:auto;">
-                            <h5 class="card-title mb-0">
-                                <a asp-action="Details"
-                                   asp-route-id="@item.Id"
-                                   class="text-decoration-none">
-                                    @item.Title
-                                </a>
-                            </h5>
+                        <table>
+                            
+                            <tr class="card-header d-flex justify-content-between align-items-start"
+                                style="position:relative; z-index:2; pointer-events:auto;">
+                                <td class="d-flex align-items-center gap-2" style="pointer-events:auto;">
+                                    @if (!string.IsNullOrEmpty(item.ImageFileName))
+                                    {
+                                        <div class="recipe-image text-center mb-2">
+                                            <img src="~/img/recipes/@item.ImageFileName"
+                                                 alt="Recipe Image"
+                                                 class="img-fluid rounded"
+                                                 style="max-height:200px; object-fit:cover; float:left;"
+                                                 width="100px"
+                                                 height="100px" />
+                                        </div>
+                                    }
+                                </td>
 
-                            <div class="d-flex align-items-center gap-2" style="pointer-events:auto;">
-                                @* Private badge (if applicable) *@
-                                @if (item.Private)
-                                {
-                                    <span class="badge bg-danger private-badge">Private</span>
-                                }
+                                <td>
+                                    <h5 class="card-title mb-0">
+                                        <a asp-action="Details"
+                                            asp-route-id="@item.Id"
+                                            class="text-decoration-none">
+                                            @item.Title
+                                        </a>
+                                    </h5>
+                                </td>
 
-                                @* ===================== Favorite Star (KEEP HERE) =====================
-                        - Visible to ANY authenticated user
-                        - POST to Favorites/Toggle with antiforgery & returnUrl
-                        - AJAX handler (below) prevents full-page reload
-                        =================================================================== *@
-                                @if (User.Identity.IsAuthenticated)
-                                {
-                                    <form asp-controller="Favorites"
-                                          asp-action="Toggle"
-                                          method="post"
-                                          class="d-inline"
-                                          title="Toggle favorite"
-                                          aria-label="Toggle favorite">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="recipeId" value="@item.Id" />
-                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                        <button type="submit"
-                                                class="btn btn-link p-0 star-btn"
-                                                style="pointer-events:auto;">
-                                            <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
-                                        </button>
-                                    </form>
-                                }
-                            </div>
-                        </div>
-                        @if (!string.IsNullOrEmpty(item.ImageFileName))
-                        {
-                            <div class="recipe-image text-center mb-2">
-                                <img src="~/img/recipes/@item.ImageFileName"
-                                     alt="Recipe Image"
-                                     class="img-fluid rounded"
-                                     style="max-height:200px; object-fit:cover;" />
-                            </div>
-                        }
+                                <td class="d-flex align-items-center gap-2" style="pointer-events:auto;">
+                                    @* Private badge (if applicable) *@
+                                    @if (item.Private)
+                                    {
+                                        <span class="badge bg-danger private-badge">Private</span>
+                                    }
+                                </td>
 
+                                <td class="d-flex align-items-center gap-2" style="pointer-events:auto;">
+                                    @* ===================== Favorite Star (KEEP HERE) =====================
+                            - Visible to ANY authenticated user
+                            - POST to Favorites/Toggle with antiforgery & returnUrl
+                            - AJAX handler (below) prevents full-page reload
+                            =================================================================== *@
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <form asp-controller="Favorites"
+                                                asp-action="Toggle"
+                                                method="post"
+                                                class="d-inline"
+                                                title="Toggle favorite"
+                                                aria-label="Toggle favorite">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="recipeId" value="@item.Id" />
+                                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                            <button type="submit"
+                                                    class="btn btn-link p-0 star-btn"
+                                                    style="pointer-events:auto;">
+                                                <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                             </tr>
 
-                        <div class="card-header d-flex justify-content-between align-items-start">
-                            <h5 class="card-title">@item.Title</h5>
-                            @if (item.Private)
-                            {
-                                <span class="badge bg-danger private-badge">Private</span>
-                            }
-                        </div>
+                             <tr>
+                                <td class="card-header d-flex justify-content-between align-items-start">
+                                    <h5 class="card-title">@item.Title</h5>
+                                    @if (item.Private)
+                                    {
+                                        <span class="badge bg-danger private-badge">Private</span>
+                                    }
+                                </td>
+                                <td>
 
+                                </td>
+                                <td>
+
+                                </td>
+                                <td>
+
+                                </td>
+             
+                            </tr>
+                        </table>
                         <!-- ===================== Card Body ===================== -->
                         <div class="card-body position-relative">
                             <div class="categories mb-2">
