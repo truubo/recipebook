@@ -1,30 +1,67 @@
-﻿@model Recipebook.Models.Recipe
+﻿@* ===============================================================
+   Recipe Details View
+   - Back button: simple link to /Recipes/Index (no auto-redirect)
+   - Favorites + Add-to-List unchanged
+   =============================================================== *@
+
+@model Recipebook.Models.Recipe
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Mvc.Rendering  @* needed for SelectListItem cast below *@
 
 @{
     ViewData["Title"] = "Recipe Details";
+
+    // Determine current user's Id for favorite-state detection
+    var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    // A recipe is "favorited" if any Favorite row exists for (this user, this recipe).
+    var isFav = User.Identity.IsAuthenticated && (Model.Favorites?.Any(f => f.UserId == uid) ?? false);
+
+    // Is the current user the author? (used to gate Edit/Delete)
+    var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string)ViewData["AuthorEmail"]);
+
+    // Lists for Add-to-List modal (provided by controller; safe if null)
+    var userLists = ViewBag.UserLists as IEnumerable<SelectListItem>;
 }
 
 <div class="details-page position-relative">
 
-    <div class="details-actions-top d-flex justify-content-between w-100">
-        <a onclick="history.back()" class="btn btn-brown">
+    @* ===============================================================
+    TOP ACTION BAR
+    - Left: Back button (static link to Recipes/Index; no JS)
+    - Right: Add to List (if logged in) + Edit/Delete (if owner)
+    =============================================================== *@
+    <div class="details-actions-top d-flex justify-content-between align-items-center w-100">
+        @* Back button — only navigates when clicked *@
+        <a href="/Recipes/Index"
+           class="btn btn-brown"
+           title="Back to recipes">
             <i class="bi bi-arrow-left-circle"></i>
         </a>
 
-        <div class="d-flex gap-2">
-            @if (User.Identity.IsAuthenticated &&
-                        (User.Identity.Name == (string)ViewData["AuthorEmail"]))
+        <div class="d-flex align-items-center gap-2">
+            @if (User.Identity.IsAuthenticated)
             {
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
+                <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target=".add-to-list-modal" title="Add to List">
+                    <i class="bi bi-list-check"></i>
+                </a>
+            }
+
+            @if (isOwner)
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
                     <i class="bi bi-pencil-square"></i>
                 </a>
-                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">
+                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger" title="Delete">
                     <i class="bi bi-trash"></i>
                 </a>
             }
         </div>
     </div>
 
+    @* ===============================================================
+    HEADER: Title, categories, author, privacy badge
+    =============================================================== *@
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
 
@@ -32,7 +69,7 @@
             <div>
                 @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
                 {
-                    @foreach (var cr in Model.CategoryRecipes)
+                    foreach (var cr in Model.CategoryRecipes)
                     {
                         <a asp-controller="Categories"
                            asp-action="Details"
@@ -49,16 +86,39 @@
             </div>
         </div>
 
-        <div class="author d-flex justify-content-center align-items-center gap-2">
+        <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
             <span>
                 By <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
             </span>
             <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
             </span>
+            <span>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <form asp-controller="Favorites"
+                          asp-action="Toggle"
+                          method="post"
+                          class="d-inline js-fav-toggle"
+                          title="Toggle favorite"
+                          aria-label="Toggle favorite">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="recipeId" value="@Model.Id" />
+                        @* returnUrl is a graceful fallback if JS is disabled *@
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                        <button type="submit" class="btn btn-link p-0 star-btn">
+                            <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
+                        </button>
+                    </form>
+                }
+            </span>
         </div>
     </div>
 
+    @* ===============================================================
+    BODY: Description, Ingredients, Directions
+    =============================================================== *@
     <div class="details-body mt-4">
         <h4 class="section-title mt-4">Description</h4>
         @if (!string.IsNullOrEmpty(Model.Description))
@@ -78,7 +138,6 @@
                 {
                     var unitStr = ir.Unit.ToString();
                     var pluralUnit = ir.Quantity == 1 ? unitStr : unitStr + "s";
-
                     <li class="list-group-item bg-brown border-brown rounded-2">
                         @ir.Quantity @pluralUnit of @ir.Ingredient.Name
                     </li>
@@ -94,3 +153,91 @@
         <p>@Html.DisplayFor(model => model.Directions)</p>
     </div>
 </div>
+
+@* ===============================================================
+   Add-to-List Modal
+   - Appears only for authenticated users
+   - Expects ViewBag.UserLists as IEnumerable<SelectListItem>
+   - Posts to Lists/AddToList (normal POST; PRG shows TempData alert)
+   - Stays on Details after POST (controller should redirect back to Details)
+   =============================================================== *@
+@if (User.Identity.IsAuthenticated)
+{
+    <div class="modal fade add-to-list-modal" tabindex="-1" aria-labelledby="addToListLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title add-to-list-label">Add “@Model.Title” to a List</h5>
+                </div>
+
+                <form asp-controller="Lists"
+                      asp-action="AddToList"
+                      method="post">
+                    <div class="modal-body">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="recipeId" value="@Model.Id" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                        @if (userLists != null && userLists.Any())
+                        {
+                            <div class="mb-3">
+                                <label for="listId" class="form-label">Choose a list</label>
+                                <select id="listId" name="listId" class="form-select" required>
+                                    @foreach (var item in userLists)
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info mb-0">
+                                You don’t have any lists yet.
+                                <a asp-controller="Lists" asp-action="Index" class="alert-link">Create one</a>
+                                and try again.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-secondary" @(userLists == null || !userLists.Any() ? "disabled" : null)>
+                            <i class="bi bi-plus-circle"></i> Add to List
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // ===============================================================
+        // AJAX Favorite Toggle (unchanged)
+        // ===============================================================
+        document.addEventListener('submit', async (e) => {
+            const form = e.target;
+            if (!form.matches('form.js-fav-toggle')) return;
+            e.preventDefault();
+
+            const fd = new FormData(form);
+            try {
+                await fetch(form.action, {
+                    method: 'POST',
+                    body: fd,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const icon = form.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('bi-star');
+                    icon.classList.toggle('bi-star-fill');
+                    icon.classList.toggle('text-warning');
+                }
+            } catch {
+                // Optional: add user feedback here if desired
+            }
+        });
+    </script>
+}

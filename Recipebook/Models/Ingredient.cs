@@ -19,5 +19,7 @@ namespace Recipebook.Models
 
         public string OwnerId { get; set; } = string.Empty;
 
+        [Column(TypeName = "bit")]
+        public bool IsArchived { get; set; } = false;
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Recipebook.Data;
 
@@ -11,9 +12,11 @@ using Recipebook.Data;
 namespace Recipebook.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251008164902_add favorites")]
+    partial class addfavorites
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -247,9 +250,6 @@ namespace Recipebook.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -315,9 +315,6 @@ namespace Recipebook.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -373,9 +370,6 @@ namespace Recipebook.Migrations
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
 
                     b.Property<int>("ListType")
                         .HasColumnType("int");
@@ -467,12 +461,6 @@ namespace Recipebook.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("varchar(2000)");
-
-                    b.Property<bool>("IsArchived")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ImageFileName")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Private")
                         .HasColumnType("bit");
@@ -575,7 +563,7 @@ namespace Recipebook.Migrations
             modelBuilder.Entity("Recipebook.Models.Favorite", b =>
                 {
                     b.HasOne("Recipebook.Models.Recipe", "Recipe")
-                        .WithMany("Favorites")
+                        .WithMany()
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -660,8 +648,6 @@ namespace Recipebook.Migrations
             modelBuilder.Entity("Recipebook.Models.Recipe", b =>
                 {
                     b.Navigation("CategoryRecipes");
-
-                    b.Navigation("Favorites");
 
                     b.Navigation("IngredientRecipes");
 

@@ -51,15 +51,16 @@ namespace Recipebook.Controllers
         // Adds optional search by category name (?searchString=...)
         public async Task<IActionResult> Index(string? searchString)
         {
-            var query = _context.Category.AsQueryable();
+            var query = _context.Category.Where(c => !c.IsArchived).AsQueryable();
 
             // Apply search filter if provided
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(c => c.Name.Contains(searchString));
+                query = query.Where(c => c.Name.Contains(searchString) && !c.IsArchived);
             }
 
             var categories = await query
+                .Where(c => !c.IsArchived)
                 .Include(c => c.CategoryRecipes)
                     .ThenInclude(cr => cr.Recipe)
                 .ToListAsync();
@@ -92,6 +93,7 @@ namespace Recipebook.Controllers
             }
 
             var category = await _context.Category
+                .Where(c => !c.IsArchived)
                 .Include(c => c.CategoryRecipes)
                     .ThenInclude(cr => cr.Recipe)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -104,6 +106,7 @@ namespace Recipebook.Controllers
 
             // Collect recipe titles for readable logs
             var recipeTitles = category.CategoryRecipes
+                .Where(cr => !cr.Recipe.IsArchived)
                 .Select(cr => cr.Recipe?.Title)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
                 .ToList();
@@ -171,7 +174,7 @@ namespace Recipebook.Controllers
             }
 
             var category = await _context.Category.FindAsync(id);
-            if (category == null)
+            if (category == null || category.IsArchived)
             {
                 _logger.LogInformation("{Who} -> /Categories/Edit/{Id} | not found", Who(), id);
                 return NotFound();
@@ -203,7 +206,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var existing = await _context.Category.FirstOrDefaultAsync(c => c.Id == id);
+            var existing = await _context.Category.Where(c => !c.IsArchived).FirstOrDefaultAsync(c => c.Id == id);
             if (existing == null)
             {
                 _logger.LogInformation("{Who} -> /Categories/Edit/{Id} | disappeared during edit", Who(), id);
@@ -264,7 +267,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Category.FirstOrDefaultAsync(m => m.Id == id);
+            var category = await _context.Category.Where(c => !c.IsArchived).FirstOrDefaultAsync(m => m.Id == id);
             if (category == null)
             {
                 _logger.LogInformation("{Who} -> /Categories/Delete/{Id} | not found", Who(), id);
@@ -283,14 +286,17 @@ namespace Recipebook.Controllers
         }
 
         // POST: Categories/Delete/5
-        // Deletes the category row. Only owner may confirm.
+        // Soft deletes the category by setting IsArchived = true
         [HttpPost, ActionName("Delete")]
         [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var category = await _context.Category.FindAsync(id);
-            if (category == null)
+            var category = await _context.Category
+                .Include(c => c.CategoryRecipes) // include join rows
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null || category.IsArchived)
             {
                 _logger.LogInformation("{Who} -> /Categories/Delete/{Id} | already gone", Who(), id);
                 TempData["Warning"] = "This category no longer exists.";
@@ -304,10 +310,20 @@ namespace Recipebook.Controllers
                 return Forbid();
             }
 
-            _context.Category.Remove(category);
+            // Soft-delete the category
+            category.IsArchived = true;
+            _context.Update(category);
+
+            // Remove join rows so recipes no longer reference this category
+            if (category.CategoryRecipes != null && category.CategoryRecipes.Any())
+            {
+                _context.CategoryRecipes.RemoveRange(category.CategoryRecipes);
+            }
+
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("{Who} deleted category '{Name}' (Id {Id})", Who(), category.Name, category.Id);
+            _logger.LogInformation("{Who} archived category '{Name}' (Id {Id}) and removed {Count} join rows",
+                Who(), category.Name, category.Id, category.CategoryRecipes?.Count ?? 0);
 
             TempData["Success"] = $"Category '{category.Name}' deleted.";
             return RedirectToAction(nameof(Index));
@@ -316,7 +332,7 @@ namespace Recipebook.Controllers
         // Utility check for existence (used in concurrency handling)
         private bool CategoryExists(int id)
         {
-            return _context.Category.Any(e => e.Id == id);
+            return _context.Category.Where(c => !c.IsArchived).Any(e => e.Id == id);
         }
     }
 }

@@ -47,12 +47,17 @@ namespace Recipebook.Models
         [ValidateNever]
         public string? AuthorEmail { get; set; }   // <-- make nullable
 
+        [Column(TypeName = "bit")]
+        public bool IsArchived { get; set; } = false;
+
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
         public ICollection<CategoryRecipe> CategoryRecipes { get; set; } = new List<CategoryRecipe>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
 
         public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();
+
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
         public string? ImageFileName { get; set; } // optional for display later
     }
