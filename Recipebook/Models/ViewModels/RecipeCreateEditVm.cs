@@ -10,6 +10,8 @@ namespace Recipebook.Models.ViewModels
         public List<IngredientSelectViewModel> Ingredients { get; set; } = new List<IngredientSelectViewModel>();
 
         public int[] SelectedCategories { get; set; } = new int[0];
+
+        public bool IsCopy { get; set; }
     }
 
     public class IngredientSelectViewModel

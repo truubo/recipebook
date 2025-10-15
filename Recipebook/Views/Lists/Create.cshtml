@@ -25,7 +25,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="List.ListType" class="form-label fw-bold"></label>
+                    <label asp-for="List.ListType" class="form-label fw-bold">Type</label>
                     <select asp-for="List.ListType" class="form-select"
                             asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"></select>
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
