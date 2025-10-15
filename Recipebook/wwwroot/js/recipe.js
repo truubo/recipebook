@@ -2,11 +2,12 @@
 
 let cachedIngredients;
 let targetElement;
+const ingredientModal = new bootstrap.Modal(document.getElementById("createIngredientModal"), {})
 
 function promptNewIngredient(element) {
     console.log("summoning ingredient creation modal");
     targetElement = element.closest("div.dropdown");
-    new bootstrap.Modal(document.getElementById("createIngredientModal"), {}).show();
+    ingredientModal.show();
 }
 
 function setIngredient(id, name) {
@@ -31,7 +32,7 @@ async function createIngredient() {
     console.log("seems like the ingredient was created!")
     cachedIngredients = null;
     setIngredient(result.id, result.name)
-    alert("Created!")
+    ingredientModal.hide();
 }
 
 async function downloadIngredients() {
@@ -99,7 +100,7 @@ async function fetchIngredients(element) {
 function searchIngredients(element) {
     let newIngredients = [];
     cachedIngredients.forEach(ing => {
-        if (ing.name.includes(element.value)) {
+        if (ing.name.toLowerCase().includes(element.value)) {
             newIngredients.push(ing);
         }
     })
