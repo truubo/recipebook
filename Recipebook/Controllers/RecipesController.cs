@@ -174,7 +174,7 @@ namespace Recipebook.Controllers
             {
                 userLists = await _context.Lists
                     .AsNoTracking()
-                    .Where(l => l.OwnerId == uid)        // <-- adjust if you use a different owner field
+                    .Where(l => l.OwnerId == uid && !l.IsArchived)   // <- added !IsArchived filter
                     .OrderBy(l => l.Name)
                     .Select(l => new SelectListItem
                     {
