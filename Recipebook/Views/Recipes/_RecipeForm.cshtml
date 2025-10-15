@@ -1,0 +1,208 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Recipebook.Models.ViewModels.RecipeCreateEditVm
+
+@{
+    string action = Model.UpdateButtonText == "Create" ? "Create" : "Edit";
+}
+
+<style>
+    /* CSS relevant to this page only */
+    .dropdown-item {
+        cursor: pointer;
+    }
+
+    /* todo: move this to SCSS when the time comes */
+
+    .dropdown-menu {
+        background-color: #e7d7c1;
+        max-height: 300px;
+        overflow-y: scroll;
+    }
+
+    .modal-content {
+        background: linear-gradient(to bottom, #a78a7f 0%, rgb(173.2333333333, 146.2875, 136.0666666667) 100%);
+    }
+
+    .modal-content > div {
+        border-color: rgb(113.7777777778, 88, 78.2222222222);
+    }
+</style>
+<div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form asp-action="@action" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                @{if (action != "Create") {<input type="hidden" asp-for="Recipe.Id" />}}
+                <div class="mb-3">
+                    <label asp-for="Recipe.Title" class="form-label fw-bold"></label>
+                    <input asp-for="Recipe.Title" class="form-control" />
+                    <span asp-validation-for="Recipe.Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="Recipe.Private" />
+                    <label class="form-check-label fw-bold">
+                    @Html.DisplayNameFor(model => model.Recipe.Private)
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Categories</label>
+                    <select name="SelectedCategories"
+                            asp-items="ViewBag.AllCategories"
+                            multiple="multiple"
+                            class="form-control">
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Recipe.Description" class="form-label fw-bold"></label>
+                    <textarea asp-for="Recipe.Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Recipe.Description" class="text-danger"></span>
+                </div>
+
+                <h4>Ingredients</h4>
+                <div class="ingredients-container">
+                @if (Model.Ingredients.Count > 0)
+                {
+                            <div class="ingredient-labels row mb-2 fw-bold">
+                                <div class="col">Ingredient</div>
+                                <div class="col">Quantity</div>
+                                <div class="col">Unit</div>
+                            </div>
+                }
+
+                @for (int i = 0; i < Model.Ingredients.Count; i++)
+                {
+                            <div class="ingredient-row mb-3">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col">
+                                        <div class="dropdown" id="Ingredients[@i]">
+                                            <input hidden asp-for="Ingredients[@i].IngredientId" class="ingredientIdInput" value="@Model.Ingredients[@i].IngredientId">
+                                            <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
+                                                @Model.Ingredients[@i].IngredientName
+                                            </button>
+                                            <ul class="dropdown-menu p-2">
+                                                    <input type="text" id="ingredientSearchBox" oninput="searchIngredients(this)" class="form-control my-2" placeholder="Search..." disabled />
+                                                <li><a class="dropdown-item btn-success" onclick="promptNewIngredient(this)"><b>+</b> Create new ingredient</a></li>
+                                                <li id="loadingIngredientsText">Loading ingredients...</li>
+                                            </ul>
+                                        </div>
+                                        <!--<select asp-for="Ingredients[@i].IngredientId" class="form-control" asp-items="ViewBag.AllIngredients">
+                                            <option value="">-- Select Ingredient --</option>
+                                            </select>-->
+                                    </div>
+                                    <div class="col">
+                                        <input asp-for="Ingredients[@i].Quantity" class="form-control" type="number" min="1" />
+                                    </div>
+                                    <div class="col">
+                                        <select asp-for="Ingredients[@i].Unit" class="form-control">
+                                    @foreach (var unit in Enum.GetValues(typeof(Unit)))
+                                    {
+                                                    <option value="@unit">@unit</option>
+                                    }
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove Ingredient</button>
+                                <hr />
+                            </div>
+                }
+                </div>
+
+                <button type="button" class="btn btn-brown btn-sm mb-3 add-ingredient-btn w-50 mx-auto">Add Ingredient</button>
+
+                <div class="mb-3">
+                    <label asp-for="Recipe.Directions" class="form-label fw-bold"></label>
+                    <textarea asp-for="Recipe.Directions" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="Recipe.Directions" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">
+                    @{
+                        if (Model.UpdateButtonText == "Create")
+                        {
+                            <i class="bi bi-plus-circle"></i>
+                        } else
+                        {
+                            <i class="bi bi-save"></i>
+                        }
+                    }
+                     @Model.UpdateButtonText
+                    </button>
+                    <a onclick="history.back()" class="btn btn-brown btn-lg">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+
+            <div class="ingredient-template d-none">
+                <div class="ingredient-row mb-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col">
+                            <!--<select name="Ingredients[__index__].IngredientId" class="form-control">
+                                <option value="">-- Select Ingredient --</option>
+                        @foreach (var item in (SelectList)ViewBag.AllIngredients)
+                        {
+                                        <option value="@item.Value">@item.Text</option>
+                        }
+                            </select>-->
+                            <div class="dropdown" id="Ingredients[__index__]">
+                                <input hidden name="Ingredients[__index__].IngredientId" class="ingredientIdInput" value="">
+                                <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
+                                    Select ingredient...
+                                </button>
+                                <ul class="dropdown-menu p-2">
+                                    <input type="text" id="ingredientSearchBox" oninput="searchIngredients(this)" class="form-control my-2" placeholder="Search..." />
+                                    <li><a class="dropdown-item btn-success" onclick="promptNewIngredient(this)"><b>+</b> Create new ingredient</a></li>
+                                    <div id="ingredientsList">
+                                        <li id="loadingIngredientsText">Loading ingredients...</li>
+                                    </div>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <input name="Ingredients[__index__].Quantity" class="form-control" type="number" min="1" />
+                        </div>
+                        <div class="col">
+                            <select name="Ingredients[__index__].Unit" class="form-control">
+                            @foreach (var unit in Enum.GetValues(typeof(Unit)))
+                            {
+                                        <option value="@unit">@unit</option>
+                            }
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove</button>
+                    <hr />
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+<div class="modal" id="createIngredientModal" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Create new ingredient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <form class="form-control">
+                          <label for="ingredientName" class="form-label">Name</label>
+                          <input id="ingredientName" class="form-control" />
+                      </form>
+                  </div>
+                  <div class="modal-footer">
+                    <div class="spinner-border" style="display:none;" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createIngredient()">Create</button>
+                  </div>
+                </div>
+              </div>
+            </div>
