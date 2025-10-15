@@ -40,6 +40,23 @@
                     <span asp-validation-for="Recipe.Description" class="text-danger"></span>
                 </div>
 
+                @* ==== ADDED: Prep/Cook time inputs ==== *@
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Recipe.PrepTimeMinutes" class="form-label fw-bold"></label>
+                        <input asp-for="Recipe.PrepTimeMinutes" class="form-control" type="number" min="0" max="999" step="1" placeholder="Enter minutes (0–999)" />
+                        <span class="form-text text-muted">Enter minutes (0–999)</span>
+                        <span asp-validation-for="Recipe.PrepTimeMinutes" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Recipe.CookTimeMinutes" class="form-label fw-bold"></label>
+                        <input asp-for="Recipe.CookTimeMinutes" class="form-control" type="number" min="0" max="999" step="1" placeholder="Enter minutes (0–999)" />
+                        <span class="form-text text-muted">Enter minutes (0–999)</span>
+                        <span asp-validation-for="Recipe.CookTimeMinutes" class="text-danger"></span>
+                    </div>
+                </div>
+                @* ==== END ADDED ==== *@
+
                 <h4>Ingredients</h4>
                 <div class="ingredients-container">
                     @if (Model.Ingredients.Count > 0)
