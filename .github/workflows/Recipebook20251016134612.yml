@@ -2,7 +2,7 @@ name: Build and deploy .NET Core application to Web App Recipebook20251016134612
 on:
   push:
     branches:
-    - James-37
+    - James-40
 env:
   AZURE_WEBAPP_NAME: Recipebook20251016134612
   AZURE_WEBAPP_PACKAGE_PATH: Recipebook\published
@@ -44,5 +44,5 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.Recipebook20251016134612_0C9F }}
+        publish-profile: ${{ secrets.Recipebook20251016134612_D486 }}
         package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
