@@ -2,7 +2,7 @@ name: Build and deploy .NET Core application to Web App Recipebook20251016134612
 on:
   push:
     branches:
-    - James-40
+    - master
 env:
   AZURE_WEBAPP_NAME: Recipebook20251016134612
   AZURE_WEBAPP_PACKAGE_PATH: Recipebook\published
