@@ -174,7 +174,7 @@ namespace Recipebook.Controllers
             {
                 userLists = await _context.Lists
                     .AsNoTracking()
-                    .Where(l => l.OwnerId == uid)        // <-- adjust if you use a different owner field
+                    .Where(l => l.OwnerId == uid && !l.IsArchived)   // <- added !IsArchived filter
                     .OrderBy(l => l.Name)
                     .Select(l => new SelectListItem
                     {
@@ -318,9 +318,12 @@ namespace Recipebook.Controllers
                     .Select(u => u.Email)
                     .FirstOrDefaultAsync()) ?? vm.Recipe.AuthorId;
 
+                // ==== CHANGED: include prep/cook times in log ====
                 _logger.LogInformation(
-                    "{Who} created recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories}",
-                    who, vm.Recipe.Title, vm.Recipe.Id, vm.Recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]");
+                    "{Who} created recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories} | prep={Prep} cook={Cook}",
+                    who, vm.Recipe.Title, vm.Recipe.Id, vm.Recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]",
+                    vm.Recipe.PrepTimeMinutes, vm.Recipe.CookTimeMinutes);
+                // =================================================
 
                 TempData["Success"] = "Recipe created successfully.";
                 return RedirectToAction(nameof(Index));
@@ -469,9 +472,12 @@ namespace Recipebook.Controllers
                     .Select(u => u.Email)
                     .FirstOrDefaultAsync()) ?? vm.Recipe.AuthorId;
 
+                // ==== CHANGED: include prep/cook times in log ====
                 _logger.LogInformation(
-                    "{Who} updated recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories}",
-                    who, vm.Recipe.Title, vm.Recipe.Id, vm.Recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]");
+                    "{Who} updated recipe '{Title}' (Id {Id}) private={Private} categories={Count} {Categories} | prep={Prep} cook={Cook}",
+                    who, vm.Recipe.Title, vm.Recipe.Id, vm.Recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]",
+                    vm.Recipe.PrepTimeMinutes, vm.Recipe.CookTimeMinutes);
+                // =================================================
 
                 TempData["Success"] = "Recipe updated successfully.";
                 return RedirectToAction(nameof(Index));

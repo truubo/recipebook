@@ -49,6 +49,14 @@ namespace Recipebook.Models
         [Column(TypeName = "bit")]
         public bool IsArchived { get; set; } = false;
 
+        [Display(Name = "Prep Time (minutes)")]
+        [Range(0, 999, ErrorMessage = "Prep time must be between 0 and 999 minutes.")]
+        public int? PrepTimeMinutes { get; set; }
+
+        [Display(Name = "Cook Time (minutes)")]
+        [Range(0, 999, ErrorMessage = "Cook time must be between 0 and 999 minutes.")]
+        public int? CookTimeMinutes { get; set; }
+
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
         public ICollection<CategoryRecipe> CategoryRecipes { get; set; } = new List<CategoryRecipe>();

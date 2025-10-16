@@ -180,6 +180,18 @@
                                 <p class="card-text text-muted">No description available.</p>
                             }
 
+                            @* ==== ADDED: Total time line (shows N/A unless both set) ==== *@
+                            @{
+                                int? prep = item.PrepTimeMinutes;
+                                int? cook = item.CookTimeMinutes;
+                                int? total = (prep.HasValue && cook.HasValue) ? prep.Value + cook.Value : (int?)null;
+                            }
+                            <div class="small text-muted mt-2">
+                                <span class="fw-semibold">Time:</span>
+                                @(total.HasValue ? $"{total} min" : "N/A")
+                            </div>
+                            @* ==== END ADDED ==== *@
+
                             @* Body is clickable to Details; header/footer remain interactive *@
                             <a asp-action="Details" asp-route-id="@item.Id" class="stretched-link"></a>
                         </div>
