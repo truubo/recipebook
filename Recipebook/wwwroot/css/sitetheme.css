@@ -12839,3 +12839,23 @@ main {
 .details-page .details-actions .btn-brown:hover {
   background-color: rgb(40.95, 29.25, 25.35);
 }
+
+/* CSS relevant to this page only */
+.dropdown-item {
+  cursor: pointer;
+}
+
+/* todo: move this to SCSS when the time comes */
+.dropdown-menu {
+  background-color: #e7d7c1;
+  max-height: 300px;
+  overflow-y: scroll;
+}
+
+.modal-content {
+  background: #e7d7c1;
+}
+
+.modal-content > div {
+  border-color: #3f2d27;
+}

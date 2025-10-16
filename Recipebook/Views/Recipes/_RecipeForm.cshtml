@@ -8,26 +8,7 @@
 }
 
 <style>
-    /* CSS relevant to this page only */
-    .dropdown-item {
-        cursor: pointer;
-    }
-
-    /* todo: move this to SCSS when the time comes */
-
-    .dropdown-menu {
-        background-color: #e7d7c1;
-        max-height: 300px;
-        overflow-y: scroll;
-    }
-
-    .modal-content {
-        background: linear-gradient(to bottom, #a78a7f 0%, rgb(173.2333333333, 146.2875, 136.0666666667) 100%);
-    }
-
-    .modal-content > div {
-        border-color: rgb(113.7777777778, 88, 78.2222222222);
-    }
+    
 </style>
 <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -86,7 +67,9 @@
                                             <ul class="dropdown-menu p-2">
                                                     <input type="text" id="ingredientSearchBox" oninput="searchIngredients(this)" class="form-control my-2" placeholder="Search..." disabled />
                                                 <li><a class="dropdown-item btn-success" onclick="promptNewIngredient(this)"><b>+</b> Create new ingredient</a></li>
-                                                <li id="loadingIngredientsText">Loading ingredients...</li>
+                                                <div id="ingredientsList">
+                                                    <li id="loadingIngredientsText">Loading ingredients...</li>
+                                                </div>
                                             </ul>
                                         </div>
                                         <!--<select asp-for="Ingredients[@i].IngredientId" class="form-control" asp-items="ViewBag.AllIngredients">
