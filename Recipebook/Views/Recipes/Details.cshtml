@@ -120,9 +120,47 @@
     </div>
 
     @* ===============================================================
-    BODY: Description, Ingredients, Directions
+    BODY: Description, (ADDED Timing), Ingredients, Directions
     =============================================================== *@
     <div class="details-body mt-4">
+
+
+        @* ==== UPDATED: Timing section (centered inline, brown theme) ==== *@
+        @{
+            int? prep = Model.PrepTimeMinutes;
+            int? cook = Model.CookTimeMinutes;
+            int? total = (prep.HasValue && cook.HasValue) ? prep.Value + cook.Value : (int?)null;
+        }
+
+        @if (prep.HasValue || cook.HasValue)
+        {
+            <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown">
+                <div class="d-flex justify-content-center flex-wrap gap-5">
+                    <div>
+                        <strong>Prep Time:</strong>
+                        <span>@(prep.HasValue ? $"{prep} min" : "N/A")</span>
+                    </div>
+                    <div>
+                        <strong>Cook Time:</strong>
+                        <span>@(cook.HasValue ? $"{cook} min" : "N/A")</span>
+                    </div>
+                    @if (total.HasValue)
+                    {
+                        <div>
+                            <strong>Total Time:</strong>
+                            <span>@($"{total} min")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mt-4 text-center">No timing information available.</p>
+        }
+        @* ==== END UPDATED ==== *@
+
+
         <h4 class="section-title mt-4">Description</h4>
         @if (!string.IsNullOrEmpty(Model.Description))
         {
@@ -132,6 +170,7 @@
         {
             <p class="text-muted">No description available.</p>
         }
+
 
         <h4 class="section-title mt-4">Ingredients</h4>
         @if (Model.IngredientRecipes != null && Model.IngredientRecipes.Any())
@@ -158,11 +197,7 @@
 </div>
 
 @* ===============================================================
-   Add-to-List Modal
-   - Appears only for authenticated users
-   - Expects ViewBag.UserLists as IEnumerable<SelectListItem>
-   - Posts to Lists/AddToList (normal POST; PRG shows TempData alert)
-   - Stays on Details after POST (controller should redirect back to Details)
+   Add-to-List Modal (unchanged)
    =============================================================== *@
 @if (User.Identity.IsAuthenticated)
 {
