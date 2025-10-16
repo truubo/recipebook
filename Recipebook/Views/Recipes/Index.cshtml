@@ -63,17 +63,20 @@
            asp-route-searchString="@q"
            asp-route-tagId="@tag">All</a>
 
-        <a class="btn @(scope=="mine" ? "btn-primary" : "btn-secondary")"
-           asp-action="Index"
-           asp-route-scope="mine"
-           asp-route-searchString="@q"
-           asp-route-tagId="@tag">My Recipes</a>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a class="btn @(scope == "mine" ? "btn-primary" : "btn-secondary")"
+               asp-action="Index"
+               asp-route-scope="mine"
+               asp-route-searchString="@q"
+               asp-route-tagId="@tag">My Recipes</a>
 
-        <a class="btn @(scope=="favorites" ? "btn-primary" : "btn-secondary")"
-           asp-action="Index"
-           asp-route-scope="favorites"
-           asp-route-searchString="@q"
-           asp-route-tagId="@tag">Favorites</a>
+            <a class="btn @(scope == "favorites" ? "btn-primary" : "btn-secondary")"
+               asp-action="Index"
+               asp-route-scope="favorites"
+               asp-route-searchString="@q"
+               asp-route-tagId="@tag">Favorites</a>
+        }
     </div>
 
     <!-- ===================== Empty-state ===================== -->
