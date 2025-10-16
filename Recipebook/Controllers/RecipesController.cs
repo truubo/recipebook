@@ -346,7 +346,6 @@ namespace Recipebook.Controllers
 
         // ---------------------------------- EDIT ---------------------------------
         // GET: Recipes/Edit/5
-        // GET: Recipes/Edit/5
         [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
@@ -588,6 +587,211 @@ namespace Recipebook.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Copy(int id)
+        {
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var who = uid ?? "anonymous";
+            _logger.LogInformation("{Who} -> /Recipes/Copy/{Id}", who, id);
+
+            var recipe = await _context.Recipe
+                .Where(r => !r.IsArchived)
+                .Include(r => r.CategoryRecipes)
+                .Include(r => r.IngredientRecipes)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+            {
+                _logger.LogWarning("Recipe {Id} not found for copying", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation(
+                "Preparing copy of recipe '{Title}' (Id {Id}) by user {UserId}. Categories={CategoryCount}, Ingredients={IngredientCount}",
+                recipe.Title,
+                recipe.Id,
+                who,
+                recipe.CategoryRecipes.Count,
+                recipe.IngredientRecipes.Count
+            );
+
+            var vm = new RecipeCreateEditVm
+            {
+                Recipe = new Recipe
+                {
+                    Title = recipe.Title + " (Copy)",
+                    Description = recipe.Description,
+                    Directions = recipe.Directions,
+                    Private = true, // default to private
+                },
+                SelectedCategories = recipe.CategoryRecipes.Select(cr => cr.CategoryId).ToArray(),
+                Ingredients = recipe.IngredientRecipes
+                    .Select(ir => new IngredientSelectViewModel
+                    {
+                        IngredientId = ir.IngredientId,
+                        Quantity = ir.Quantity,
+                        Unit = ir.Unit
+                    })
+                    .ToList(),
+                IsCopy = true
+            };
+
+            ViewBag.AllCategories = new MultiSelectList(
+                _context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name),
+                "Id",
+                "Name",
+                vm.SelectedCategories
+            );
+
+            ViewBag.AllIngredients = new SelectList(
+                _context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name),
+                "Id",
+                "Name"
+            );
+
+            _logger.LogInformation(
+                "Recipe copy form initialized for '{Title}' (original Id {Id}), default private={Private}",
+                vm.Recipe.Title,
+                id,
+                vm.Recipe.Private
+            );
+
+            return View("Edit", vm); // reuse the Edit view
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> Copy(RecipeCreateEditVm vm)
+        {
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            vm.Recipe.AuthorId = uid ?? string.Empty;
+            var who = uid ?? "anonymous";
+            _logger.LogInformation("{Who} submitted recipe copy creation", who);
+
+            if (string.IsNullOrWhiteSpace(vm.Recipe.AuthorId))
+            {
+                _logger.LogWarning("Copy attempt blocked: user not signed in.");
+                ModelState.AddModelError("", "You must be signed in to create a recipe copy.");
+            }
+
+            vm.Ingredients ??= new List<IngredientSelectViewModel>();
+            vm.Ingredients = vm.Ingredients.Where(i => i.IngredientId > 0).ToList();
+
+            ModelState.Clear();
+            TryValidateModel(vm);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(kvp => kvp.Value?.Errors.Count > 0)
+                    .Select(kvp => $"{kvp.Key} => {string.Join(" | ", kvp.Value!.Errors.Select(e => e.ErrorMessage))}")
+                    .ToList();
+
+                _logger.LogWarning("Recipe copy creation blocked. Validation errors: {Errors}", string.Join("; ", errors));
+
+                ViewBag.AllCategories = new MultiSelectList(
+                    _context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name),
+                    "Id",
+                    "Name",
+                    vm.SelectedCategories
+                );
+
+                ViewBag.AllIngredients = new SelectList(
+                    _context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name),
+                    "Id",
+                    "Name"
+                );
+
+                return View("Edit", vm);
+            }
+
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Recipe.Add(vm.Recipe);
+                await _context.SaveChangesAsync();
+
+                // Log categories and ingredients count early
+                _logger.LogInformation(
+                    "Creating recipe copy '{Title}' by {Who}. Categories={CategoryCount}, Ingredients={IngredientCount}",
+                    vm.Recipe.Title,
+                    who,
+                    vm.SelectedCategories?.Length ?? 0,
+                    vm.Ingredients.Count
+                );
+
+                // Categories
+                if (vm.SelectedCategories?.Length > 0)
+                {
+                    foreach (var catId in vm.SelectedCategories.Distinct())
+                    {
+                        _context.CategoryRecipes.Add(new CategoryRecipe
+                        {
+                            RecipeId = vm.Recipe.Id,
+                            CategoryId = catId
+                        });
+                    }
+                }
+
+                // Ingredients
+                foreach (var ingVm in vm.Ingredients)
+                {
+                    _context.IngredientRecipes.Add(new IngredientRecipe
+                    {
+                        RecipeId = vm.Recipe.Id,
+                        IngredientId = ingVm.IngredientId,
+                        Quantity = ingVm.Quantity,
+                        Unit = ingVm.Unit
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                var catNames = (vm.SelectedCategories ?? Array.Empty<int>())
+                    .Distinct()
+                    .Join(_context.Category, id => id, c => c.Id, (id, c) => c.Name!)
+                    .ToList();
+
+                _logger.LogInformation(
+                    "{Who} created recipe copy '{Title}' (Id {Id}) private={Private} categories={Count} {Categories}",
+                    who,
+                    vm.Recipe.Title,
+                    vm.Recipe.Id,
+                    vm.Recipe.Private,
+                    catNames.Count,
+                    "[" + string.Join(", ", catNames) + "]"
+                );
+
+                TempData["Success"] = "Recipe copy created successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                var root = ex.GetBaseException();
+                _logger.LogError(ex, "Error copying recipe by {Who}. Root cause: {RootMsg}", who, root.Message);
+                TempData["Error"] = "An error occurred while creating the copy.";
+            }
+
+            ViewBag.AllCategories = new MultiSelectList(
+                _context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name),
+                "Id",
+                "Name",
+                vm.SelectedCategories
+            );
+
+            ViewBag.AllIngredients = new SelectList(
+                _context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name),
+                "Id",
+                "Name"
+            );
+
+            return View("Edit", vm);
         }
 
         // Utility to check if a recipe exists (used in concurrency handling)
