@@ -236,6 +236,7 @@ namespace Recipebook.Controllers
             // Re-validate AFTER cleaning the collection so ModelState isn't poisoned
             ModelState.Clear();
             TryValidateModel(vm);
+            ModelState.Remove("UpdateButtonText");
 
             // Custom form validation (keep your existing checks)
             var formOk = FormValid(ModelState) && ModelState.IsValid;
@@ -370,11 +371,15 @@ namespace Recipebook.Controllers
                 Recipe = recipe,
                 SelectedCategories = recipe.CategoryRecipes.Select(cr => cr.CategoryId).ToArray(),
                 Ingredients = recipe.IngredientRecipes
-                    .Select(ir => new IngredientSelectViewModel
-                    {
-                        IngredientId = ir.IngredientId,
-                        Quantity = ir.Quantity,
-                        Unit = ir.Unit
+                    .Select(ir => {
+                        Ingredient ing = _context.Ingredient.Find(ir.IngredientId);
+                        return new IngredientSelectViewModel
+                        {
+                            IngredientId = ir.IngredientId,
+                            IngredientName = ing.Name,
+                            Quantity = ir.Quantity,
+                            Unit = ir.Unit
+                        };
                     })
                     .ToList()
             };
@@ -405,6 +410,7 @@ namespace Recipebook.Controllers
             // Re-validate after cleaning
             ModelState.Clear();
             TryValidateModel(vm);
+            ModelState.Remove("UpdateButtonText");
             var formOk = FormValid(ModelState) && ModelState.IsValid;
 
             if (!formOk)

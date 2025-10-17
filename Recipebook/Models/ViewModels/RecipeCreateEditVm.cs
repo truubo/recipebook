@@ -5,6 +5,8 @@ namespace Recipebook.Models.ViewModels
 {
     public class RecipeCreateEditVm
     {
+        public string UpdateButtonText { get; set; }
+
         public Recipe Recipe { get; set; } = new Recipe();
 
         public List<IngredientSelectViewModel> Ingredients { get; set; } = new List<IngredientSelectViewModel>();

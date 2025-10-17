@@ -2,152 +2,17 @@
 
 @{
     ViewData["Title"] = "Create";
+    Model.UpdateButtonText = "Create";
 }
-
 <div class="recipe-form-page">
     <h1>Create New Recipe</h1>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form asp-action="Create" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                <div class="mb-3">
-                    <label asp-for="Recipe.Title" class="form-label fw-bold"></label>
-                    <input asp-for="Recipe.Title" class="form-control" />
-                    <span asp-validation-for="Recipe.Title" class="text-danger"></span>
-                </div>
-
-                <div class="form-check mb-3">
-                    <input class="form-check-input" asp-for="Recipe.Private" />
-                    <label class="form-check-label fw-bold">
-                        @Html.DisplayNameFor(model => model.Recipe.Private)
-                    </label>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Categories</label>
-                    <select name="SelectedCategories"
-                            asp-items="ViewBag.AllCategories"
-                            multiple="multiple"
-                            class="form-control">
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="Recipe.Description" class="form-label fw-bold"></label>
-                    <textarea asp-for="Recipe.Description" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="Recipe.Description" class="text-danger"></span>
-                </div>
-
-                @* ==== ADDED: Prep/Cook time inputs ==== *@
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label asp-for="Recipe.PrepTimeMinutes" class="form-label fw-bold"></label>
-                        <input asp-for="Recipe.PrepTimeMinutes" class="form-control" type="number" min="0" max="999" step="1" placeholder="Enter minutes (0–999)" />
-                        <span class="form-text text-muted">Enter minutes (0–999)</span>
-                        <span asp-validation-for="Recipe.PrepTimeMinutes" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="Recipe.CookTimeMinutes" class="form-label fw-bold"></label>
-                        <input asp-for="Recipe.CookTimeMinutes" class="form-control" type="number" min="0" max="999" step="1" placeholder="Enter minutes (0–999)" />
-                        <span class="form-text text-muted">Enter minutes (0–999)</span>
-                        <span asp-validation-for="Recipe.CookTimeMinutes" class="text-danger"></span>
-                    </div>
-                </div>
-                @* ==== END ADDED ==== *@
-
-                <h4>Ingredients</h4>
-                <div class="ingredients-container">
-                    @if (Model.Ingredients.Count > 0)
-                    {
-                        <div class="ingredient-labels row mb-2 fw-bold">
-                            <div class="col">Ingredient</div>
-                            <div class="col">Quantity</div>
-                            <div class="col">Unit</div>
-                        </div>
-                    }
-
-                    @for (int i = 0; i < Model.Ingredients.Count; i++)
-                    {
-                        <div class="ingredient-row mb-3">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <select asp-for="Ingredients[@i].IngredientId" class="form-control" asp-items="ViewBag.AllIngredients">
-                                        <option value="">-- Select Ingredient --</option>
-                                    </select>
-                                </div>
-                                <div class="col">
-                                    <input asp-for="Ingredients[@i].Quantity" class="form-control" type="number" min="1" />
-                                </div>
-                                <div class="col">
-                                    <select asp-for="Ingredients[@i].Unit" class="form-control">
-                                        @foreach (var unit in Enum.GetValues(typeof(Unit)))
-                                        {
-                                            <option value="@unit">@unit</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove Ingredient</button>
-                            <hr />
-                        </div>
-                    }
-                </div>
-
-                <button type="button" class="btn btn-brown btn-sm mb-3 add-ingredient-btn w-50 mx-auto">Add Ingredient</button>
-
-                <div class="mb-3">
-                    <label asp-for="Recipe.Directions" class="form-label fw-bold"></label>
-                    <textarea asp-for="Recipe.Directions" class="form-control" rows="5"></textarea>
-                    <span asp-validation-for="Recipe.Directions" class="text-danger"></span>
-                </div>
-
-                <div class="d-flex justify-content-center gap-2">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="bi bi-plus-circle"></i> Create
-                    </button>
-                    <a onclick="history.back()" class="btn btn-brown btn-lg">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-
-            <div class="ingredient-template d-none">
-                <div class="ingredient-row mb-3">
-                    <div class="row g-2 align-items-center">
-                        <div class="col">
-                            <select name="Ingredients[__index__].IngredientId" class="form-control">
-                                <option value="">-- Select Ingredient --</option>
-                                @foreach (var item in (SelectList)ViewBag.AllIngredients)
-                                {
-                                    <option value="@item.Value">@item.Text</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col">
-                            <input name="Ingredients[__index__].Quantity" class="form-control" type="number" min="1" />
-                        </div>
-                        <div class="col">
-                            <select name="Ingredients[__index__].Unit" class="form-control">
-                                @foreach (var unit in Enum.GetValues(typeof(Unit)))
-                                {
-                                    <option value="@unit">@unit</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove</button>
-                    <hr />
-                </div>
-            </div>
-        </div>
-    </div>
+    @await Html.PartialAsync("_RecipeForm")
 </div>
+
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
-
+    <script src="/js/recipe.js"></script>
     <script>
         let ingredientIndex = @Model.Ingredients.Count;
         const container = document.querySelector(".ingredients-container");

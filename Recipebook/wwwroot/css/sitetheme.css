@@ -12877,89 +12877,17 @@ main {
 .details-page .details-actions .btn-brown:hover {
   background-color: rgb(40.95, 29.25, 25.35);
 }
-.details-page .details-actions-top button.btn[data-bs-target=".add-to-list-modal"] {
-  background-color: #bf4342 !important;
-  border-color: #bf4342 !important;
-  color: #fff !important;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  padding: 0.4rem 0.6rem;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-}
-.details-page .details-actions-top button.btn[data-bs-target=".add-to-list-modal"]:hover, .details-page .details-actions-top button.btn[data-bs-target=".add-to-list-modal"]:focus {
-  background-color: rgb(134.8399209486, 46.3735177866, 45.6600790514) !important;
-  border-color: rgb(134.8399209486, 46.3735177866, 45.6600790514) !important;
-  transform: translateY(-1px);
-}
-.details-page .details-actions-top button.btn[data-bs-target=".add-to-list-modal"] i {
-  color: #fff !important;
+
+.dropdown-item {
+  cursor: pointer;
 }
 
-.add-to-list-modal .modal-content {
-  background-color: #a78a7f;
-  border: 2px solid #3f2d27;
-  border-radius: 0.75rem;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+.dropdown-menu {
+  background-color: #e7d7c1;
+  max-height: 300px;
+  overflow-y: scroll;
 }
-.add-to-list-modal .modal-header {
-  background-color: #bf4342;
-  color: #fff;
-  border: none;
-  border-radius: 0.75rem 0.75rem 0 0;
-}
-.add-to-list-modal .modal-title {
-  font-weight: 700;
-}
-.add-to-list-modal .btn-close {
-  filter: invert(1);
-  opacity: 0.9;
-}
-.add-to-list-modal .btn-close:hover, .add-to-list-modal .btn-close:focus {
-  opacity: 1;
-}
-.add-to-list-modal .modal-body label {
-  font-weight: 600;
-  color: #3f2d27;
-}
-.add-to-list-modal .modal-body select.form-select {
-  border: 1px solid #3f2d27;
-  border-radius: 0.5rem;
-}
-.add-to-list-modal .modal-footer {
-  border: none;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-.add-to-list-modal .modal-footer button.btn[type=submit] {
-  background-color: #bf4342 !important;
-  border-color: #bf4342 !important;
-  color: #fff !important;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
-}
-.add-to-list-modal .modal-footer button.btn[type=submit]:hover, .add-to-list-modal .modal-footer button.btn[type=submit]:focus {
-  background-color: rgb(134.8399209486, 46.3735177866, 45.6600790514) !important;
-  border-color: rgb(134.8399209486, 46.3735177866, 45.6600790514) !important;
-  transform: translateY(-1px);
-}
-.add-to-list-modal .modal-footer button.btn[type=submit] i {
-  color: #fff !important;
-}
-.add-to-list-modal .modal-footer button.btn.btn-outline-secondary,
-.add-to-list-modal .modal-footer button.btn-cancel {
-  background-color: #e7d7c1 !important;
-  border: 1px solid #3f2d27 !important;
-  color: #000 !important;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease-in-out;
-}
-.add-to-list-modal .modal-footer button.btn.btn-outline-secondary:hover, .add-to-list-modal .modal-footer button.btn.btn-outline-secondary:focus,
-.add-to-list-modal .modal-footer button.btn-cancel:hover,
-.add-to-list-modal .modal-footer button.btn-cancel:focus {
-  background-color: rgb(128.8888888889, 99.6875, 88.6111111111) !important;
-  border-color: rgb(15.75, 11.25, 9.75) !important;
-  color: #fff !important;
+
+.modal-content {
+  background: #e7d7c1;
 }
