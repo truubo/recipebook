@@ -12877,3 +12877,17 @@ main {
 .details-page .details-actions .btn-brown:hover {
   background-color: rgb(40.95, 29.25, 25.35);
 }
+
+.dropdown-item {
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  background-color: #e7d7c1;
+  max-height: 300px;
+  overflow-y: scroll;
+}
+
+.modal-content {
+  background: #e7d7c1;
+}
