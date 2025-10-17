@@ -120,6 +120,46 @@ body {
 }
 
 // ------------------------------
+// Favorites star
+// ------------------------------
+.star {
+    color: $yellow;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+    vertical-align: middle;
+    font-size: 1.2rem;
+}
+
+.star.unchecked {
+    color: $light-red;
+}
+
+.btn-link.star-btn {
+    outline: none;
+    box-shadow: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-link.star-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.star-btn i.star,
+.star-btn i.star.unchecked {
+    vertical-align: middle;
+    line-height: 1;
+    font-size: 1.2rem;
+    position: relative;
+    top: -2px;
+}
+
+
+// ------------------------------
 // Headers / Footers
 // ------------------------------
 .header,
@@ -379,7 +419,6 @@ textarea.form-control {
 .table th,
 .table td,
 .card-body {
-    padding: 0.5rem 0.75rem;
 }
 
 // ------------------------------
@@ -494,15 +533,12 @@ main {
         .card-grid {
             display: grid;
             gap: 1.5rem;
-
             // mobile
             grid-template-columns: 1fr;
-
             // tablet
             @media (min-width: 768px) {
                 grid-template-columns: repeat(2, 1fr);
             }
-
             // desktop
             @media (min-width: 992px) {
                 grid-template-columns: repeat(3, 1fr);
@@ -1057,7 +1093,16 @@ main {
     background-color: $light-brown;
     border: 2px solid $dark-brown;
     border-radius: 0.75rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+
+    .star-btn i.star,
+    .star-btn i.star.unchecked {
+        vertical-align: middle;
+        line-height: 1;
+        font-size: 1.2rem;
+        position: relative;
+        top: -1px;
+    }
 
     .details-header {
         .recipe-title {
@@ -1119,28 +1164,118 @@ main {
             }
         }
     }
+    // ------------------------------
+    // Add to List Modal Trigger Button
+    // ------------------------------
+    .details-actions-top {
+        button.btn[data-bs-target=".add-to-list-modal"] {
+            background-color: $light-red !important;
+            border-color: $light-red !important;
+            color: #fff !important;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            padding: 0.4rem 0.6rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+
+            &:hover,
+            &:focus {
+                background-color: darken($light-red, 15%) !important;
+                border-color: darken($light-red, 15%) !important;
+                transform: translateY(-1px);
+            }
+
+            i {
+                color: #fff !important;
+            }
+        }
+    }
 }
 
-// ------------------------
-// Dropdown and modals
-// ------------------------
-/* CSS relevant to this page only */
-.dropdown-item {
-    cursor: pointer;
-}
+// ------------------------------
+// Add to List Modal Styling
+// ------------------------------
+.add-to-list-modal {
+    .modal-content {
+        background-color: $light-brown;
+        border: 2px solid $dark-brown;
+        border-radius: 0.75rem;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    }
 
-/* todo: move this to SCSS when the time comes */
+    .modal-header {
+        background-color: $light-red;
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem 0.75rem 0 0;
+    }
 
-.dropdown-menu {
-    background-color: #e7d7c1;
-    max-height: 300px;
-    overflow-y: scroll;
-}
+    .modal-title {
+        font-weight: 700;
+    }
 
-.modal-content {
-    background: $beige;
-}
+    .btn-close {
+        filter: invert(1);
+        opacity: 0.9;
 
-.modal-content > div {
-    border-color: $dark-brown;
+        &:hover,
+        &:focus {
+            opacity: 1;
+        }
+    }
+
+    .modal-body {
+        label {
+            font-weight: 600;
+            color: $dark-brown;
+        }
+
+        select.form-select {
+            border: 1px solid $dark-brown;
+            border-radius: 0.5rem;
+        }
+    }
+
+    .modal-footer {
+        border: none;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        // Add button
+        button.btn[type="submit"] {
+            background-color: $light-red !important;
+            border-color: $light-red !important;
+            color: #fff !important;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+
+            &:hover,
+            &:focus {
+                background-color: darken($light-red, 15%) !important;
+                border-color: darken($light-red, 15%) !important;
+                transform: translateY(-1px);
+            }
+
+            i {
+                color: #fff !important;
+            }
+        }
+        // Cancel button
+        button.btn.btn-outline-secondary,
+        button.btn-cancel {
+            background-color: $beige !important;
+            border: 1px solid $dark-brown !important;
+            color: #000 !important;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+
+            &:hover,
+            &:focus {
+                background-color: darken($light-brown, 15%) !important;
+                border-color: darken($dark-brown, 15%) !important;
+                color: #fff !important;
+            }
+        }
+    }
 }

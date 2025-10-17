@@ -6,7 +6,7 @@
     var ownerEmails = ViewBag.OwnerEmails as Dictionary<string, string>;
 }
 
-@if (lists != null && lists.Any())
+@if (lists != null && lists.Where(l => !l.IsArchived).Any())
 {
     <div class="card-grid">
         @foreach (var l in lists)
@@ -24,8 +24,12 @@
                     }
                 </div>
 
+                @{
+                    var activeRecipes = l.ListRecipes?.Where(lr => lr.Recipe != null && !lr.Recipe.IsArchived).ToList() ?? new List<Recipebook.Models.ListRecipe>();
+                    var count = activeRecipes.Count;
+                }
                 <p class="card-text">
-                    <strong>@l.ListType</strong> - @(l.ListRecipes?.Count() ?? 0) item@(l.ListRecipes?.Count() == 1 ? "" : "s")
+                    <strong>@l.ListType</strong> - @count item@(count == 1 ? "" : "s")
                 </p>
 
                 <div class="card-footer d-flex justify-content-between align-items-center">

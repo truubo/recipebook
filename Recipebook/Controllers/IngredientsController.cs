@@ -49,14 +49,14 @@ namespace Recipebook.Controllers
         // Supports optional search (?searchString=...)
         public async Task<IActionResult> Index(string? searchString)
         {
-            var query = _context.Ingredient.AsQueryable();
+            var query = _context.Ingredient.Where(i => !i.IsArchived).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(i => i.Name.Contains(searchString));
+                query = query.Where(i => i.Name.Contains(searchString) && !i.IsArchived);
             }
 
-            var ingredients = await query.ToListAsync();
+            var ingredients = await query.Where(i => !i.IsArchived).ToListAsync();
 
             _logger.LogInformation("{Who} -> /Ingredients/Index | count={Count} search='{Search}'",
                 Who(), ingredients.Count, searchString ?? string.Empty);
@@ -76,7 +76,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var ingredient = await _context.Ingredient.FirstOrDefaultAsync(i => i.Id == id);
+            var ingredient = await _context.Ingredient.Where(i => !i.IsArchived).FirstOrDefaultAsync(i => i.Id == id);
 
             if (ingredient == null)
             {
@@ -140,7 +140,7 @@ namespace Recipebook.Controllers
             }
 
             var ingredient = await _context.Ingredient.FindAsync(id);
-            if (ingredient == null)
+            if (ingredient == null || ingredient.IsArchived)
             {
                 _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} | not found", Who(), id);
                 return NotFound();
@@ -170,7 +170,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var existing = await _context.Ingredient.FirstOrDefaultAsync(i => i.Id == id);
+            var existing = await _context.Ingredient.Where(i => !i.IsArchived).FirstOrDefaultAsync(i => i.Id == id);
             if (existing == null)
             {
                 _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} | disappeared during edit", Who(), id);
@@ -229,7 +229,7 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var ingredient = await _context.Ingredient.FirstOrDefaultAsync(i => i.Id == id);
+            var ingredient = await _context.Ingredient.Where(i => !i.IsArchived).FirstOrDefaultAsync(i => i.Id == id);
             if (ingredient == null)
             {
                 _logger.LogInformation("{Who} -> /Ingredients/Delete/{Id} | not found", Who(), id);
@@ -253,8 +253,11 @@ namespace Recipebook.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ingredient = await _context.Ingredient.FindAsync(id);
-            if (ingredient == null)
+            var ingredient = await _context.Ingredient
+                .Include(i => i.IngredientRecipes) // include join rows
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (ingredient == null || ingredient.IsArchived)
             {
                 _logger.LogInformation("{Who} -> /Ingredients/Delete/{Id} | already gone", Who(), id);
                 TempData["Warning"] = "This ingredient no longer exists.";
@@ -268,10 +271,20 @@ namespace Recipebook.Controllers
                 return Forbid();
             }
 
-            _context.Ingredient.Remove(ingredient);
+            // Soft-delete the ingredient
+            ingredient.IsArchived = true;
+            _context.Update(ingredient);
+
+            // Remove join rows so recipes no longer reference this ingredient
+            if (ingredient.IngredientRecipes != null && ingredient.IngredientRecipes.Any())
+            {
+                _context.IngredientRecipes.RemoveRange(ingredient.IngredientRecipes);
+            }
+
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("{Who} deleted ingredient '{Name}' (Id {Id})", Who(), ingredient.Name, ingredient.Id);
+            _logger.LogInformation("{Who} archived ingredient '{Name}' (Id {Id}) and removed {Count} join rows",
+                Who(), ingredient.Name, ingredient.Id, ingredient.IngredientRecipes?.Count ?? 0);
 
             TempData["Success"] = $"Ingredient '{ingredient.Name}' deleted.";
             return RedirectToAction(nameof(Index));
@@ -290,7 +303,7 @@ namespace Recipebook.Controllers
         // --------------------------- EXISTENCE CHECK ---------------------------
         private bool IngredientExists(int id)
         {
-            return _context.Ingredient.Any(e => e.Id == id);
+            return _context.Ingredient.Where(i => !i.IsArchived).Any(e => e.Id == id);
         }
     }
 }
