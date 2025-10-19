@@ -295,6 +295,7 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> All()
         {
             var ingredients = await _context.Ingredient
+                .Where(i => !i.IsArchived)
                 .Select(i => new { i.Id, i.Name })
                 .ToListAsync();
             return Json(ingredients);

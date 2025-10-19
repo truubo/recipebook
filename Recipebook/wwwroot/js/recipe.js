@@ -17,9 +17,9 @@ function setIngredient(id, name) {
 }
 
 async function createIngredient() {
-    const name = document.querySelector("#createIngredientModal").querySelector("input#ingredientName").value
+    const name = document.querySelector("#createIngredientModal").querySelector("input#ingredientName")
     let formData = new FormData();
-    formData.append("Name", name)
+    formData.append("Name", name.value)
     const createIngredientRequest = await window.fetch("/Ingredients/Create", {
         method: "POST",
         body: formData,
@@ -32,6 +32,7 @@ async function createIngredient() {
     console.log("seems like the ingredient was created!")
     cachedIngredients = null;
     setIngredient(result.id, result.name)
+    name.value = ""
     ingredientModal.hide();
 }
 
@@ -100,7 +101,7 @@ async function fetchIngredients(element) {
 function searchIngredients(element) {
     let newIngredients = [];
     cachedIngredients.forEach(ing => {
-        if (ing.name.toLowerCase().includes(element.value)) {
+        if (ing.name.toLowerCase().includes(element.value.toLowerCase())) {
             newIngredients.push(ing);
         }
     })
