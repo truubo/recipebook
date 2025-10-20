@@ -631,6 +631,8 @@ namespace Recipebook.Controllers
                     Description = recipe.Description,
                     Directions = recipe.Directions,
                     Private = true, // default to private
+                    PrepTimeMinutes = recipe.PrepTimeMinutes,
+                    CookTimeMinutes = recipe.CookTimeMinutes
                 },
                 SelectedCategories = recipe.CategoryRecipes.Select(cr => cr.CategoryId).ToArray(),
                 Ingredients = recipe.IngredientRecipes
