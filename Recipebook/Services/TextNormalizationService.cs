@@ -1,5 +1,6 @@
-﻿using System.Globalization;
+﻿using Recipebook.Models;
 using Recipebook.Services.Interfaces;
+using System.Globalization;
 
 namespace Recipebook.Services
 {
@@ -34,6 +35,33 @@ namespace Recipebook.Services
             }
 
             return string.Join(' ', words);
+        }
+
+        public string ToLowerForDisplay(string input)
+        {
+            return string.IsNullOrWhiteSpace(input) ? input : input.ToLower();
+        }
+
+        public string UnitToDisplay(Unit unit, decimal quantity = 1)
+        {
+            var unitStr = unit.ToString().ToLower();
+            return quantity == 1 ? unitStr : unitStr + "s";
+        }
+
+        public string FormatIngredientDisplay(string quantity, Unit unit, string ingredientName)
+        {
+            if (!decimal.TryParse(quantity, out var qtyValue))
+            {
+                qtyValue = 1;
+            }
+
+            var unitDisplay = UnitToDisplay(unit, qtyValue);
+            var nameDisplay = ToLowerForDisplay(ingredientName);
+
+            if (!string.IsNullOrWhiteSpace(unitDisplay))
+                return $"{quantity} {unitDisplay} of {nameDisplay}";
+
+            return $"{quantity} {nameDisplay}";
         }
     }
 }
