@@ -22,6 +22,7 @@ using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Models.ViewModels;
 using Recipebook.Services;
+using Recipebook.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,11 +40,13 @@ namespace Recipebook.Controllers
         // _logger:  ILogger for diagnostic/audit logs
         private readonly ApplicationDbContext _context;
         private readonly ILogger<RecipesController> _logger;
+        private readonly ITextNormalizationService _textNormalizer;
 
-        public RecipesController(ApplicationDbContext context, ILogger<RecipesController> logger)
+        public RecipesController(ApplicationDbContext context, ILogger<RecipesController> logger, ITextNormalizationService textNormalizer)
         {
             _context = context;
             _logger = logger;
+            _textNormalizer = textNormalizer;
         }
 
         // Small helper to pretty-print name lists in logs (e.g., category names)
@@ -263,6 +266,8 @@ namespace Recipebook.Controllers
             try
             {
                 // 1) Save the recipe to get its generated Id
+                vm.Recipe.Title = _textNormalizer.NormalizeRecipeTitle(vm.Recipe.Title);
+
                 _context.Add(vm.Recipe);
 
                 // Optional: quick visibility into what EF plans to write
@@ -431,6 +436,8 @@ namespace Recipebook.Controllers
             try
             {
                 // Update recipe basic info
+                vm.Recipe.Title = _textNormalizer.NormalizeRecipeTitle(vm.Recipe.Title);
+
                 _context.Update(vm.Recipe);
                 await _context.SaveChangesAsync();
 

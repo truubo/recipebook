@@ -1,16 +1,4 @@
-﻿// Controllers/CategoriesController.cs
-// ----------------------------------------------------------------------------------
-// PURPOSE
-//   CRUD controller for Category entities. Categories can be owned by a user and
-//   linked to Recipes via CategoryRecipe. Includes owner-only guards and logging.
-//
-// NOTES FOR REVIEWERS / CLASSMATES
-//   • Patterns: standard MVC CRUD, ModelState validation, TempData alerts,
-//     EF Core eager loading, Identity-based ownership checks, structured logs.
-//   • Identity integration: Category has an OwnerId, checked on Edit/Delete.
-// ----------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Security.Claims; // for ClaimTypes
 using System.Threading.Tasks;
@@ -18,9 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging; // logger
+using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
+using Recipebook.Services.Interfaces;
 
 namespace Recipebook.Controllers
 {
@@ -29,11 +18,14 @@ namespace Recipebook.Controllers
         // --------------------------- DEPENDENCIES -------------------------------
         private readonly ApplicationDbContext _context; // EF Core DbContext
         private readonly ILogger<CategoriesController> _logger; // logging
+        private readonly ITextNormalizationService _textNormalizer; // text normalization
 
-        public CategoriesController(ApplicationDbContext context, ILogger<CategoriesController> logger)
+        public CategoriesController(ApplicationDbContext context, ILogger<CategoriesController> logger, ITextNormalizationService textNormalizer)
         {
             _context = context;
             _logger = logger;
+            _textNormalizer = textNormalizer;
+
         }
 
         // --------------------------- UTILITY HELPERS ----------------------------
@@ -146,6 +138,8 @@ namespace Recipebook.Controllers
                 var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
                 category.OwnerId = uid;
 
+                category.Name = _textNormalizer.NormalizeCategory(category.Name);
+
                 _context.Add(category);
                 await _context.SaveChangesAsync();
 
@@ -225,7 +219,7 @@ namespace Recipebook.Controllers
             {
                 try
                 {
-                    existing.Name = category.Name; // only update name
+                    existing.Name = _textNormalizer.NormalizeCategory(category.Name); // only update name
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("{Who} updated category (Id {Id}) -> '{Name}'", Who(), existing.Id, existing.Name);
