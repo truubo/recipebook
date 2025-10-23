@@ -5,6 +5,10 @@
     ViewData["Title"] = "Create List";
 }
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <div class="list-form-page">
     <h1>Create New List</h1>
 
@@ -26,30 +30,31 @@
 
                 <div class="mb-3">
                     <label asp-for="List.ListType" class="form-label fw-bold">Type</label>
-                    <select asp-for="List.ListType" class="form-select"
-                            asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"></select>
+                    <select asp-for="List.ListType"
+                            class="form-select"
+                            asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"
+                            id="listTypeSelect">
+                    </select>
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold" asp-for="SelectedRecipeIds">Add Recipes</label>
+                <!-- Recipe Selector (used for both types, different label/tooltip) -->
+                <div class="mb-3" id="recipeSelectSection">
+                    <label class="form-label fw-bold" id="recipeSelectLabel">Add Recipes</label>
                     <select asp-for="SelectedRecipeIds"
                             asp-items="Model.RecipeChoices"
-                            class="form-select"
-                            multiple
-                            size="10">
+                            class="form-select recipe-multiselect"
+                            multiple="multiple">
                     </select>
                     <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
-                    <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
+                    <small id="recipeSelectHelp" class="text-muted"></small>
                 </div>
 
                 <div class="d-flex justify-content-center gap-2">
                     <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-plus-circle"></i> Create
                     </button>
-                    <a onclick="history.back()" class="btn btn-brown btn-lg">
-                        Cancel
-                    </a>
+                    <a onclick="history.back()" class="btn btn-brown btn-lg">Cancel</a>
                 </div>
             </form>
         </div>
@@ -58,4 +63,32 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function updateRecipeSection() {
+            const typeSelect = document.getElementById("listTypeSelect");
+            const label = document.getElementById("recipeSelectLabel");
+            const help = document.getElementById("recipeSelectHelp");
+            const selectedType = parseInt(typeSelect.value);
+
+            if (selectedType === 1) { // Ingredients list
+                label.innerText = "Include Recipes";
+                help.innerText = "Select one or more recipes — their ingredients will be combined into your grocery list.";
+            } else { // Recipes list
+                label.innerText = "Add Recipes";
+                help.innerText = "Add recipes directly to your meal plan.";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Enable Select2 for search + multi-select
+            $('.recipe-multiselect').select2({
+                placeholder: "Search and select recipes...",
+                width: '100%'
+            });
+
+            updateRecipeSection();
+            document.getElementById("listTypeSelect").addEventListener("change", updateRecipeSection);
+        });
+    </script>
 }

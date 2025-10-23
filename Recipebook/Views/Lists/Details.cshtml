@@ -1,31 +1,64 @@
 ﻿@model Recipebook.Models.List
+@using System
+@using System.Linq
+@using Recipebook.Models
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@functions {
+    // View-only DTO to make the LINQ projection strongly-typed (no anonymous-type null-coalescing issues)
+    public class IngredientRow
+    {
+        public string Name { get; set; } = "";
+        public decimal TotalQty { get; set; }
+        public string Unit { get; set; } = "";
+    }
+}
+
 @{
     ViewData["Title"] = "List Details";
     var ownerEmail = ViewBag.OwnerEmail as string;
     var itemCount = Model.ListRecipes?.Count() ?? 0;
+
+    // Determine if this is an Ingredients list
+    bool isIngredientsList = Model.ListType == ListType.Ingredients;
 }
 
 <div class="details-page position-relative">
 
-    <div class="details-actions-top d-flex justify-content-between w-100">
-        <a asp-action="Index" class="btn btn-brown">
-            <i class="bi bi-arrow-left-circle"></i>
-        </a>
+    <!-- ===========================
+     HEADER BUTTONS (Back / Edit / Delete / Print)
+     =========================== -->
+<div class="details-actions-top d-flex justify-content-between w-100">
+    <a asp-action="Index" class="btn btn-brown">
+        <i class="bi bi-arrow-left-circle"></i>
+    </a>
 
-        <div class="d-flex gap-2">
-            @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
+    <div class="d-flex gap-2 align-items-center">
+        @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
+        {
+            <!-- 🖨️ Print button (matches brown theme) -->
+            @if (isIngredientsList)
             {
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">
-                    <i class="bi bi-trash"></i>
-                </a>
+                <button type="button" class="btn btn-brown print-btn" onclick="window.print()" title="Print list">
+                    <i class="bi bi-printer me-1"></i>
+                    <span>Print List</span>
+                </button>
             }
-        </div>
-    </div>
 
+            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit list">
+                <i class="bi bi-pencil-square"></i>
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger" title="Delete list">
+                <i class="bi bi-trash"></i>
+            </a>
+        }
+    </div>
+</div>
+
+
+    <!-- ===========================
+         HEADER INFO
+         =========================== -->
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Model.Name</h1>
 
@@ -39,6 +72,9 @@
         </div>
     </div>
 
+    <!-- ===========================
+         BODY CONTENT
+         =========================== -->
     <div class="details-body mt-4">
         @if (Model.ListRecipes != null && Model.ListRecipes.Any())
         {
@@ -48,46 +84,104 @@
                     <span class="badge bg-success text-white">@itemCount</span>
                 </h4>
 
-                <div>
-                    <label for="sortSelect" class="form-label fw-bold me-2 mb-0">Sort by:</label>
-                    <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()" class="form-select d-inline-block w-auto"></select>
-                </div>
+                @if (!isIngredientsList)
+                {
+                    <div>
+                        <label for="sortSelect" class="form-label fw-bold me-2 mb-0">Sort by:</label>
+                        <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()" class="form-select d-inline-block w-auto"></select>
+                    </div>
+                }
             </div>
 
-            <ul class="list-group">
-                @foreach (var lr in Model.ListRecipes)
-                {
-                    if (lr.Recipe != null)
-                    {
-                        <a asp-controller="Recipes"
-                           asp-action="Details"
-                           asp-route-id="@lr.Recipe.Id"
-                           class="list-group-item my-1 text-decoration-none custom-list-item">
+            <!-- ===========================
+                 INGREDIENTS LIST DISPLAY
+                 =========================== -->
+            @if (isIngredientsList)
+            {
+                // Build a strongly-typed list of ingredients aggregated across recipes
+                List<IngredientRow> allIngredients = new();
 
-                            <div>
-                                <strong>@lr.Recipe?.Title</strong>
-                                <p class="mb-0 small">
-                                    @{
-                                        var desc = lr.Recipe?.Description ?? "";
-                                        if (string.IsNullOrWhiteSpace(desc))
-                                        {
-                                            @: <span class="fst-italic">No description available.</span>
-                                        }
-                                        else
-                                        {
-                                            if (desc.Length > 100)
-                                            {
-                                                desc = desc.Substring(0, 100) + "...";
-                                            }
-                                            @desc
-                                        }
-                                    }
-                                </p>
-                            </div>
-                        </a>
-                    }
+                if (Model.ListRecipes != null)
+                {
+                    allIngredients = Model.ListRecipes
+                        .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+                        .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+                        .Where(ir => ir?.Ingredient?.Name != null)
+                        .Select(ir => new
+                        {
+                            Name = ir!.Ingredient!.Name!.Trim(),
+                            Qty  = Convert.ToDecimal(ir.Quantity), // force decimal so Sum() is well-typed
+                            Unit = ir.Unit                         // enum/value type
+                        })
+                        .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                        .Select(g => new IngredientRow
+                        {
+                            Name = g.Key,
+                            TotalQty = g.Sum(x => x.Qty),
+                            Unit = g.First().Unit.ToString()       // value type -> ToString()
+                        })
+                        .OrderBy(r => r.Name)
+                        .ToList();
                 }
-            </ul>
+
+                if (allIngredients.Any())
+                {
+                    <ul class="list-group">
+                        @foreach (var ing in allIngredients)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@ing.Name</span>
+                                <span class="text-muted small">@ing.TotalQty @ing.Unit</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted fst-italic">No ingredients found from linked recipes.</p>
+                }
+            }
+            else
+            {
+                <!-- ===========================
+                     RECIPE LIST DISPLAY (default)
+                     =========================== -->
+                <ul class="list-group">
+                    @foreach (var lr in Model.ListRecipes)
+                    {
+                        if (lr.Recipe != null)
+                        {
+                            <a asp-controller="Recipes"
+                               asp-action="Details"
+                               asp-route-id="@lr.Recipe.Id"
+                               class="list-group-item my-1 text-decoration-none custom-list-item">
+
+                                <div>
+                                    <strong>@lr.Recipe?.Title</strong>
+                                    <p class="mb-0 small">
+                                        @{
+                                            var desc = lr.Recipe?.Description ?? "";
+                                            if (string.IsNullOrWhiteSpace(desc))
+                                            {
+                                                @: <span class="fst-italic">No description available.</span>
+                                            }
+                                            else
+                                            {
+                                                if (desc.Length > 100)
+                                                {
+                                                    desc = desc.Substring(0, 100) + "...";
+                                                }
+                                                @desc
+                                            }
+                                        }
+                                    </p>
+                                </div>
+                            </a>
+                        }
+                    }
+                </ul>
+            }
+
         }
         else
         {
@@ -96,16 +190,22 @@
     </div>
 </div>
 
-<script>
-    const sortSelect = document.querySelector("#sortSelect");
-    if (sortSelect) {
-        sortSelect.addEventListener("change", function () {
-            window.location.href = `?sortType=${this.value}`
-        });
-        sortSelect.querySelectorAll("option").forEach(item => {
-            if (item.value == new URLSearchParams(window.location.search).get("sortType")) {
-                item.selected = true
-            }
-        });
-    }
-</script>
+<!-- ===========================
+     CLIENT-SIDE SORT LOGIC
+     =========================== -->
+@if (!isIngredientsList)
+{
+    <script>
+        const sortSelect = document.querySelector("#sortSelect");
+        if (sortSelect) {
+            sortSelect.addEventListener("change", function () {
+                window.location.href = `?sortType=${this.value}`;
+            });
+            sortSelect.querySelectorAll("option").forEach(item => {
+                if (item.value == new URLSearchParams(window.location.search).get("sortType")) {
+                    item.selected = true;
+                }
+            });
+        }
+    </script>
+}
