@@ -17,6 +17,7 @@ namespace Recipebook.Models
         [Column(TypeName = "varchar(50)")]
         public string Title { get; set; } = default!;
 
+        [Obsolete("This has been deprecated in favor of DirectionsList. Do not create new recipes with this property.")]
         [Required, MaxLength(2000)]
         [Column(TypeName = "varchar(2000)")]
         public string Directions { get; set; } = default!;
@@ -65,6 +66,8 @@ namespace Recipebook.Models
         public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();
 
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+
+        public ICollection<Direction> DirectionsList { get; set; } = new List<Direction>();
     }
 
 }
