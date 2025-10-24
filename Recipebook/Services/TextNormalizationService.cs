@@ -22,7 +22,7 @@ namespace Recipebook.Services
 
             // Words that should remain lowercase unless first word
             string[] smallWords = { "a", "an", "the", "and", "but", "or", "for", "nor",
-                                    "on", "at", "to", "from", "by", "of", "in", "with" };
+                                    "on", "at", "to", "from", "by", "of", "in", "with", "is" };
 
             var words = input.ToLower().Split(' ');
 
