@@ -124,33 +124,19 @@
     =============================================================== *@
     <div class="details-body mt-4">
 
-
-        @* ==== UPDATED: Timing section (centered inline, brown theme) ==== *@
-        @{
-            int? prep = Model.PrepTimeMinutes;
-            int? cook = Model.CookTimeMinutes;
-            int? total = (prep.HasValue && cook.HasValue) ? prep.Value + cook.Value : (int?)null;
-        }
-
-        @if (prep.HasValue || cook.HasValue)
+        @if (Model.PrepTimeMinutes.HasValue || Model.CookTimeMinutes.HasValue)
         {
             <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown">
                 <div class="d-flex justify-content-center flex-wrap gap-5">
                     <div>
-                        <strong>Prep Time:</strong>
-                        <span>@(prep.HasValue ? $"{prep} min" : "N/A")</span>
+                        <strong>Prep Time:</strong> <span>@Model.FormattedPrepTime</span>
                     </div>
                     <div>
-                        <strong>Cook Time:</strong>
-                        <span>@(cook.HasValue ? $"{cook} min" : "N/A")</span>
+                        <strong>Cook Time:</strong> <span>@Model.FormattedCookTime</span>
                     </div>
-                    @if (total.HasValue)
-                    {
-                        <div>
-                            <strong>Total Time:</strong>
-                            <span>@($"{total} min")</span>
-                        </div>
-                    }
+                    <div>
+                        <strong>Total Time:</strong> <span>@Model.FormattedTotalTime</span>
+                    </div>
                 </div>
             </div>
         }
@@ -230,9 +216,9 @@
                         }
                         else
                         {
-                            <div class="alert alert-info mb-0">
+                            <div class="alert alert-brown mb-0">
                                 You don’t have any lists yet.
-                                <a asp-controller="Lists" asp-action="Index" class="alert-link">Create one</a>
+                                <a asp-controller="Lists" asp-action="Index" class="alert-brown">Create one</a>
                                 and try again.
                             </div>
                         }
