@@ -111,16 +111,18 @@
                         {
                             Name = ir!.Ingredient!.Name!.Trim(),
                             Qty  = Convert.ToDecimal(ir.Quantity), // force decimal so Sum() is well-typed
-                            Unit = ir.Unit                         // enum/value type
+                            Unit = ir.Unit.ToString()              // convert to string for grouping
                         })
-                        .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                        // ✅ FIX: group by BOTH name + unit so mismatched units don't combine
+                        .GroupBy(x => new { x.Name, x.Unit })
                         .Select(g => new IngredientRow
                         {
-                            Name = g.Key,
+                            Name = g.Key.Name,
                             TotalQty = g.Sum(x => x.Qty),
-                            Unit = g.First().Unit.ToString()       // value type -> ToString()
+                            Unit = g.Key.Unit
                         })
                         .OrderBy(r => r.Name)
+                        .ThenBy(r => r.Unit)
                         .ToList();
                 }
 
@@ -129,12 +131,12 @@
                     <ul class="list-group">
                         @foreach (var ing in allIngredients)
                         {
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>@ing.Name</span>
-                                <span class="text-muted small">@ing.TotalQty @ing.Unit</span>
+                            <li class="list-group-item bg-brown border-brown text-light rounded-2 mb-2">
+                                @ing.Name
                             </li>
                         }
                     </ul>
+
                 }
                 else
                 {
