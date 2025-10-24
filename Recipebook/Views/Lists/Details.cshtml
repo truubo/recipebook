@@ -21,6 +21,19 @@
 
     // Determine if this is an Ingredients list
     bool isIngredientsList = Model.ListType == ListType.Ingredients;
+
+    // ✅ Compute ingredient count (unique Name + Unit)
+    var ingredientCount = 0;
+    if (isIngredientsList && Model.ListRecipes != null)
+    {
+        ingredientCount = Model.ListRecipes
+            .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+            .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+            .Where(ir => ir?.Ingredient?.Name != null)
+            .Select(ir => new { Name = ir!.Ingredient!.Name!.Trim(), Unit = ir.Unit.ToString() })
+            .GroupBy(x => new { x.Name, x.Unit })
+            .Count();
+    }
 }
 
 <div class="details-page position-relative">
@@ -28,32 +41,32 @@
     <!-- ===========================
      HEADER BUTTONS (Back / Edit / Delete / Print)
      =========================== -->
-<div class="details-actions-top d-flex justify-content-between w-100">
-    <a asp-action="Index" class="btn btn-brown">
-        <i class="bi bi-arrow-left-circle"></i>
-    </a>
+    <div class="details-actions-top d-flex justify-content-between w-100">
+        <a asp-action="Index" class="btn btn-brown">
+            <i class="bi bi-arrow-left-circle"></i>
+        </a>
 
-    <div class="d-flex gap-2 align-items-center">
-        @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
-        {
-            <!-- 🖨️ Print button (matches brown theme) -->
-            @if (isIngredientsList)
+        <div class="d-flex gap-2 align-items-center">
+            @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
             {
-                <button type="button" class="btn btn-brown print-btn" onclick="window.print()" title="Print list">
-                    <i class="bi bi-printer me-1"></i>
-                    <span>Print List</span>
-                </button>
-            }
+                <!-- 🖨️ Print button (matches brown theme) -->
+                @if (isIngredientsList)
+                {
+                    <button type="button" class="btn btn-brown print-btn" onclick="window.print()" title="Print list">
+                        <i class="bi bi-printer me-1"></i>
+                        <span>Print List</span>
+                    </button>
+                }
 
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit list">
-                <i class="bi bi-pencil-square"></i>
-            </a>
-            <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger" title="Delete list">
-                <i class="bi bi-trash"></i>
-            </a>
-        }
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit list">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger" title="Delete list">
+                    <i class="bi bi-trash"></i>
+                </a>
+            }
+        </div>
     </div>
-</div>
 
 
     <!-- ===========================
@@ -81,7 +94,9 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="section-title mb-0">
                     @Model.ListType
-                    <span class="badge bg-success text-white">@itemCount</span>
+                    <span class="badge bg-success text-white">
+                        @(isIngredientsList ? ingredientCount : itemCount)
+                    </span>
                 </h4>
 
                 @if (!isIngredientsList)
@@ -110,10 +125,10 @@
                         .Select(ir => new
                         {
                             Name = ir!.Ingredient!.Name!.Trim(),
-                            Qty  = Convert.ToDecimal(ir.Quantity), // force decimal so Sum() is well-typed
-                            Unit = ir.Unit.ToString()              // convert to string for grouping
+                            Qty = Convert.ToDecimal(ir.Quantity), // force decimal so Sum() is well-typed
+                            Unit = ir.Unit.ToString()             // convert to string for grouping
                         })
-                        // ✅ FIX: group by BOTH name + unit so mismatched units don't combine
+                        // ✅ Group by BOTH name + unit so mismatched units don't combine
                         .GroupBy(x => new { x.Name, x.Unit })
                         .Select(g => new IngredientRow
                         {
@@ -131,12 +146,12 @@
                     <ul class="list-group">
                         @foreach (var ing in allIngredients)
                         {
-                            <li class="list-group-item bg-brown border-brown text-light rounded-2 mb-2">
-                                @ing.Name
+                            <li class="list-group-item ingredient-item bg-brown border-brown text-light rounded-2 mb-2">
+                                <span class="fw-semibold">@ing.Name</span>
+                                <span class="ms-2 small opacity-75">(@ing.TotalQty @ing.Unit)</span>
                             </li>
                         }
                     </ul>
-
                 }
                 else
                 {
