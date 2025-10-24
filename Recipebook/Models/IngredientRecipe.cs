@@ -14,7 +14,8 @@ namespace Recipebook.Models
         Tablespoon,
         Teaspoon,
         Unit,
-        Ounce
+        Ounce,
+        Pound
     }
 
     public class IngredientRecipe

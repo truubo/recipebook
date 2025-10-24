@@ -4,13 +4,14 @@
 @using Recipebook.Models
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
+<link href="/css/print.css" rel="stylesheet" />
+
 @functions {
     // View-only DTO to make the LINQ projection strongly-typed (no anonymous-type null-coalescing issues)
     public class IngredientRow
     {
         public string Name { get; set; } = "";
-        public decimal TotalQty { get; set; }
-        public string Unit { get; set; } = "";
+        public List<(decimal TotalQty, string Unit)> Units { get; set; } = new();
     }
 }
 
@@ -19,10 +20,8 @@
     var ownerEmail = ViewBag.OwnerEmail as string;
     var itemCount = Model.ListRecipes?.Count() ?? 0;
 
-    // Determine if this is an Ingredients list
     bool isIngredientsList = Model.ListType == ListType.Ingredients;
 
-    // ✅ Compute ingredient count (unique Name + Unit)
     var ingredientCount = 0;
     if (isIngredientsList && Model.ListRecipes != null)
     {
@@ -30,8 +29,8 @@
             .Where(lr => lr?.Recipe?.IngredientRecipes != null)
             .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
             .Where(ir => ir?.Ingredient?.Name != null)
-            .Select(ir => new { Name = ir!.Ingredient!.Name!.Trim(), Unit = ir.Unit.ToString() })
-            .GroupBy(x => new { x.Name, x.Unit })
+            .Select(ir => ir!.Ingredient!.Name!.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .Count();
     }
 }
@@ -119,26 +118,28 @@
                 if (Model.ListRecipes != null)
                 {
                     allIngredients = Model.ListRecipes
-                        .Where(lr => lr?.Recipe?.IngredientRecipes != null)
-                        .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
-                        .Where(ir => ir?.Ingredient?.Name != null)
-                        .Select(ir => new
-                        {
-                            Name = ir!.Ingredient!.Name!.Trim(),
-                            Qty = Convert.ToDecimal(ir.Quantity), // force decimal so Sum() is well-typed
-                            Unit = ir.Unit.ToString()             // convert to string for grouping
-                        })
-                        // ✅ Group by BOTH name + unit so mismatched units don't combine
-                        .GroupBy(x => new { x.Name, x.Unit })
-                        .Select(g => new IngredientRow
-                        {
-                            Name = g.Key.Name,
-                            TotalQty = g.Sum(x => x.Qty),
-                            Unit = g.Key.Unit
-                        })
-                        .OrderBy(r => r.Name)
-                        .ThenBy(r => r.Unit)
-                        .ToList();
+                    .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+                    .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+                    .Where(ir => ir?.Ingredient?.Name != null)
+                    .Select(ir => new
+                    {
+                        Name = ir!.Ingredient!.Name!.Trim(),
+                        Qty = Convert.ToDecimal(ir.Quantity),
+                        Unit = ir.Unit.ToString()
+                    })
+                    // ✅ Group by ingredient name only
+                    .GroupBy(x => x.Name)
+                    .Select(g => new IngredientRow
+                    {
+                        Name = g.Key,
+                        // Nested grouping by unit, summing quantities
+                        Units = g.GroupBy(x => x.Unit)
+                    .Select(u => (u.Sum(x => x.Qty), u.Key))
+                    .OrderBy(u => u.Key)
+                    .ToList()
+                    })
+                    .OrderBy(r => r.Name)
+                    .ToList();
                 }
 
                 if (allIngredients.Any())
@@ -146,9 +147,16 @@
                     <ul class="list-group">
                         @foreach (var ing in allIngredients)
                         {
-                            <li class="list-group-item ingredient-item bg-brown border-brown text-light rounded-2 mb-2">
+                            <li class="list-group-item ingredient-item bg-brown border-brown rounded-2 mb-2">
                                 <span class="fw-semibold">@ing.Name</span>
-                                <span class="ms-2 small opacity-75">(@ing.TotalQty @ing.Unit)</span>
+
+                                <ul class="ms-3 mb-0 small">
+                                    @foreach (var (qty, unit) in ing.Units)
+                                    {
+                                        var unitDisplay = qty == 1 ? unit : unit + "s";
+                                        <li>@qty @unitDisplay</li>
+                                    }
+                                </ul>
                             </li>
                         }
                     </ul>

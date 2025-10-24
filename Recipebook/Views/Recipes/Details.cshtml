@@ -7,6 +7,7 @@
 @model Recipebook.Models.Recipe
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Mvc.Rendering  @* needed for SelectListItem cast below *@
+@inject Recipebook.Services.Interfaces.ITextNormalizationService _textNormalizer
 
 @{
     ViewData["Title"] = "Recipe Details";
@@ -164,10 +165,8 @@
             <ul class="list-group list-group-flush">
                 @foreach (var ir in Model.IngredientRecipes)
                 {
-                    var unitStr = ir.Unit.ToString();
-                    var pluralUnit = ir.Quantity == 1 ? unitStr : unitStr + "s";
                     <li class="list-group-item bg-brown border-brown rounded-2">
-                        @ir.Quantity @pluralUnit of @ir.Ingredient.Name
+                        @_textNormalizer.FormatIngredientDisplay(ir.Quantity.ToString(), ir.Unit, ir.Ingredient.Name)
                     </li>
                 }
             </ul>
