@@ -1,14 +1,4 @@
 ﻿// Controllers/IngredientsController.cs
-// ----------------------------------------------------------------------------------
-// PURPOSE
-//   CRUD controller for Ingredient entities. Ingredients can be owned by a user.
-//   Includes owner-only guards, logging, and search functionality.
-//
-// NOTES FOR REVIEWERS / CLASSMATES
-//   • Patterns: standard MVC CRUD, ModelState validation, TempData alerts,
-//     EF Core queries, Identity-based ownership checks, structured logs.
-//   • Identity integration: Ingredient has an OwnerId, checked on Edit/Delete.
-// ----------------------------------------------------------------------------------
 
 using System;
 using System.Linq;

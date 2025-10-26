@@ -1,17 +1,4 @@
 // Controllers/RecipesController.cs
-// ----------------------------------------------------------------------------------
-// PURPOSE
-//   CRUD controller for Recipe entities. Also includes author-only guards and structured
-//   logging for clear audit trails.
-//
-// NOTES FOR REVIEWERS / CLASSMATES
-//   • Look for SECTION HEADERS to navigate (INDEX, DETAILS, CREATE, EDIT, DELETE).
-//   • Common patterns used: eager loading (Include/ThenInclude), ModelState validation,
-//     PRG (Post/Redirect/Get), TempData alerts, and Identity-based ownership checks.
-//   • Controllers orchestrate: validate ? call EF/service ? redirect. Relationship
-//     definitions belong in the Model/DbContext; syncing selections to join rows
-//     happens here for now (could be moved to a service later to follow SRP).
-// ----------------------------------------------------------------------------------
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

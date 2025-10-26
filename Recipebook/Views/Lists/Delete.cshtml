@@ -3,7 +3,9 @@
 
 @{
     ViewData["Title"] = "Delete List";
-    var ownerEmail = ViewBag.OwnerEmail as string; // set in controller
+
+    // Provided by controller via ViewBag to display owner contact info if needed
+    var ownerEmail = ViewBag.OwnerEmail as string;
 }
 
 <div class="container delete-page">
@@ -14,6 +16,8 @@
 
     <div class="card delete-card">
         <div class="card-body">
+
+            @* Display key list details for user confirmation *@
             <dl class="row mb-4">
                 <dt class="col-sm-4 text-muted">Name</dt>
                 <dd class="col-sm-8"><strong>@Model.Name</strong></dd>
@@ -23,17 +27,24 @@
 
                 <dt class="col-sm-4 text-muted">Privacy</dt>
                 <dd class="col-sm-8">
+                    @* Highlight private/public status using contextual badge *@
                     <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
                         @(Model.Private ? "Private" : "Public")
                     </span>
                 </dd>
             </dl>
 
+            @* Confirmation form — posts back to ListsController.Delete (HttpPost) *@
             <form asp-action="Delete" method="post" class="delete-actions">
+                @* Hidden field ensures correct record is targeted *@
                 <input type="hidden" asp-for="Id" />
+
+                @* Primary destructive action *@
                 <button type="submit" class="btn btn-danger btn-lg">
                     <i class="bi bi-trash"></i> Delete
                 </button>
+
+                @* Non-destructive back navigation for user safety *@
                 <a onclick="history.back()" class="btn btn-brown btn-lg">Cancel</a>
             </form>
         </div>

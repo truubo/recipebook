@@ -2,23 +2,30 @@
 
 @{
     ViewData["Title"] = "Edit";
+    // Set button text so the shared partial (_RecipeForm) renders Edit behavior/UI.
     Model.UpdateButtonText = "Update";
 }
 
 <div class="recipe-form-page">
     <h1>Edit Recipe</h1>
+    @* Reuse the shared form partial; it keys off UpdateButtonText to choose action. *@
     @await Html.PartialAsync("_RecipeForm")
 </div>
 
 @section Scripts {
+    @* Standard MVC client-side validation scripts. *@
     @await Html.PartialAsync("_ValidationScriptsPartial")
 
     <script src="/js/recipe.js"></script>
     <script>
+        // Seed next index for dynamically added ingredient rows based on current count.
         let ingredientIndex = @Model.Ingredients.Count;
+
+        // Cache the container and row template used for client-side add/remove.
         const container = document.querySelector(".ingredients-container");
         const template = document.querySelector(".ingredient-template").innerHTML;
 
+        // Show header labels only when at least one ingredient row exists.
         function updateLabels() {
             const labelsExist = container.querySelector(".ingredient-labels");
             const hasIngredients = container.querySelectorAll(".ingredient-row").length > 0;
@@ -33,19 +40,21 @@
             }
         }
 
-        // Event delegation for add/remove buttons
+        // Event delegation: handle add/remove via single body listener.
         document.body.addEventListener("click", e => {
             if (e.target.matches(".add-ingredient-btn")) {
+                // Append new row; replace __index__ with running index value.
                 container.insertAdjacentHTML('beforeend', template.replace(/__index__/g, ingredientIndex++));
                 updateLabels();
             }
             if (e.target.matches(".remove-ingredient-btn")) {
+                // Remove clicked row and recompute header label visibility.
                 e.target.closest(".ingredient-row").remove();
                 updateLabels();
             }
         });
 
-        // Initialize labels on page load
+        // Initialize labels on first render.
         updateLabels();
     </script>
 }

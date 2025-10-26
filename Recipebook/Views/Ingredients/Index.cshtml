@@ -2,7 +2,10 @@
 @using System.Security.Claims
 
 @{
+    // Browser/tab title
     ViewData["Title"] = "Ingredients";
+
+    // Preserve search text to repopulate the input after a search
     var currentSearch = ViewBag.SearchString as string;
 }
 
@@ -13,6 +16,7 @@
     </div>
 
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        @* Only signed-in users can create new ingredients *@
         @if (User.Identity.IsAuthenticated)
         {
             <a asp-action="Create" class="btn btn-success btn-create">
@@ -20,6 +24,7 @@
             </a>
         }
 
+        @* Simple search by ingredient name *@
         <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
             <input type="text"
                    name="searchString"
@@ -31,6 +36,7 @@
         </form>
     </div>
 
+    @* Feedback if the query returned no items *@
     @if (!Model.Any())
     {
         <div class="alert alert-brown">No ingredients found.</div>
@@ -43,6 +49,7 @@
                 <div class="card-body">
                     <h5 class="ingredient-name">@item.Name</h5>
 
+                    @* Owner-only quick actions *@
                     @if (User.Identity.IsAuthenticated && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
                     {
                         <div class="btn-container">

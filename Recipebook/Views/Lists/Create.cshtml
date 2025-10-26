@@ -5,6 +5,7 @@
     ViewData["Title"] = "Create List";
 }
 
+@* 3rd-party UI helpers for searchable multi-select (Select2). Loaded here for page-local scope. *@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -14,20 +15,24 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
+            @* POSTs to ListsController.Create (HttpPost) *@
             <form asp-action="Create" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+                @* List name (required by validation on the VM/model) *@
                 <div class="mb-3">
                     <label asp-for="List.Name" class="form-label fw-bold"></label>
                     <input asp-for="List.Name" class="form-control" />
                     <span asp-validation-for="List.Name" class="text-danger"></span>
                 </div>
 
+                @* Privacy toggle: owner-visible only when checked *@
                 <div class="form-check mb-3">
                     <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
                     <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck"></label>
                 </div>
 
+                @* List type: Recipes vs Ingredients (enum bound to List.ListType) *@
                 <div class="mb-3">
                     <label asp-for="List.ListType" class="form-label fw-bold">Type</label>
                     <select asp-for="List.ListType"
@@ -38,18 +43,22 @@
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
 
-                <!-- Recipe Selector (used for both types, different label/tooltip) -->
+                @* Recipe selector: used for both list types (copy recipes directly OR aggregate ingredients) *@
                 <div class="mb-3" id="recipeSelectSection">
                     <label class="form-label fw-bold" id="recipeSelectLabel">Add Recipes</label>
+
+                    @* Multi-select of recipes (searchable via Select2) *@
                     <select asp-for="SelectedRecipeIds"
                             asp-items="Model.RecipeChoices"
                             class="form-select recipe-multiselect"
                             multiple="multiple">
                     </select>
+
                     <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
                     <small id="recipeSelectHelp" class="text-muted"></small>
                 </div>
 
+                @* Primary actions: submit or cancel (cancel uses history.back for a simple UX) *@
                 <div class="d-flex justify-content-center gap-2">
                     <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-plus-circle"></i> Create
@@ -62,9 +71,15 @@
 </div>
 
 @section Scripts {
+    @* Client-side validation scripts *@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
+        // Updates label/help text based on selected ListType.
+        // NOTE: This relies on enum numeric values. If ListType changes, update the comparison below.
+        // Expected mapping in this app:
+        //   0 = Recipes list (directly stores recipes)
+        //   1 = Ingredients list (combines ingredients from selected recipes)
         function updateRecipeSection() {
             const typeSelect = document.getElementById("listTypeSelect");
             const label = document.getElementById("recipeSelectLabel");
@@ -81,12 +96,13 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Enable Select2 for search + multi-select
+            // Enhance UX: searchable, tag-like multi-select for recipes
             $('.recipe-multiselect').select2({
                 placeholder: "Search and select recipes...",
                 width: '100%'
             });
 
+            // Initialize label/help based on default selection, then react to changes
             updateRecipeSection();
             document.getElementById("listTypeSelect").addEventListener("change", updateRecipeSection);
         });

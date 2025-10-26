@@ -1,16 +1,4 @@
 ﻿// Controllers/ListsController.cs
-// ----------------------------------------------------------------------------------
-// PURPOSE
-//   Controller for managing "Lists" in the Recipebook MVC app. Implements full CRUD
-//   with owner-only edits/deletes, visibility rules for private vs public lists,
-//   and structured logging suitable for class demos and future observability.
-//
-// HOW TO READ THIS FILE
-//   • Look for the SECTION HEADERS to understand the flow.
-//   • Logging uses scope properties so console/debug logs show UserId, email, route.
-//   • EF Core patterns: AsNoTracking for read-only queries, Include/ThenInclude for
-//     eager-loading, ModelState validation, PRG (Post/Redirect/Get) after changes.
-// ----------------------------------------------------------------------------------
 
 using System;
 using System.Linq;

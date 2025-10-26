@@ -12,16 +12,16 @@
 @{
     ViewData["Title"] = "Recipe Details";
 
-    // Determine current user's Id for favorite-state detection
+    @* Current user's Id; used to detect favorite state without extra queries. *@
     var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    // A recipe is "favorited" if any Favorite row exists for (this user, this recipe).
+    @* Favorited iff any Favorite row exists for (this user, this recipe). Safe against null Favorites. *@
     var isFav = User.Identity.IsAuthenticated && (Model.Favorites?.Any(f => f.UserId == uid) ?? false);
 
-    // Is the current user the author? (used to gate Edit/Delete)
+    @* Gate Edit/Delete by author check (email compare supplied in ViewData by controller). *@
     var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string)ViewData["AuthorEmail"]);
 
-    // Lists for Add-to-List modal (provided by controller; safe if null)
+    @* Lists provided by controller for Add-to-List modal; may be null/empty. *@
     var userLists = ViewBag.UserLists as IEnumerable<SelectListItem>;
 }
 
@@ -43,9 +43,12 @@
         <div class="d-flex align-items-center gap-2">
             @if (User.Identity.IsAuthenticated)
             {
+                @* Quick duplicate/copy action for signed-in users. *@
                 <a asp-action="Copy" asp-route-id="@Model.Id" class="btn btn-primary">
                     <i class="bi bi-files"></i>
                 </a>
+
+                @* Opens modal to add current recipe to a list. *@
                 <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target=".add-to-list-modal" title="Add to List">
                     <i class="bi bi-list-check"></i>
                 </a>
@@ -71,6 +74,7 @@
 
         <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
             <div>
+                @* Show linked category badges or a muted fallback. *@
                 @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
                 {
                     foreach (var cr in Model.CategoryRecipes)
@@ -94,12 +98,14 @@
             <span>
                 By <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
             </span>
+            @* Privacy badge reflects Model.Private. *@
             <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
             </span>
             <span>
                 @if (User.Identity.IsAuthenticated)
                 {
+                    @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
                     <form asp-controller="Favorites"
                           asp-action="Toggle"
                           method="post"
@@ -108,7 +114,6 @@
                           aria-label="Toggle favorite">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="recipeId" value="@Model.Id" />
-                        @* returnUrl is a graceful fallback if JS is disabled *@
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
                         <button type="submit" class="btn btn-link p-0 star-btn">
@@ -125,6 +130,7 @@
     =============================================================== *@
     <div class="details-body mt-4">
 
+        @* Timing bar only if any timing values present; formatted strings come from the model. *@
         @if (Model.PrepTimeMinutes.HasValue || Model.CookTimeMinutes.HasValue)
         {
             <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown">
@@ -163,6 +169,7 @@
         @if (Model.IngredientRecipes != null && Model.IngredientRecipes.Any())
         {
             <ul class="list-group list-group-flush">
+                @* Use text normalizer to format quantity/unit/name consistently (e.g., pluralization). *@
                 @foreach (var ir in Model.IngredientRecipes)
                 {
                     <li class="list-group-item bg-brown border-brown rounded-2">
@@ -199,6 +206,7 @@
                     <div class="modal-body">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="recipeId" value="@Model.Id" />
+                        @* Fallback navigation after POST (in case AJAX not used). *@
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
                         @if (userLists != null && userLists.Any())
@@ -239,6 +247,8 @@
     <script>
         // ===============================================================
         // AJAX Favorite Toggle (unchanged)
+        // - Progressive enhancement: no- JS path still works via returnUrl.
+        // - Here we intercept submit to avoid full page reload.
         // ===============================================================
         document.addEventListener('submit', async (e) => {
             const form = e.target;
@@ -259,7 +269,7 @@
                     icon.classList.toggle('text-warning');
                 }
             } catch {
-                // Optional: add user feedback here if desired
+                // Optional: add user-facing error UI if desired (toast/alert).
             }
         });
     </script>

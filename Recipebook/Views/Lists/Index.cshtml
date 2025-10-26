@@ -3,11 +3,14 @@
 
 @{
     ViewData["Title"] = "Lists";
+
+    // Current search string (from query) used to keep filters sticky
     var currentSearch = ViewBag.SearchString as string;
 
+    // Scope: "all" | "mine" | "ingredients" (defaults to "all")
     var scope = (string?)ViewBag.Scope ?? "all";
 
-    // Convenience variables to keep query parameters when switching tabs
+    // Keep query params when switching tabs
     string q = currentSearch ?? string.Empty;
     string tag = (ViewBag.TagId is int t) ? t.ToString() : "";
 }
@@ -18,6 +21,7 @@
         <p class="lead text-muted">Add your favorite recipes or ingredients to a list!</p>
     </div>
 
+    @* Top toolbar: Create (auth only) + search box *@
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         @if (User.Identity.IsAuthenticated)
         {
@@ -37,9 +41,7 @@
         </form>
     </div>
 
-    <!-- ===========================
-         SCOPE TABS (All / My / Ingredients)
-         =========================== -->
+    @* Scope tabs: preserve search/tag params when switching *@
     <div class="btn-group mb-3" role="group" aria-label="List scope">
         <a class="btn @((scope=="all") ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
@@ -57,7 +59,7 @@
             My Lists
         </a>
 
-        <!-- 🧾 Ingredients tab -->
+        @* Ingredients-only view *@
         <a class="btn @((scope=="ingredients") ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="ingredients"
@@ -67,9 +69,7 @@
         </a>
     </div>
 
-    <!-- ===========================
-         LIST CONTENT
-         =========================== -->
+    @* Content region: render lists via shared partial (keeps layout consistent) *@
     <div class="tab-content pt-3" id="listsTabsContent">
         @if (scope == "ingredients")
         {

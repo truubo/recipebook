@@ -1,24 +1,35 @@
 ﻿@model Recipebook.Models.Ingredient
 
 @{
+    // Set browser/tab title
     ViewData["Title"] = "Delete";
 }
 
 <div class="container delete-page">
     <div class="delete-header">
         <h1 class="text-danger">Delete Ingredient</h1>
-        <p class="text-danger">Are you sure you want to delete this ingredient? This action cannot be undone.</p>
+        <p class="text-danger">
+            Are you sure you want to delete this ingredient?
+            This action cannot be undone.
+        </p>
     </div>
 
     <div class="card delete-card">
         <div class="card-body">
+            <!-- Display ingredient name for confirmation -->
             <p class="col-sm-auto text-center"><strong>@Model.Name</strong></p>
 
+            <!-- Form posts to IngredientsController.Delete -->
             <form asp-action="Delete" class="delete-actions">
+                <!-- Hidden ID ensures correct ingredient is targeted -->
                 <input type="hidden" asp-for="Id" />
+
+                <!-- Confirm deletion -->
                 <button type="submit" class="btn btn-danger btn-lg">
                     <i class="bi bi-trash"></i> Delete
                 </button>
+
+                <!-- Cancel returns to previous page -->
                 <a onclick="history.back()" class="btn btn-brown btn-lg">Cancel</a>
             </form>
         </div>

@@ -5,13 +5,13 @@
 @{
     ViewData["Title"] = "Recipes";
 
-    // Maintain current search text across tabs / search submissions
-    var currentSearch = ViewBag.SearchString as string; // preserve current search text
+    // Preserve current search text across tabs/search submissions.
+    var currentSearch = ViewBag.SearchString as string;
 
-    // Active scope tab: "all" | "mine" | "favorites"
+    // Active scope tab: "all" | "mine" | "favorites" (default to "all").
     var scope = (string?)ViewBag.Scope ?? "all";
 
-    // Convenience variables to keep query parameters when switching tabs
+    // Keep current query params when switching tabs.
     string q = currentSearch ?? string.Empty;
     string tag = (ViewBag.TagId is int t) ? t.ToString() : "";
 }

@@ -1,23 +1,37 @@
 ﻿@model Tuple<IEnumerable<Recipebook.Models.List>, string?>
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @{
+    // Model tuple unpacking:
+    //  - Item1: the lists to display
+    //  - Item2: the current user's Id (used to gate owner-only controls)
     var lists = Model.Item1;
     var myUserId = Model.Item2;
+
+    // ViewBag.OwnerEmails is expected to be a map of OwnerId -> OwnerEmail (for mailto link)
     var ownerEmails = ViewBag.OwnerEmails as Dictionary<string, string>;
 }
 
+@* Only render UI if there are any non-archived lists to show *@
 @if (lists != null && lists.Where(l => !l.IsArchived).Any())
 {
     <div class="card-grid">
         @foreach (var l in lists)
         {
+            // Skip archived lists in the grid (defensive: the parent check already filters, but we keep this local guard explicit)
+            if (l.IsArchived) { continue; }
+
+            // Resolve the owner's email; fall back to "Unknown" if missing
             var ownerEmail = (ownerEmails != null && ownerEmails.TryGetValue(l.OwnerId, out var em)) ? em : "Unknown";
 
             <div class="list-card">
+                @* Entire card is clickable to details via overlay link *@
                 <a asp-controller="Lists" asp-action="Details" asp-route-id="@l.Id" class="card-overlay">View Details</a>
 
                 <div class="card-header d-flex justify-content-between align-items-start">
                     <h5 class="card-title">@l.Name</h5>
+
+                    @* Show a badge when the list is private *@
                     @if (l.Private)
                     {
                         <span class="badge bg-danger private-badge">Private</span>
@@ -25,16 +39,27 @@
                 </div>
 
                 @{
-                    var activeRecipes = l.ListRecipes?.Where(lr => lr.Recipe != null && !lr.Recipe.IsArchived).ToList() ?? new List<Recipebook.Models.ListRecipe>();
+                    // Compute the number of *active* recipes on the list
+                    // - guard against null ListRecipes
+                    // - include only recipes that exist and are not archived
+                    var activeRecipes = l.ListRecipes?
+                    .Where(lr => lr.Recipe != null && !lr.Recipe.IsArchived)
+                    .ToList()
+                    ?? new List<Recipebook.Models.ListRecipe>();
+
                     var count = activeRecipes.Count;
                 }
+
+                @* List type + pluralized item count *@
                 <p class="card-text">
                     <strong>@l.ListType</strong> - @count item@(count == 1 ? "" : "s")
                 </p>
 
                 <div class="card-footer d-flex justify-content-between align-items-center">
+                    @* Owner contact shortcut *@
                     <small class="text-muted">By <a href="mailto:@ownerEmail">@ownerEmail</a></small>
 
+                    @* Owner-only actions: Edit/Delete (requires auth + ownership) *@
                     @if (User.Identity.IsAuthenticated && l.OwnerId == myUserId)
                     {
                         <div class="btn-group">
@@ -49,5 +74,6 @@
 }
 else
 {
+    @* Empty state for when there are no visible lists *@
     <div class="alert alert-brown text-center">No lists to show.</div>
 }

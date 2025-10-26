@@ -7,7 +7,7 @@
 <link href="/css/print.css" rel="stylesheet" />
 
 @functions {
-    // View-only DTO to make the LINQ projection strongly-typed (no anonymous-type null-coalescing issues)
+    // View-only DTO so the aggregation is strongly-typed (cleaner than anonymous types for later rendering)
     public class IngredientRow
     {
         public string Name { get; set; } = "";
@@ -17,11 +17,17 @@
 
 @{
     ViewData["Title"] = "List Details";
+
+    // Provided by controller for mailto links / attribution
     var ownerEmail = ViewBag.OwnerEmail as string;
+
+    // For recipes-list: simple count of items attached
     var itemCount = Model.ListRecipes?.Count() ?? 0;
 
+    // This page supports two list modes
     bool isIngredientsList = Model.ListType == ListType.Ingredients;
 
+    // Pre-compute the distinct ingredient count for the badge on Ingredients lists
     var ingredientCount = 0;
     if (isIngredientsList && Model.ListRecipes != null)
     {
@@ -37,18 +43,17 @@
 
 <div class="details-page position-relative">
 
-    <!-- ===========================
-     HEADER BUTTONS (Back / Edit / Delete / Print)
-     =========================== -->
+    @* ===== Header: Back / Print (ingredients only) / Edit / Delete ===== *@
     <div class="details-actions-top d-flex justify-content-between w-100">
-        <a asp-action="Index" class="btn btn-brown">
+        <a asp-action="Index" class="btn btn-brown" title="Back to lists">
             <i class="bi bi-arrow-left-circle"></i>
         </a>
 
         <div class="d-flex gap-2 align-items-center">
+            @* Owner-only controls *@
             @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
             {
-                <!-- 🖨️ Print button (matches brown theme) -->
+                @* Print is only useful for grocery/ingredients lists *@
                 @if (isIngredientsList)
                 {
                     <button type="button" class="btn btn-brown print-btn" onclick="window.print()" title="Print list">
@@ -67,10 +72,7 @@
         </div>
     </div>
 
-
-    <!-- ===========================
-         HEADER INFO
-         =========================== -->
+    @* ===== Title + owner info ===== *@
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Model.Name</h1>
 
@@ -84,9 +86,7 @@
         </div>
     </div>
 
-    <!-- ===========================
-         BODY CONTENT
-         =========================== -->
+    @* ===== Body ===== *@
     <div class="details-body mt-4">
         @if (Model.ListRecipes != null && Model.ListRecipes.Any())
         {
@@ -98,6 +98,7 @@
                     </span>
                 </h4>
 
+                @* Sorting only applies to the recipes list view (server-side resort via querystring) *@
                 @if (!isIngredientsList)
                 {
                     <div>
@@ -107,42 +108,47 @@
                 }
             </div>
 
-            <!-- ===========================
-                 INGREDIENTS LIST DISPLAY
-                 =========================== -->
+            @* ===== Ingredients list mode: aggregate ingredients across selected recipes ===== *@
             @if (isIngredientsList)
             {
-                // Build a strongly-typed list of ingredients aggregated across recipes
-                List<IngredientRow> allIngredients = new();
+                @* Build the aggregated ingredient view-model (code-only; keep Razor happy inside a code block) *@
+                @{
+                    // 1) Flatten IngredientRecipes across ListRecipes
+                    // 2) Normalize names (Trim), convert quantities to decimal, stringify units
+                    // 3) Group by ingredient name (case-insensitive handled upstream in the count), then by Unit
+                    // 4) Sum quantities per unit; produce a stable order: units alphabetically, then ingredient name
+                    List<IngredientRow> allIngredients = new();
 
-                if (Model.ListRecipes != null)
-                {
-                    allIngredients = Model.ListRecipes
-                    .Where(lr => lr?.Recipe?.IngredientRecipes != null)
-                    .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
-                    .Where(ir => ir?.Ingredient?.Name != null)
-                    .Select(ir => new
+                    if (Model.ListRecipes != null)
                     {
-                        Name = ir!.Ingredient!.Name!.Trim(),
-                        Qty = Convert.ToDecimal(ir.Quantity),
-                        Unit = ir.Unit.ToString()
-                    })
-                    // ✅ Group by ingredient name only
-                    .GroupBy(x => x.Name)
-                    .Select(g => new IngredientRow
-                    {
-                        Name = g.Key,
-                        // Nested grouping by unit, summing quantities
-                        Units = g.GroupBy(x => x.Unit)
-                    .Select(u => (u.Sum(x => x.Qty), u.Key))
-                    .OrderBy(u => u.Key)
-                    .ToList()
-                    })
-                    .OrderBy(r => r.Name)
-                    .ToList();
+                        allIngredients = Model.ListRecipes
+                            .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+                            .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+                            .Where(ir => ir?.Ingredient?.Name != null)
+                            .Select(ir => new
+                            {
+                                Name = ir!.Ingredient!.Name!.Trim(),
+                                Qty  = Convert.ToDecimal(ir.Quantity),
+                                Unit = ir.Unit.ToString()
+                            })
+                            // Group by ingredient name only
+                            .GroupBy(x => x.Name)
+                            .Select(g => new IngredientRow
+                            {
+                                Name = g.Key,
+                                // Nested grouping by unit with summed quantities
+                                Units = g.GroupBy(x => x.Unit)
+                                         .Select(u => (u.Sum(x => x.Qty), u.Key))
+                                         .OrderBy(u => u.Key)
+                                         .ToList()
+                            })
+                            .OrderBy(r => r.Name)
+                            .ToList();
+                    }
                 }
 
-                if (allIngredients.Any())
+                @* Render the aggregated grocery list *@
+                @if (allIngredients.Any())
                 {
                     <ul class="list-group">
                         @foreach (var ing in allIngredients)
@@ -168,9 +174,7 @@
             }
             else
             {
-                <!-- ===========================
-                     RECIPE LIST DISPLAY (default)
-                     =========================== -->
+                @* ===== Recipes list mode: show linked recipes with a short description preview ===== *@
                 <ul class="list-group">
                     @foreach (var lr in Model.ListRecipes)
                     {
@@ -185,6 +189,7 @@
                                     <strong>@lr.Recipe?.Title</strong>
                                     <p class="mb-0 small">
                                         @{
+                                            // Truncate long descriptions for a tidy list preview
                                             var desc = lr.Recipe?.Description ?? "";
                                             if (string.IsNullOrWhiteSpace(desc))
                                             {
@@ -206,7 +211,6 @@
                     }
                 </ul>
             }
-
         }
         else
         {
@@ -215,9 +219,7 @@
     </div>
 </div>
 
-<!-- ===========================
-     CLIENT-SIDE SORT LOGIC
-     =========================== -->
+@* ===== Client-side sort enhancer (recipes list only). Triggers server-side re-query via ?sortType=... ===== *@
 @if (!isIngredientsList)
 {
     <script>
