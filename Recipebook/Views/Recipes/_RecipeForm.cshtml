@@ -110,11 +110,13 @@
                 </div>
 
                 <button type="button" class="btn btn-brown btn-sm mb-3 add-ingredient-btn w-50 mx-auto">Add Ingredient</button>
-
+                <link href="/css/directions.css" rel="stylesheet" />
                 <div class="mb-3">
-                    <label asp-for="Recipe.Directions" class="form-label fw-bold"></label>
-                    <textarea asp-for="Recipe.Directions" class="form-control" rows="5"></textarea>
-                    <span asp-validation-for="Recipe.Directions" class="text-danger"></span>
+                    <div class="direction p-3 bg-brown border-brown rounded-2">
+                      <div class="step-number">1</div>
+                      <div class="text"><textarea></textarea></div>
+                    </div>
+                    <button type="button" class="btn btn-brown btn-sm mb-3 add-ingredient-btn w-50 mx-auto">Add Direction</button>
                 </div>
 
                 <div class="d-flex justify-content-center gap-2">

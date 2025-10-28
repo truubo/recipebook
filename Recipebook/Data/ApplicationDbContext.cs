@@ -62,5 +62,6 @@ namespace Recipebook.Data
                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
+        public DbSet<Recipebook.Models.Direction> Direction { get; set; } = default!;
     }
 }
