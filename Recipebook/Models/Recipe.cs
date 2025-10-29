@@ -18,9 +18,9 @@ namespace Recipebook.Models
         public string Title { get; set; } = default!;
 
         [Obsolete("This has been deprecated in favor of DirectionsList. Do not create new recipes with this property.")]
-        [Required, MaxLength(2000)]
+        [MaxLength(2000)]
         [Column(TypeName = "varchar(2000)")]
-        public string Directions { get; set; } = default!;
+        public string? Directions { get; set; } = default!;
 
         [MaxLength(2000)]
         [Column(TypeName = "varchar(2000)")]

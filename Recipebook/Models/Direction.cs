@@ -16,9 +16,6 @@ namespace Recipebook.Models
         [Column(TypeName = "int")]
         public int RecipeId { get; set; }
 
-        [NotMapped]
-        public Recipe _Recipe { get; set; } = default!;
-
         [Required]
         [Column(TypeName = "varchar(2000)")]
         public string StepDescription { get; set; } = default!;

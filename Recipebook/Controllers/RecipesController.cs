@@ -138,6 +138,7 @@ namespace Recipebook.Controllers
                 .Include(r => r.IngredientRecipes)       // <-- Include ingredients
                     .ThenInclude(ir => ir.Ingredient)   // <-- Include ingredient details
                 .Include(r => r.Favorites)               // ? ADDED (favorites) - for star state
+                .Include(r => r.DirectionsList)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (recipe == null)
@@ -237,6 +238,7 @@ namespace Recipebook.Controllers
             ModelState.Clear();
             TryValidateModel(vm);
             ModelState.Remove("UpdateButtonText");
+            ModelState.Remove("Recipe.Directions");
 
             // Custom form validation (keep your existing checks)
             var formOk = FormValid(ModelState) && ModelState.IsValid;
@@ -358,6 +360,7 @@ namespace Recipebook.Controllers
                 .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes)
                 .Include(r => r.IngredientRecipes)
+                .Include(r => r.DirectionsList)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (recipe == null)
@@ -411,6 +414,7 @@ namespace Recipebook.Controllers
             ModelState.Clear();
             TryValidateModel(vm);
             ModelState.Remove("UpdateButtonText");
+            ModelState.Remove("Recipe.Directions");
             var formOk = FormValid(ModelState) && ModelState.IsValid;
 
             if (!formOk)
@@ -430,6 +434,10 @@ namespace Recipebook.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                var existingDirections = _context.Direction.Where(d => d.RecipeId == vm.Recipe.Id);
+                // Remove all existing directions for the recipe
+                _context.Direction.RemoveRange(existingDirections);
+
                 // Update recipe basic info
                 _context.Update(vm.Recipe);
                 await _context.SaveChangesAsync();
@@ -464,6 +472,19 @@ namespace Recipebook.Controllers
                         Unit = ingVm.Unit
                     });
                 }
+
+                
+
+                //foreach (Direction direction in vm.Recipe.DirectionsList)
+                //{
+                //    // we create a new Direction since the id for the old direction cannot be reused. Let EF generate a new one.
+                //    _context.Direction.Add(new Direction
+                //    {
+                //        RecipeId = vm.Recipe.Id,
+                //        StepNumber = direction.StepNumber,
+                //        StepDescription = direction.StepDescription
+                //    });
+                //}
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
