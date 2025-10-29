@@ -113,6 +113,7 @@
                 <link href="/css/directions.css" rel="stylesheet" />
                 <div class="direction-container mb-3">
                 @{
+                    // convert to list to allow indexing (directions[i])
                     var directions = Model.Recipe.DirectionsList.ToList();
                 }
                     @for (int i = 0; i < directions.Count; i++)

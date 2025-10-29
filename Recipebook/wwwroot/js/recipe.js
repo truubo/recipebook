@@ -76,8 +76,6 @@ function populateDropdown(element, ingredientsOverride) {
     });
     console.log("finished creating list items")
     element.removeAttribute("onclick");
-    //ingredientListHtml.querySelector("#loadingIngredientsText").remove();
-    //ul.querySelector("#ingredientSearchBox").disabled = false;
 }
 
 async function fetchIngredients(element) {
