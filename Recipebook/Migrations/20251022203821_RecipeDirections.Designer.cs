@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Recipebook.Data;
 
@@ -11,9 +12,11 @@ using Recipebook.Data;
 namespace Recipebook.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251022203821_RecipeDirections")]
+    partial class RecipeDirections
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -368,8 +371,8 @@ namespace Recipebook.Migrations
                     b.Property<int>("IngredientId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(10,4)");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<int>("RecipeId")
                         .HasColumnType("int");
@@ -492,6 +495,7 @@ namespace Recipebook.Migrations
                         .HasColumnType("varchar(2000)");
 
                     b.Property<string>("Directions")
+                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("varchar(2000)");
 

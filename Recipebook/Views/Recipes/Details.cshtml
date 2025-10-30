@@ -34,7 +34,7 @@
     =============================================================== *@
     <div class="details-actions-top d-flex justify-content-between align-items-center w-100">
         @* Back button — only navigates when clicked *@
-        <a href="/Recipes/Index"
+        <a onclick="history.back()"
            class="btn btn-brown"
            title="Back to recipes">
             <i class="bi bi-arrow-left-circle"></i>
@@ -111,7 +111,8 @@
                           method="post"
                           class="d-inline js-fav-toggle"
                           title="Toggle favorite"
-                          aria-label="Toggle favorite">
+                          aria-label="Toggle favorite"
+                          data-recipe-name="@Model.Title">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="recipeId" value="@Model.Id" />
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
@@ -197,7 +198,27 @@
         }
 
         <h4 class="section-title mt-4">Directions</h4>
-        <p>@Html.DisplayFor(model => model.Directions)</p>
+        <link rel="stylesheet" href="/css/directions.css" />
+        @* Ensure recipes created before the directions overhaul still show directions *@
+        @if (Model.DirectionsList == null || !Model.DirectionsList.Any())
+        {
+            if (Model.Directions != null)
+            {
+                <p>@Model.Directions</p>
+            } else
+            {
+                <p>No directions.</p>
+            }
+        } else
+        {
+            foreach (Direction d in Model.DirectionsList)
+            {
+                    <div class="direction p-3 bg-brown border-brown rounded-2">
+                        <div class="step-number">@d.StepNumber</div>
+                        <div class="text">@d.StepDescription</div>
+                    </div>
+            }
+        }
     </div>
 </div>
 
@@ -258,34 +279,64 @@
 
 @section Scripts {
     <script>
-        // Listen for all form submissions on the page
+        let activeAlert = null;
+
+        function showAlert(message, type = "brown") {
+            if (activeAlert) {
+                activeAlert.remove();
+                activeAlert = null;
+            }
+
+            const alert = document.createElement("div");
+            alert.className = `alert alert-${type} fade show position-fixed bottom-0 end-0 m-3 shadow`;
+            alert.style.zIndex = "1050";
+            alert.style.transition = "opacity 0.5s ease";
+            alert.textContent = message;
+
+            document.body.appendChild(alert);
+            activeAlert = alert;
+
+            setTimeout(() => {
+                alert.style.opacity = "0";
+                setTimeout(() => {
+                    alert.remove();
+                    activeAlert = null;
+                }, 500);
+            }, 2500);
+        }
+
         document.addEventListener('submit', async (e) => {
             const form = e.target;
-
-            // Only handle forms with the "js-fav-toggle" class (favorite toggle forms)
-            if (!form.matches('form.js-fav-toggle')) return;
-
-            // Prevent full page reload caused by default form submission
+            if (!form.matches('form[action*="Favorites/Toggle"]')) return;
             e.preventDefault();
 
-            const fd = new FormData(form);
+            const icon = form.querySelector('i');
+            if (!icon) return;
+
+            const recipeName = form.dataset.recipeName || "Recipe";
+            const wasFav = icon.classList.contains('bi-star-fill');
+
+            icon.classList.toggle('bi-star');
+            icon.classList.toggle('bi-star-fill');
+            icon.classList.toggle('unchecked');
+
             try {
-                // Send asynchronous POST request to toggle favorite state
-                await fetch(form.action, {
+                const res = await fetch(form.action, {
                     method: 'POST',
-                    body: fd,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' } // mark as AJAX request
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
-                // Toggle star icon classes to visually update favorite status
-                const icon = form.querySelector('i');
-                if (icon) {
-                    icon.classList.toggle('bi-star');
-                    icon.classList.toggle('bi-star-fill');
-                    icon.classList.toggle('text-warning');
-                }
+                if (!res.ok) throw new Error();
+
+                showAlert(wasFav
+                    ? `Removed '${recipeName}' from favorites.`
+                    : `Added '${recipeName}' to favorites!`);
             } catch {
-                // Optional: add user-facing error UI if desired (toast/alert).
+                icon.classList.toggle('bi-star');
+                icon.classList.toggle('bi-star-fill');
+                icon.classList.toggle('unchecked');
+                showAlert(`Something went wrong with '${recipeName}'. Please try again.`, "danger");
             }
         });
     </script>
