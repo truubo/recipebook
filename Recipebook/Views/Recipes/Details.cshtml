@@ -184,7 +184,27 @@
         }
 
         <h4 class="section-title mt-4">Directions</h4>
-        <p>@Html.DisplayFor(model => model.Directions)</p>
+        <link rel="stylesheet" href="/css/directions.css" />
+        @* Ensure recipes created before the directions overhaul still show directions *@
+        @if (Model.DirectionsList == null || !Model.DirectionsList.Any())
+        {
+            if (Model.Directions != null)
+            {
+                <p>@Model.Directions</p>
+            } else
+            {
+                <p>No directions.</p>
+            }
+        } else
+        {
+            foreach (Direction d in Model.DirectionsList)
+            {
+                    <div class="direction p-3 bg-brown border-brown rounded-2">
+                        <div class="step-number">@d.StepNumber</div>
+                        <div class="text">@d.StepDescription</div>
+                    </div>
+            }
+        }
     </div>
 </div>
 

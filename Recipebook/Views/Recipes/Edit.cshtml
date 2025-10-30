@@ -15,46 +15,12 @@
 @section Scripts {
     @* Standard MVC client-side validation scripts. *@
     @await Html.PartialAsync("_ValidationScriptsPartial")
-
-    <script src="/js/recipe.js"></script>
+    @* we define the indexes here since you can't access the model in external JS files *@
     <script>
-        // Seed next index for dynamically added ingredient rows based on current count.
-        let ingredientIndex = @Model.Ingredients.Count;
-
-        // Cache the container and row template used for client-side add/remove.
-        const container = document.querySelector(".ingredients-container");
-        const template = document.querySelector(".ingredient-template").innerHTML;
-
-        // Show header labels only when at least one ingredient row exists.
-        function updateLabels() {
-            const labelsExist = container.querySelector(".ingredient-labels");
-            const hasIngredients = container.querySelectorAll(".ingredient-row").length > 0;
-
-            if (hasIngredients && !labelsExist) {
-                const labelRow = document.createElement("div");
-                labelRow.className = "ingredient-labels row mb-2 fw-bold";
-                labelRow.innerHTML = `<div class="col">Ingredient</div><div class="col">Quantity</div><div class="col">Unit</div>`;
-                container.prepend(labelRow);
-            } else if (!hasIngredients && labelsExist) {
-                labelsExist.remove();
-            }
-        }
-
-        // Event delegation: handle add/remove via single body listener.
-        document.body.addEventListener("click", e => {
-            if (e.target.matches(".add-ingredient-btn")) {
-                // Append new row; replace __index__ with running index value.
-                container.insertAdjacentHTML('beforeend', template.replace(/__index__/g, ingredientIndex++));
-                updateLabels();
-            }
-            if (e.target.matches(".remove-ingredient-btn")) {
-                // Remove clicked row and recompute header label visibility.
-                e.target.closest(".ingredient-row").remove();
-                updateLabels();
-            }
-        });
-
-        // Initialize labels on first render.
-        updateLabels();
+            let ingredientIndex = @Model.Ingredients.Count;
+            let directionIndex = @Model.Recipe.DirectionsList.Count;
     </script>
+    <script src="/js/recipe.js"></script>
+    <script src="/js/ingredientsHandler.js"></script>
+    <script src="/js/directionsHandler.js"></script>
 }

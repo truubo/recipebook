@@ -85,9 +85,8 @@ function populateDropdown(element, ingredientsOverride) {
         ingredientListHtml.appendChild(li);
         console.log(`created li for ${ingredient.name}`);
     });
-
-    console.log("finished creating list items");
-    element.removeAttribute("onclick"); // prevents re-fetching on next click
+    console.log("finished creating list items")
+    element.removeAttribute("onclick");
 }
 
 // Loads ingredient list (from cache or server) and populates dropdown

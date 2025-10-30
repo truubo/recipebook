@@ -15,47 +15,12 @@
 @section Scripts {
     @* Standard MVC client-side validation + page-specific JS. *@
     @await Html.PartialAsync("_ValidationScriptsPartial")
-    <script src="/js/recipe.js"></script>
-
+    @* we define the indexes here since you can't access the model in external JS files *@
     <script>
-        // Seed next index for dynamically added ingredient rows (matches existing rows count).
-        let ingredientIndex = @Model.Ingredients.Count;
-
-        // Cache form container and the hidden template used for new rows.
-        const container = document.querySelector(".ingredients-container");
-        const template = document.querySelector(".ingredient-template").innerHTML;
-
-        // Maintain header labels only when there is at least one ingredient row.
-        function updateLabels() {
-            const labelsExist = container.querySelector(".ingredient-labels");
-            const hasIngredients = container.querySelectorAll(".ingredient-row").length > 0;
-
-            if (hasIngredients && !labelsExist) {
-                const labelRow = document.createElement("div");
-                labelRow.className = "ingredient-labels row mb-2 fw-bold";
-                labelRow.innerHTML = `<div class="col">Ingredient</div><div class="col">Quantity</div><div class="col">Unit</div>`;
-                container.prepend(labelRow);
-            } else if (!hasIngredients && labelsExist) {
-                labelsExist.remove();
-            }
-        }
-
-        // Event delegation: listen once on body for add/remove clicks by class selector.
-        document.body.addEventListener("click", e => {
-            if (e.target.matches(".add-ingredient-btn")) {
-                // Append a new row, replacing __index__ with the current running index.
-                container.insertAdjacentHTML('beforeend', template.replace(/__index__/g, ingredientIndex++));
-                updateLabels();
-            }
-
-            if (e.target.matches(".remove-ingredient-btn")) {
-                // Remove the specific row the user clicked and update labels visibility.
-                e.target.closest(".ingredient-row").remove();
-                updateLabels();
-            }
-        });
-
-        // Initialize label visibility on first render.
-        updateLabels();
+            let ingredientIndex = @Model.Ingredients.Count;
+            let directionIndex = @Model.Recipe.DirectionsList.Count;
     </script>
+    <script src="/js/recipe.js"></script>
+    <script src="/js/ingredientsHandler.js"></script>
+    <script src="/js/directionsHandler.js"></script>
 }
