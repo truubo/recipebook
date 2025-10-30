@@ -85,7 +85,7 @@
                             <div class="col">
                                 @* Hidden IngredientId for binding; dropdown populated by JS. *@
                                 <div class="dropdown" id="Ingredients[@i]">
-                                    <input hidden asp-for="Ingredients[@i].IngredientId" class="ingredientIdInput" value="@Model.Ingredients[@i].IngredientId">
+                                    <input type="hidden" asp-for="Ingredients[@i].IngredientId" class="ingredientIdInput" value="@Model.Ingredients[@i].IngredientId">
                                     <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
                                         @Model.Ingredients[@i].IngredientName
                                     </button>
@@ -100,7 +100,7 @@
                         </div>
                         <div class="col">
                                 @* Basic client guard: require positive quantity (server validates too). *@
-                            <input asp-for="Ingredients[@i].Quantity" class="form-control" type="number" min="1" />
+                            <input asp-for="Ingredients[@i].Quantity" class="form-control" type="text" />
                         </div>
                         <div class="col">
                                 @* Unit list from Unit enum; values match enum names for binder. *@
@@ -163,7 +163,7 @@
                         }
                         </select>-->
                     <div class="dropdown" id="Ingredients[__index__]">
-                        <input hidden name="Ingredients[__index__].IngredientId" class="ingredientIdInput" value="">
+                        <input type="hidden" name="Ingredients[__index__].IngredientId" class="ingredientIdInput" value="">
                         <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
                             Select ingredient...
                         </button>
@@ -177,7 +177,7 @@
                 </div>
             </div>
             <div class="col">
-                <input name="Ingredients[__index__].Quantity" class="form-control" type="number" min="1" />
+                <input name="Ingredients[__index__].Quantity" class="form-control" type="text" />
             </div>
             <div class="col">
                 <select name="Ingredients[__index__].Unit" class="form-control">

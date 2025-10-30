@@ -107,36 +107,39 @@ namespace Recipebook.Controllers
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
-            // Base queries (deferred); include recipe link counts for display.
-            IQueryable<Recipebook.Models.List> listQ = null;
+            // Base query setup
+            IQueryable<Recipebook.Models.List> listQ;
 
             if (scope == "mine")
             {
                 listQ = _context.Lists
-                    .Where(l => !l.IsArchived)
-                    .Where(l => l.OwnerId == uid)
+                    .Where(l => !l.IsArchived && l.OwnerId == uid)
                     .Include(l => l.ListRecipes)
                         .ThenInclude(lr => lr.Recipe)
+                    .Include(l => l.ListIngredients)                     // ✅ load ingredient items
+                        .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
-            else if (scope == "ingredients") // 🧩 NEW tab for Ingredients Lists
+            else if (scope == "ingredients") // 🧩 Ingredients Lists tab
             {
                 listQ = _context.Lists
-                    .Where(l => !l.IsArchived)
-                    .Where(l => l.ListType == ListType.Ingredients)  // ✅ only show ingredient-type lists
+                    .Where(l => !l.IsArchived && l.ListType == ListType.Ingredients)
                     .Include(l => l.ListRecipes)
                         .ThenInclude(lr => lr.Recipe)
                             .ThenInclude(r => r.IngredientRecipes)
                                 .ThenInclude(ir => ir.Ingredient)
+                    .Include(l => l.ListIngredients)                     // ✅ ensure ingredient lists load
+                        .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
             else // default: all lists
             {
                 listQ = _context.Lists
-                    .Where(l => !l.IsArchived)
-                    .Where(l => l.OwnerId == uid || l.Private == false)
+                    .Where(l => !l.IsArchived && (l.OwnerId == uid || l.Private == false))
                     .Include(l => l.ListRecipes)
                         .ThenInclude(lr => lr.Recipe)
+                    .Include(l => l.ListIngredients)                     // ✅ include ingredients everywhere
+                        .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
 
@@ -166,8 +169,8 @@ namespace Recipebook.Controllers
                 .Where(u => ownerIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id, u => u.Email);
 
-            ViewBag.OwnerEmails = ownerEmails; // simple pass-through container
-            ViewBag.SearchString = searchString; // keep input sticky in the view
+            ViewBag.OwnerEmails = ownerEmails;
+            ViewBag.SearchString = searchString;
             ViewBag.Scope = scope;
 
             // ViewModel tailored for the Index view
@@ -180,6 +183,7 @@ namespace Recipebook.Controllers
 
             return View(vm);
         }
+
 
 
         // -------------------------------- DETAILS --------------------------------

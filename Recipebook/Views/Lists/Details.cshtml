@@ -160,7 +160,7 @@
                                     @foreach (var (qty, unit) in ing.Units)
                                     {
                                         var unitDisplay = qty == 1 ? unit : unit + "s";
-                                        <li>@qty @unitDisplay</li>
+                                        <li>@qty.ToString("0.####") @unitDisplay</li>
                                     }
                                 </ul>
                             </li>

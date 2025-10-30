@@ -39,15 +39,18 @@
                 </div>
 
                 @{
-                    // Compute the number of *active* recipes on the list
-                    // - guard against null ListRecipes
-                    // - include only recipes that exist and are not archived
-                    var activeRecipes = l.ListRecipes?
-                    .Where(lr => lr.Recipe != null && !lr.Recipe.IsArchived)
-                    .ToList()
-                    ?? new List<Recipebook.Models.ListRecipe>();
+                    // ✅ FIXED: Count items correctly based on ListType.
+                    // If ListType == Ingredients, count ListIngredients; otherwise count ListRecipes.
+                    int count = 0;
 
-                    var count = activeRecipes.Count;
+                    if (l.ListType == Recipebook.Models.ListType.Ingredients)
+                    {
+                        count = l.ListIngredients?.Count() ?? 0;
+                    }
+                    else
+                    {
+                        count = l.ListRecipes?.Count() ?? 0;
+                    }
                 }
 
                 @* List type + pluralized item count *@

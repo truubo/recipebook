@@ -49,6 +49,7 @@ namespace Recipebook.Controllers
                 .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes).ThenInclude(cr => cr.Category)
                 .Include(r => r.Favorites) // needed for star state
+                .Include(r => r.IngredientRecipes).ThenInclude(ir => ir.Ingredient) // <-- added
                 .AsQueryable();
 
             // Apply title search
@@ -107,6 +108,7 @@ namespace Recipebook.Controllers
 
             return View(recipes);
         }
+
 
 
 
@@ -219,9 +221,8 @@ namespace Recipebook.Controllers
                 ModelState.AddModelError("", "You must be signed in to create a recipe.");
             }
 
-            // Remove any blank ingredient rows (e.g., placeholder UI rows)
+            // Ensure collection exists (do NOT pre-filter here)
             vm.Ingredients ??= new List<IngredientSelectViewModel>();
-            vm.Ingredients = vm.Ingredients.Where(i => i.IngredientId > 0).ToList();
 
             // Re-validate AFTER cleaning the collection so ModelState isn't poisoned
             ModelState.Clear();
@@ -279,8 +280,8 @@ namespace Recipebook.Controllers
                     }
                 }
 
-                // 3) Add ingredients (already filtered to valid rows)
-                foreach (var ingredientVm in vm.Ingredients)
+                // 3) Add ingredients (filter only when inserting)
+                foreach (var ingredientVm in vm.Ingredients.Where(x => x.IngredientId > 0))
                 {
                     _context.IngredientRecipes.Add(new IngredientRecipe
                     {
@@ -395,9 +396,8 @@ namespace Recipebook.Controllers
                 ModelState.AddModelError("", "You must be signed in to edit a recipe.");
             }
 
-            // Clean blank ingredient rows
+            // Ensure collection exists (do NOT pre-filter here)
             vm.Ingredients ??= new List<IngredientSelectViewModel>();
-            vm.Ingredients = vm.Ingredients.Where(i => i.IngredientId > 0).ToList();
 
             // Re-validate after cleaning
             ModelState.Clear();
@@ -448,7 +448,7 @@ namespace Recipebook.Controllers
                 var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id && !ir.Recipe.IsArchived);
                 _context.IngredientRecipes.RemoveRange(existingIngredients);
 
-                foreach (var ingVm in vm.Ingredients)
+                foreach (var ingVm in vm.Ingredients.Where(x => x.IngredientId > 0))
                 {
                     _context.IngredientRecipes.Add(new IngredientRecipe
                     {
@@ -680,8 +680,8 @@ namespace Recipebook.Controllers
                 ModelState.AddModelError("", "You must be signed in to create a recipe copy.");
             }
 
+            // Ensure collection exists (do NOT pre-filter here)
             vm.Ingredients ??= new List<IngredientSelectViewModel>();
-            vm.Ingredients = vm.Ingredients.Where(i => i.IngredientId > 0).ToList();
 
             ModelState.Clear();
             TryValidateModel(vm);
@@ -739,8 +739,8 @@ namespace Recipebook.Controllers
                     }
                 }
 
-                // Ingredients
-                foreach (var ingVm in vm.Ingredients)
+                // Ingredients (filter only when inserting)
+                foreach (var ingVm in vm.Ingredients.Where(x => x.IngredientId > 0))
                 {
                     _context.IngredientRecipes.Add(new IngredientRecipe
                     {
