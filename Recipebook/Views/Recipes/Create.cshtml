@@ -2,15 +2,18 @@
 
 @{
     ViewData["Title"] = "Create";
+    // Set button text so the shared partial (_RecipeForm) targets Create behavior.
     Model.UpdateButtonText = "Create";
 }
+
 <div class="recipe-form-page">
     <h1>Create New Recipe</h1>
+    @* Reuse the shared form partial; it switches between Create/Edit via UpdateButtonText. *@
     @await Html.PartialAsync("_RecipeForm")
 </div>
 
-
 @section Scripts {
+    @* Standard MVC client-side validation + page-specific JS. *@
     @await Html.PartialAsync("_ValidationScriptsPartial")
     @* we define the indexes here since you can't access the model in external JS files *@
     <script>

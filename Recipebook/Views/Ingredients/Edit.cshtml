@@ -1,6 +1,7 @@
 ﻿@model Recipebook.Models.Ingredient
 
 @{
+    // Browser/tab title
     ViewData["Title"] = "Edit Ingredient";
 }
 
@@ -9,16 +10,22 @@
 
     <div class="card shadow-sm recipe-form-card">
         <div class="card-body">
+            <!-- Posts to IngredientsController.Edit -->
             <form asp-action="Edit">
+                <!-- Model-level validation (e.g., required fields) -->
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- Preserve entity key on post -->
                 <input type="hidden" asp-for="Id" />
 
+                <!-- Ingredient name -->
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label fw-bold"></label>
                     <input asp-for="Name" class="form-control" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
+                <!-- Save or cancel without changes -->
                 <div class="d-flex justify-content-center gap-2 mt-3">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-save"></i> Update
@@ -33,5 +40,6 @@
 </div>
 
 @section Scripts {
+    <!-- Client-side validation -->
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

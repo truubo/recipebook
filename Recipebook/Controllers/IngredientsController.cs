@@ -1,14 +1,4 @@
 ﻿// Controllers/IngredientsController.cs
-// ----------------------------------------------------------------------------------
-// PURPOSE
-//   CRUD controller for Ingredient entities. Ingredients can be owned by a user.
-//   Includes owner-only guards, logging, and search functionality.
-//
-// NOTES FOR REVIEWERS / CLASSMATES
-//   • Patterns: standard MVC CRUD, ModelState validation, TempData alerts,
-//     EF Core queries, Identity-based ownership checks, structured logs.
-//   • Identity integration: Ingredient has an OwnerId, checked on Edit/Delete.
-// ----------------------------------------------------------------------------------
 
 using System;
 using System.Linq;
@@ -21,6 +11,7 @@ using Microsoft.Extensions.Logging; // logger
 using Microsoft.Net.Http.Headers; // for HeaderNames
 using Recipebook.Data;
 using Recipebook.Models;
+using Recipebook.Services.Interfaces;
 
 namespace Recipebook.Controllers
 {
@@ -29,11 +20,13 @@ namespace Recipebook.Controllers
         // --------------------------- DEPENDENCIES -------------------------------
         private readonly ApplicationDbContext _context;
         private readonly ILogger<IngredientsController> _logger;
+        private readonly ITextNormalizationService _textNormalizer;
 
-        public IngredientsController(ApplicationDbContext context, ILogger<IngredientsController> logger)
+        public IngredientsController(ApplicationDbContext context, ILogger<IngredientsController> logger, ITextNormalizationService textNormalizer)
         {
             _context = context;
             _logger = logger;
+            _textNormalizer = textNormalizer;
         }
 
         // --------------------------- UTILITY HELPERS ----------------------------
@@ -107,6 +100,8 @@ namespace Recipebook.Controllers
             if (ModelState.IsValid)
             {
                 ingredient.OwnerId = string.Empty;
+
+                ingredient.Name = _textNormalizer.NormalizeIngredientName(ingredient.Name);
 
                 _context.Add(ingredient);
                 await _context.SaveChangesAsync();
@@ -188,7 +183,8 @@ namespace Recipebook.Controllers
             {
                 try
                 {
-                    existing.Name = ingredient.Name;
+                    existing.Name = _textNormalizer.NormalizeIngredientName(ingredient.Name);
+
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("{Who} updated ingredient (Id {Id}) -> '{Name}'", Who(), existing.Id, existing.Name);

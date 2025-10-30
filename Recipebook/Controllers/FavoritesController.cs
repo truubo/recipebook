@@ -31,19 +31,4 @@ public class FavoritesController : Controller
         // go back to the page you were on
         return Redirect(Request.Headers["Referer"].ToString());
     }
-
-    // GET /Favorites (My Favorites list)
-    [HttpGet]
-    public async Task<IActionResult> Index()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-        var recipes = await _db.Favorites
-            .Where(f => f.UserId == userId)
-            .Select(f => f.Recipe)
-            .Include(r => r.Favorites) // so views can know if this user favorited it
-            .ToListAsync();
-
-        return View(recipes); // reuse a table layout just like Recipes/Index
-    }
 }

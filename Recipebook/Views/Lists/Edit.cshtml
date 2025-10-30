@@ -9,43 +9,55 @@
 
     <div class="card shadow-sm recipe-form-card">
         <div class="card-body">
+            @* Posts to ListsController.Edit (HttpPost). Server-side validation surfaced via summary. *@
             <form asp-action="Edit" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                @* Hidden key ensures correct entity is updated on submit *@
                 <input type="hidden" asp-for="List.Id" />
 
+                @* List name (required) *@
                 <div class="mb-3">
                     <label asp-for="List.Name" class="form-label fw-bold"></label>
                     <input asp-for="List.Name" class="form-control" />
                     <span asp-validation-for="List.Name" class="text-danger"></span>
                 </div>
 
+                @* List type: Recipes vs Ingredients (enum) *@
                 <div class="mb-3">
                     <label asp-for="List.ListType" class="form-label fw-bold"></label>
-                    <select asp-for="List.ListType" class="form-control"
-                            asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"></select>
+                    <select asp-for="List.ListType"
+                            class="form-control"
+                            asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()">
+                    </select>
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
 
+                @* Privacy toggle: only owner can view when checked *@
                 <div class="form-check mb-3">
                     <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
                     <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck"></label>
                 </div>
 
+                @* Recipe membership editor (multi-select). Tip: hold Ctrl/Cmd for multiple. *@
                 <div class="mb-3">
                     <label class="form-label fw-bold">Recipes</label>
-                    <select asp-for="SelectedRecipeIds" class="form-control" multiple size="10"
-                            asp-items="Model.RecipeChoices"></select>
+                    <select asp-for="SelectedRecipeIds"
+                            class="form-control"
+                            multiple
+                            size="10"
+                            asp-items="Model.RecipeChoices">
+                    </select>
                     <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
                     <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
                 </div>
 
+                @* Primary actions *@
                 <div class="d-flex justify-content-center gap-2 mt-3">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-save"></i> Update
                     </button>
-                    <a onclick="history.back()" class="btn btn-brown btn-lg">
-                        Cancel
-                    </a>
+                    <a onclick="history.back()" class="btn btn-brown btn-lg">Cancel</a>
                 </div>
             </form>
         </div>
@@ -53,5 +65,6 @@
 </div>
 
 @section Scripts {
+    @* Client-side validation *@
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

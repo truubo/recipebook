@@ -1,6 +1,7 @@
 ﻿@model Recipebook.Models.Category
 
 @{
+    // Browser/tab title for the page
     ViewData["Title"] = "Edit Category";
 }
 
@@ -9,16 +10,22 @@
 
     <div class="card shadow-sm recipe-form-card">
         <div class="card-body">
+            <!-- Form targets CategoriesController.Edit (no behavior changes) -->
             <form asp-action="Edit">
+                <!-- Show model-level validation messages (e.g., required fields) -->
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- Preserve the entity key for the edit postback -->
                 <input type="hidden" asp-for="Id" />
 
+                <!-- Category name input -->
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label fw-bold"></label>
                     <input asp-for="Name" class="form-control" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
+                <!-- Actions: save changes or go back without saving -->
                 <div class="d-flex justify-content-center gap-2 mt-3">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-save"></i> Update
@@ -33,5 +40,6 @@
 </div>
 
 @section Scripts {
+    <!-- Client-side validation scripts -->
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

@@ -1,6 +1,7 @@
 ﻿@model Recipebook.Models.Ingredient
 
 @{
+    // Browser/tab title
     ViewData["Title"] = "Create";
 }
 
@@ -9,15 +10,19 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
+            <!-- Posts to IngredientsController.Create -->
             <form asp-action="Create" method="post">
+                <!-- Model-level validation messages -->
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+                <!-- Ingredient name -->
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label fw-bold"></label>
                     <input asp-for="Name" class="form-control" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
+                <!-- Submit or go back without saving -->
                 <div class="d-flex justify-content-center gap-2 mt-3">
                     <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-plus-circle"></i> Create
@@ -32,5 +37,6 @@
 </div>
 
 @section Scripts {
+    <!-- Client-side validation -->
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }

@@ -3,11 +3,14 @@
 
 @{
     ViewData["Title"] = "Lists";
+
+    // Current search string (from query) used to keep filters sticky
     var currentSearch = ViewBag.SearchString as string;
 
+    // Scope: "all" | "mine" | "ingredients" (defaults to "all")
     var scope = (string?)ViewBag.Scope ?? "all";
 
-    // Convenience variables to keep query parameters when switching tabs
+    // Keep query params when switching tabs
     string q = currentSearch ?? string.Empty;
     string tag = (ViewBag.TagId is int t) ? t.ToString() : "";
 }
@@ -18,6 +21,7 @@
         <p class="lead text-muted">Add your favorite recipes or ingredients to a list!</p>
     </div>
 
+    @* Top toolbar: Create (auth only) + search box *@
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         @if (User.Identity.IsAuthenticated)
         {
@@ -37,24 +41,53 @@
         </form>
     </div>
 
-    <div class="btn-group mb-3" role="group" aria-label="Recipe scope">
+    @* Scope tabs: preserve search/tag params when switching *@
+    <div class="btn-group mb-3" role="group" aria-label="List scope">
         <a class="btn @((scope=="all") ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="all"
            asp-route-searchString="@q"
-           asp-route-tagId="@tag">All Lists</a>
+           asp-route-tagId="@tag">
+            All Lists
+        </a>
 
-        <a class="btn @(scope=="mine" ? "btn-primary" : "btn-secondary")"
+        <a class="btn @((scope=="mine") ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="mine"
            asp-route-searchString="@q"
-           asp-route-tagId="@tag">My Lists</a>
+           asp-route-tagId="@tag">
+            My Lists
+        </a>
+
+        @* Ingredients-only view *@
+        <a class="btn @((scope=="ingredients") ? "btn-primary" : "btn-secondary")"
+           asp-action="Index"
+           asp-route-scope="ingredients"
+           asp-route-searchString="@q"
+           asp-route-tagId="@tag">
+            Ingredients Lists
+        </a>
     </div>
 
+    @* Content region: render lists via shared partial (keeps layout consistent) *@
     <div class="tab-content pt-3" id="listsTabsContent">
-        <!-- MY LISTS TAB -->
-        <div class="tab-pane fade show active" id="my" role="tabpanel" aria-labelledby="my-tab">
-            @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.Lists, Model.MyUserId))
-        </div>
+        @if (scope == "ingredients")
+        {
+            <div class="tab-pane fade show active" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
+                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.Lists, Model.MyUserId))
+            </div>
+        }
+        else if (scope == "mine")
+        {
+            <div class="tab-pane fade show active" id="mine" role="tabpanel" aria-labelledby="mine-tab">
+                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.Lists, Model.MyUserId))
+            </div>
+        }
+        else
+        {
+            <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.Lists, Model.MyUserId))
+            </div>
+        }
     </div>
 </div>

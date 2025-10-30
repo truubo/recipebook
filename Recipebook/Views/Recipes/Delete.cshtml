@@ -12,6 +12,7 @@
 
     <div class="card delete-card">
         <div class="card-body">
+            @* Quick read-only summary so the user can confirm they're deleting the correct item. *@
             <dl class="row mb-4">
                 <dt class="col-sm-4 text-muted">Title</dt>
                 <dd class="col-sm-8"><strong>@Model.Title</strong></dd>
@@ -30,6 +31,7 @@
 
                 <dt class="col-sm-4 text-muted">Categories</dt>
                 <dd class="col-sm-8">
+                    @* Safely handle empty or null category join rows. *@
                     @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
                     {
                         <ul class="list-inline mb-0">
@@ -53,6 +55,7 @@
                 </dd>
             </dl>
 
+            @* Destructive action: POST to Delete with hidden Id. UI provides a visible cancel path (history.back()). *@
             <form asp-action="Delete" class="delete-actions">
                 <input type="hidden" asp-for="Id" />
                 <button type="submit" class="btn btn-danger btn-lg">

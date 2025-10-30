@@ -1,16 +1,4 @@
 ﻿// Controllers/ListsController.cs
-// ----------------------------------------------------------------------------------
-// PURPOSE
-//   Controller for managing "Lists" in the Recipebook MVC app. Implements full CRUD
-//   with owner-only edits/deletes, visibility rules for private vs public lists,
-//   and structured logging suitable for class demos and future observability.
-//
-// HOW TO READ THIS FILE
-//   • Look for the SECTION HEADERS to understand the flow.
-//   • Logging uses scope properties so console/debug logs show UserId, email, route.
-//   • EF Core patterns: AsNoTracking for read-only queries, Include/ThenInclude for
-//     eager-loading, ModelState validation, PRG (Post/Redirect/Get) after changes.
-// ----------------------------------------------------------------------------------
 
 using System;
 using System.Linq;
@@ -120,24 +108,36 @@ namespace Recipebook.Controllers
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
             // Base queries (deferred); include recipe link counts for display.
-            IQueryable<List> listQ = null;
+            IQueryable<Recipebook.Models.List> listQ = null;
+
             if (scope == "mine")
             {
                 listQ = _context.Lists
-                .Where(l => !l.IsArchived)
-                .Where(l => l.OwnerId == uid)
-                .Include(l => l.ListRecipes)
-                .ThenInclude(lr => lr.Recipe)
-                .AsNoTracking();
+                    .Where(l => !l.IsArchived)
+                    .Where(l => l.OwnerId == uid)
+                    .Include(l => l.ListRecipes)
+                        .ThenInclude(lr => lr.Recipe)
+                    .AsNoTracking();
             }
-            else
+            else if (scope == "ingredients") // 🧩 NEW tab for Ingredients Lists
             {
                 listQ = _context.Lists
-                .Where(l => !l.IsArchived)
-                .Where(l => l.OwnerId == uid || l.Private == false)
-                .Include(l => l.ListRecipes)
-                .ThenInclude(lr => lr.Recipe)
-                .AsNoTracking();
+                    .Where(l => !l.IsArchived)
+                    .Where(l => l.ListType == ListType.Ingredients)  // ✅ only show ingredient-type lists
+                    .Include(l => l.ListRecipes)
+                        .ThenInclude(lr => lr.Recipe)
+                            .ThenInclude(r => r.IngredientRecipes)
+                                .ThenInclude(ir => ir.Ingredient)
+                    .AsNoTracking();
+            }
+            else // default: all lists
+            {
+                listQ = _context.Lists
+                    .Where(l => !l.IsArchived)
+                    .Where(l => l.OwnerId == uid || l.Private == false)
+                    .Include(l => l.ListRecipes)
+                        .ThenInclude(lr => lr.Recipe)
+                    .AsNoTracking();
             }
 
             // Optional title search (applies to both buckets)
@@ -146,15 +146,19 @@ namespace Recipebook.Controllers
                 listQ = listQ.Where(l => l.Name.Contains(searchString) && !l.IsArchived);
             }
 
-            var lists = await listQ.Where(l => !l.IsArchived).OrderBy(l => l.Name).ToListAsync();
+            var lists = await listQ
+                .Where(l => !l.IsArchived)
+                .OrderBy(l => l.Name)
+                .ToListAsync();
 
             // Logging example required by assignment/narrative.
             _logger.LogInformation(
-                "{Email} navigated to /Views/Lists/Index, loaded {AllCount} all list, search='{Search}'",
+                "{Email} navigated to /Views/Lists/Index, loaded {AllCount} lists, search='{Search}'",
                 myEmail, lists.Count, searchString ?? string.Empty);
 
             // For the view: map OwnerId -> OwnerEmail so we can display who owns what.
-            var ownerIds = lists.Select(l => l.OwnerId)
+            var ownerIds = lists
+                .Select(l => l.OwnerId)
                 .Distinct()
                 .ToList();
 
@@ -177,6 +181,7 @@ namespace Recipebook.Controllers
             return View(vm);
         }
 
+
         // -------------------------------- DETAILS --------------------------------
         // GET: Lists/Details/5
         // Visibility: allow if the list belongs to the user OR the list is public.
@@ -185,13 +190,20 @@ namespace Recipebook.Controllers
             if (id is null) return NotFound();
 
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users
+                .Where(u => u.Id == uid)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Details");
 
+            // ✅ Eager-load full chain so Ingredients view has data
             var list = await _context.Lists
                 .Where(l => !l.IsArchived)
-                .Include(l => l.ListRecipes)!.ThenInclude(lr => lr.Recipe)
+                .Include(l => l.ListRecipes)!
+                    .ThenInclude(lr => lr.Recipe)!
+                        .ThenInclude(r => r.IngredientRecipes)!
+                            .ThenInclude(ir => ir.Ingredient)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(l =>
                     l.Id == id &&
@@ -203,18 +215,24 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            if (sortType is null)
-            {
-                sortType = 0;
-            }
+            // Normalize sortType default
+            sortType ??= 0;
 
+            // Optional sorting for non-ingredients lists (null-safe and skip archived recipes)
             switch ((SortType)sortType)
             {
                 case SortType.AlphabeticalAsc:
-                    list.ListRecipes = list.ListRecipes.Where(lr => !lr.Recipe.IsArchived).OrderBy(l => l.Recipe.Title).ToList();
+                    list.ListRecipes = (list.ListRecipes ?? Enumerable.Empty<ListRecipe>())
+                        .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                        .OrderBy(lr => lr.Recipe.Title)
+                        .ToList();
                     break;
+
                 case SortType.AlphabeticalDesc:
-                    list.ListRecipes = list.ListRecipes.Where(cr => !cr.Recipe.IsArchived).OrderByDescending(l => l.Recipe.Title).ToList();
+                    list.ListRecipes = (list.ListRecipes ?? Enumerable.Empty<ListRecipe>())
+                        .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                        .OrderByDescending(lr => lr.Recipe.Title)
+                        .ToList();
                     break;
             }
 
@@ -225,13 +243,13 @@ namespace Recipebook.Controllers
                 .FirstOrDefaultAsync();
 
             ViewBag.OwnerEmail = ownerEmail;
+            ViewBag.SortType = sortType;
 
             // Build a readable list of recipe titles for the log line.
             var titles = (list.ListRecipes ?? new List<ListRecipe>())
-                .Where(lr => !lr.Recipe.IsArchived)
-                .Select(lr => lr.Recipe?.Title)
+                .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                .Select(lr => lr.Recipe!.Title)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
-                .Cast<string>()
                 .ToList();
 
             _logger.LogInformation(
@@ -240,6 +258,7 @@ namespace Recipebook.Controllers
 
             return View(list);
         }
+
 
         // -------------------------------- CREATE ---------------------------------
         // GET: Lists/Create

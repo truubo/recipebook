@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Recipebook.Helpers;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -57,6 +58,40 @@ namespace Recipebook.Models
         [Display(Name = "Cook Time (minutes)")]
         [Range(0, 999, ErrorMessage = "Cook time must be between 0 and 999 minutes.")]
         public int? CookTimeMinutes { get; set; }
+
+        [NotMapped]
+        public string FormattedPrepTime
+        {
+            get
+            {
+                if (!PrepTimeMinutes.HasValue)
+                    return "N/A";
+                return TimeFormattingHelper.FormatMinutes(PrepTimeMinutes.Value);
+            }
+        }
+
+        [NotMapped]
+        public string FormattedCookTime
+        {
+            get
+            {
+                if (!CookTimeMinutes.HasValue)
+                    return "N/A";
+                return TimeFormattingHelper.FormatMinutes(CookTimeMinutes.Value);
+            }
+        }
+
+        [NotMapped]
+        public string FormattedTotalTime
+        {
+            get
+            {
+                if (!PrepTimeMinutes.HasValue && !CookTimeMinutes.HasValue)
+                    return "N/A";
+                int total = (PrepTimeMinutes ?? 0) + (CookTimeMinutes ?? 0);
+                return TimeFormattingHelper.FormatMinutes(total);
+            }
+        }
 
         // Navigation for many-to-many
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
