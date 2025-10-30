@@ -12367,11 +12367,17 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s ease, box-shadow 0.2s ease, opacity 0.5s ease;
+  will-change: transform, opacity;
 }
-.recipe-index-page .index-card .recipe-card:hover {
+.recipe-index-page .index-card .recipe-card:hover:not(.fading-out) {
   transform: translateY(-5px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.recipe-index-page .index-card .recipe-card.fading-out {
+  opacity: 0;
+  transform: none;
+  pointer-events: none;
 }
 .recipe-index-page .index-card .recipe-card .card-overlay {
   position: absolute;
