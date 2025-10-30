@@ -121,7 +121,7 @@
                         <div class="direction p-3 bg-brown border-brown rounded-2">
                             <input hidden name="Recipe.DirectionsList[@i].StepNumber" value="@directions[i].StepNumber" />
                             <div class="step-number">@directions[i].StepNumber</div>
-                                <div class="text"><textarea name="Recipe.DirectionsList[@i].StepDescription">@directions[i].StepDescription</textarea></div>
+                                <div class="text"><textarea name="Recipe.DirectionsList[@i].StepDescription" required>@directions[i].StepDescription</textarea></div>
                             <div class="direction-delete">
                                 <i class="bi bi-trash-fill" onclick="removeDirection(this)"></i>
                             </div>
@@ -152,7 +152,7 @@
                 <div class="direction p-3 bg-brown border-brown rounded-2">
                     <input hidden name="Recipe.DirectionsList[__index__].StepNumber" value="__visibleIndex__" />
                     <div class="step-number">__visibleIndex__</div>
-                    <div class="text"><textarea name="Recipe.DirectionsList[__index__].StepDescription"></textarea></div>
+                    <div class="text"><textarea name="Recipe.DirectionsList[__index__].StepDescription" required></textarea></div>
                     <div class="direction-delete">
                         <i class="bi bi-trash-fill" onclick="removeDirection(this)"></i>
                     </div>
