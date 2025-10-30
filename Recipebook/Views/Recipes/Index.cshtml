@@ -134,7 +134,8 @@
                                           method="post"
                                           class="d-inline"
                                           title="Toggle favorite"
-                                          aria-label="Toggle favorite">
+                                          aria-label="Toggle favorite"
+                                          data-recipe-name="@item.Title">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="recipeId" value="@item.Id" />
                                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
@@ -213,33 +214,82 @@
     <!-- ===================== Scripts ===================== -->
     @section Scripts {
         <script>
-            // Intercept favorite toggle POSTs and do them via fetch to avoid a full page reload.
-            // This keeps scroll position stable and prevents extra history entries.
+            // Reusable brown alert (appears bottom-right, fades out after 2.5s)
+            let activeAlert = null; // track current alert
+
+            function showAlert(message, type = "brown") {
+                // Remove any existing alert
+                if (activeAlert) {
+                    activeAlert.remove();
+                    activeAlert = null;
+                }
+
+                const alert = document.createElement("div");
+                alert.className = `alert alert-${type} fade show position-fixed bottom-0 end-0 m-3 shadow`;
+                alert.style.zIndex = "1050";
+                alert.style.transition = "opacity 0.5s ease";
+                alert.textContent = message;
+
+                document.body.appendChild(alert);
+                activeAlert = alert;
+
+                setTimeout(() => {
+                    alert.style.opacity = "0";
+                    setTimeout(() => {
+                        alert.remove();
+                        activeAlert = null;
+                    }, 500);
+                }, 2500);
+            }
+
+            const isRecipeIndex = window.location.pathname.toLowerCase().includes("/recipes");
+
             document.addEventListener('submit', async (e) => {
                 const form = e.target;
-                // Only intercept our Favorites/Toggle forms
                 if (!form.matches('form[action*="Favorites/Toggle"]')) return;
                 e.preventDefault();
 
-                const fd = new FormData(form);
+                const icon = form.querySelector('i');
+                if (!icon) return;
+
+                const recipeName = form.dataset.recipeName || "Recipe";
+                const wasFav = icon.classList.contains('bi-star-fill');
+
+                // Optimistic UI feedback
+                icon.classList.toggle('bi-star');
+                icon.classList.toggle('bi-star-fill');
+                icon.classList.toggle('unchecked');
+
                 try {
-                    await fetch(form.action, {
+                    const res = await fetch(form.action, {
                         method: 'POST',
-                        body: fd,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' } // signal AJAX to server
+                        body: new FormData(form),
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
 
-                    // Optimistic UI: flip the star icon immediately
-                    const icon = form.querySelector('i');
-                    if (icon) {
-                        icon.classList.toggle('bi-star');
-                        icon.classList.toggle('bi-star-fill');
-                        icon.classList.toggle('unchecked');
+                    if (!res.ok) throw new Error();
+
+                    showAlert(wasFav
+                        ? `Removed '${recipeName}' from favorites.`
+                        : `Added '${recipeName}' to favorites!`);
+
+                    // Fade out card if removing from favorites tab
+                    if (isRecipeIndex && window.location.search.includes("scope=favorites") && wasFav) {
+                        const card = form.closest('.recipe-card');
+                        if (card) {
+                            card.style.transition = "opacity 0.5s ease";
+                            card.style.opacity = "0";
+                            setTimeout(() => card.remove(), 500);
+                        }
                     }
+
                 } catch {
-                    // Optionally show a toast/alert; ignoring for now to keep UX smooth
+                    // Revert star on failure
+                    icon.classList.toggle('bi-star');
+                    icon.classList.toggle('bi-star-fill');
+                    icon.classList.toggle('unchecked');
+                    showAlert(`Something went wrong with '${recipeName}'. Please try again.`, "danger");
                 }
-                // No redirect or scrolling — user stays in place
             });
         </script>
     }

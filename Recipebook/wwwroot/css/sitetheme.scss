@@ -533,15 +533,13 @@ main {
         .card-grid {
             display: grid;
             gap: 1.5rem;
-            // mobile
-            grid-template-columns: 1fr;
-            // tablet
+            grid-template-columns: 1fr; // mobile
             @media (min-width: 768px) {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr); // tablet
             }
-            // desktop
+
             @media (min-width: 992px) {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(3, 1fr); // desktop
             }
         }
 
@@ -554,11 +552,18 @@ main {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.2s, box-shadow 0.2s;
-
-            &:hover {
+            transition: transform 0.3s ease, box-shadow 0.2s ease, opacity 0.5s ease;
+            will-change: transform, opacity;
+            // Apply hover only when not fading out
+            &:hover:not(.fading-out) {
                 transform: translateY(-5px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            // Fade-out state for removal
+            &.fading-out {
+                opacity: 0;
+                transform: none; // prevent hover shift
+                pointer-events: none;
             }
 
             .card-overlay {
@@ -579,7 +584,7 @@ main {
             .card-footer {
                 position: relative;
                 z-index: 2;
-                pointer-events: none; // allow overlay to catch clicks
+                pointer-events: none;
             }
 
             .card-header a,
