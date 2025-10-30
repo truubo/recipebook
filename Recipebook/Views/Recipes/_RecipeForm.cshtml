@@ -189,7 +189,13 @@
                             </div>
                         </div>
                         <div class="col">
-                            <input name="Ingredients[__index__].Quantity" class="form-control" type="number"/>
+                            <input name="Ingredients[__index__].Quantity"
+                                   class="form-control"
+                                   type="text"
+                                   inputmode="decimal"
+                                   placeholder="e.g. 0.5, 1.25, 1/2, 1 1/4"
+                                   oninput="this.value = this.value.replace(/[^0-9./,\s+-]/g, '')" />
+
                         </div>
                         <div class="col">
                             <select name="Ingredients[__index__].Unit" class="form-control">
