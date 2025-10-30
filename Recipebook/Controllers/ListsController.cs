@@ -98,7 +98,6 @@ namespace Recipebook.Controllers
         // Adds optional search by list Name via ?searchString=...
         public async Task<IActionResult> Index(string? searchString, string? scope)
         {
-            // Identity basics: Get current user's Id and Email for personalization/logs.
             var uid = _userManager.GetUserId(User)!;
             var myEmail = await _context.Users
                 .Where(u => u.Id == uid)
@@ -107,20 +106,22 @@ namespace Recipebook.Controllers
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
-            // Base query setup
             IQueryable<Recipebook.Models.List> listQ;
 
+            // 🧩 ALL SCOPES NOW INCLUDE INGREDIENT RECIPES CHAIN
             if (scope == "mine")
             {
                 listQ = _context.Lists
                     .Where(l => !l.IsArchived && l.OwnerId == uid)
                     .Include(l => l.ListRecipes)
                         .ThenInclude(lr => lr.Recipe)
-                    .Include(l => l.ListIngredients)                     // ✅ load ingredient items
+                            .ThenInclude(r => r.IngredientRecipes)
+                                .ThenInclude(ir => ir.Ingredient)
+                    .Include(l => l.ListIngredients)
                         .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
-            else if (scope == "ingredients") // 🧩 Ingredients Lists tab
+            else if (scope == "ingredients")
             {
                 listQ = _context.Lists
                     .Where(l => !l.IsArchived && l.ListType == ListType.Ingredients)
@@ -128,43 +129,30 @@ namespace Recipebook.Controllers
                         .ThenInclude(lr => lr.Recipe)
                             .ThenInclude(r => r.IngredientRecipes)
                                 .ThenInclude(ir => ir.Ingredient)
-                    .Include(l => l.ListIngredients)                     // ✅ ensure ingredient lists load
+                    .Include(l => l.ListIngredients)
                         .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
             else // default: all lists
             {
                 listQ = _context.Lists
-                    .Where(l => !l.IsArchived && (l.OwnerId == uid || l.Private == false))
+                    .Where(l => !l.IsArchived && (l.OwnerId == uid || !l.Private))
                     .Include(l => l.ListRecipes)
                         .ThenInclude(lr => lr.Recipe)
-                    .Include(l => l.ListIngredients)                     // ✅ include ingredients everywhere
+                            .ThenInclude(r => r.IngredientRecipes)
+                                .ThenInclude(ir => ir.Ingredient)
+                    .Include(l => l.ListIngredients)
                         .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
 
-            // Optional title search (applies to both buckets)
             if (!string.IsNullOrWhiteSpace(searchString))
-            {
                 listQ = listQ.Where(l => l.Name.Contains(searchString) && !l.IsArchived);
-            }
 
-            var lists = await listQ
-                .Where(l => !l.IsArchived)
-                .OrderBy(l => l.Name)
-                .ToListAsync();
+            var lists = await listQ.OrderBy(l => l.Name).ToListAsync();
 
-            // Logging example required by assignment/narrative.
-            _logger.LogInformation(
-                "{Email} navigated to /Views/Lists/Index, loaded {AllCount} lists, search='{Search}'",
-                myEmail, lists.Count, searchString ?? string.Empty);
-
-            // For the view: map OwnerId -> OwnerEmail so we can display who owns what.
-            var ownerIds = lists
-                .Select(l => l.OwnerId)
-                .Distinct()
-                .ToList();
-
+            // Build owner email map
+            var ownerIds = lists.Select(l => l.OwnerId).Distinct().ToList();
             var ownerEmails = await _context.Users
                 .Where(u => ownerIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id, u => u.Email);
@@ -173,7 +161,6 @@ namespace Recipebook.Controllers
             ViewBag.SearchString = searchString;
             ViewBag.Scope = scope;
 
-            // ViewModel tailored for the Index view
             var vm = new ListsIndexVm
             {
                 Lists = lists,
@@ -183,6 +170,7 @@ namespace Recipebook.Controllers
 
             return View(vm);
         }
+
 
 
 

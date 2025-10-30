@@ -39,19 +39,35 @@
                 </div>
 
                 @{
-                    // ✅ FIXED: Count items correctly based on ListType.
-                    // If ListType == Ingredients, count ListIngredients; otherwise count ListRecipes.
+                    // Count items based on ListType.
+                    // For Ingredients lists: mirror Details.cshtml — count DISTINCT ingredient names
+                    // aggregated from the recipes attached to this list.
                     int count = 0;
 
                     if (l.ListType == Recipebook.Models.ListType.Ingredients)
                     {
-                        count = l.ListIngredients?.Count() ?? 0;
+                        count = l.ListRecipes?
+                        .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+                        .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+                        .Where(ir => ir?.Ingredient?.Name != null)
+                        .Select(ir => ir!.Ingredient!.Name!.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .Count() ?? 0;
+                    }
+                    else if (l.ListType == Recipebook.Models.ListType.Recipes)
+                    {
+                        // Recipe lists: number of linked recipes
+                        count = l.ListRecipes?.Count() ?? 0;
                     }
                     else
                     {
-                        count = l.ListRecipes?.Count() ?? 0;
+                        // Fallback for any future list types
+                        count = 0;
                     }
+
+                    string noun = count == 1 ? "item" : "items";
                 }
+
 
                 @* List type + pluralized item count *@
                 <p class="card-text">
