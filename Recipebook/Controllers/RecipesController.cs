@@ -282,11 +282,13 @@ namespace Recipebook.Controllers
                 // 3) Add ingredients (already filtered to valid rows)
                 foreach (var ingredientVm in vm.Ingredients)
                 {
+                    TryParseQuantity(ingredientVm.QuantityText, out var qty);
+
                     _context.IngredientRecipes.Add(new IngredientRecipe
                     {
                         RecipeId = vm.Recipe.Id,
                         IngredientId = ingredientVm.IngredientId,
-                        Quantity = ingredientVm.Quantity,
+                        Quantity = qty,
                         Unit = ingredientVm.Unit   // Enum binder OK; EF converts to string per OnModelCreating
                     });
                 }
@@ -369,7 +371,7 @@ namespace Recipebook.Controllers
                         {
                             IngredientId = ir.IngredientId,
                             IngredientName = ing.Name,
-                            Quantity = ir.Quantity,
+                            QuantityText = ir.Quantity.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture),
                             Unit = ir.Unit
                         };
                     })
@@ -450,11 +452,13 @@ namespace Recipebook.Controllers
 
                 foreach (var ingVm in vm.Ingredients)
                 {
+                    TryParseQuantity(ingVm.QuantityText, out var qty);
+
                     _context.IngredientRecipes.Add(new IngredientRecipe
                     {
                         RecipeId = vm.Recipe.Id,
                         IngredientId = ingVm.IngredientId,
-                        Quantity = ingVm.Quantity,
+                        Quantity = qty,
                         Unit = ingVm.Unit
                     });
                 }
@@ -489,6 +493,7 @@ namespace Recipebook.Controllers
                 _logger.LogError(ex, "Error updating recipe {Id} by user {UserId}. Root: {RootMsg}", vm.Recipe.Id, vm.Recipe.AuthorId, root.Message);
                 TempData["Error"] = "An error occurred while updating the recipe.";
             }
+
 
             ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
             ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
@@ -633,7 +638,7 @@ namespace Recipebook.Controllers
                     .Select(ir => new IngredientSelectViewModel
                     {
                         IngredientId = ir.IngredientId,
-                        Quantity = ir.Quantity,
+                        QuantityText = ir.Quantity.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture),
                         Unit = ir.Unit
                     })
                     .ToList(),
@@ -742,11 +747,13 @@ namespace Recipebook.Controllers
                 // Ingredients
                 foreach (var ingVm in vm.Ingredients)
                 {
+                    TryParseQuantity(ingVm.QuantityText, out var qty);
+
                     _context.IngredientRecipes.Add(new IngredientRecipe
                     {
                         RecipeId = vm.Recipe.Id,
                         IngredientId = ingVm.IngredientId,
-                        Quantity = ingVm.Quantity,
+                        Quantity = qty,
                         Unit = ingVm.Unit
                     });
                 }
@@ -795,6 +802,66 @@ namespace Recipebook.Controllers
 
             return View("Edit", vm);
         }
+
+        // ===== helper methods for decimal/fraction quantity parsing (kept minimal) =====
+        private static bool TryParseQuantity(string? input, out decimal value)
+        {
+            value = 0m;
+            if (string.IsNullOrWhiteSpace(input)) return false;
+
+            var s = input.Trim();
+
+            // Mixed number like "1 1/2"
+            if (s.Contains(' '))
+            {
+                var parts = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 2 &&
+                    int.TryParse(parts[0], System.Globalization.NumberStyles.Integer,
+                                 System.Globalization.CultureInfo.InvariantCulture, out var whole) &&
+                    TryParseFraction(parts[1], out var frac))
+                {
+                    value = whole + frac;
+                    return true;
+                }
+            }
+
+            // Simple fraction "3/4"
+            if (TryParseFraction(s, out var f))
+            {
+                value = f;
+                return true;
+            }
+
+            // Decimal "0.5", "1.25"
+            if (decimal.TryParse(s, System.Globalization.NumberStyles.Number,
+                System.Globalization.CultureInfo.InvariantCulture, out var d))
+            {
+                value = d;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryParseFraction(string s, out decimal value)
+        {
+            value = 0m;
+            var slash = s.IndexOf('/');
+            if (slash <= 0 || slash >= s.Length - 1) return false;
+
+            var numStr = s[..slash].Trim();
+            var denStr = s[(slash + 1)..].Trim();
+
+            if (!decimal.TryParse(numStr, System.Globalization.NumberStyles.Integer,
+                                  System.Globalization.CultureInfo.InvariantCulture, out var num)) return false;
+            if (!decimal.TryParse(denStr, System.Globalization.NumberStyles.Integer,
+                                  System.Globalization.CultureInfo.InvariantCulture, out var den)) return false;
+            if (den == 0) return false;
+
+            value = num / den;
+            return true;
+        }
+        // ==============================================================================
 
         // Utility to check if a recipe exists (used in concurrency handling)
         private bool RecipeExists(int id) => _context.Recipe.Where(r => !r.IsArchived).Any(e => e.Id == id);

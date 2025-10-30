@@ -37,11 +37,10 @@ namespace Recipebook.Models
         public Recipe Recipe { get; set; }
 
         [Required]
-        [Column(TypeName = "int")]
-        public int Quantity { get; set; } = 1;
+        [Column(TypeName = "decimal(10,4)")]
+        public decimal Quantity { get; set; } = 1m;
 
-        [Required, MaxLength(20)]
-        [Column(TypeName = "varchar(20)")]
+        [Required]
         public Unit Unit { get; set; }
     }
 }

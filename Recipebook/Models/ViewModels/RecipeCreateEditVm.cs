@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Recipebook.Models;
 
 namespace Recipebook.Models.ViewModels
@@ -18,12 +19,17 @@ namespace Recipebook.Models.ViewModels
 
     public class IngredientSelectViewModel
     {
+        [Required]
         public int IngredientId { get; set; }
 
         public string IngredientName { get; set; } = string.Empty;
 
-        public int Quantity { get; set; } = 1;
+        // Accept both decimals and fractions (as string input)
+        [Required]
+        [Display(Name = "Quantity")]
+        public string QuantityText { get; set; } = "1";
 
+        [Required]
         public Unit Unit { get; set; } = Unit.Piece;
     }
 }

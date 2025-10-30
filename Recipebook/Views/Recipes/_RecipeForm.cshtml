@@ -100,7 +100,7 @@
                         </div>
                         <div class="col">
                                 @* Basic client guard: require positive quantity (server validates too). *@
-                            <input asp-for="Ingredients[@i].Quantity" class="form-control" type="number" min="1" />
+                            <input asp-for="Ingredients[@i].QuantityText" class="form-control" type="text" inputmode="decimal" placeholder="e.g. 1, 0.5, 1/2" />
                         </div>
                         <div class="col">
                                 @* Unit list from Unit enum; values match enum names for binder. *@
@@ -177,7 +177,7 @@
                 </div>
             </div>
             <div class="col">
-                <input name="Ingredients[__index__].Quantity" class="form-control" type="number" min="1" />
+                <input name="Ingredients[__index__].QuantityText" class="form-control" type="text" inputmode="decimal" placeholder="e.g. 1, 0.5, 1/2" />
             </div>
             <div class="col">
                 <select name="Ingredients[__index__].Unit" class="form-control">
