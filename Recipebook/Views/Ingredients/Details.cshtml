@@ -33,7 +33,7 @@
     </div>
 
     <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Model.Name</h1>
+        <h1 class="recipe-title">@Model?.Name</h1>
 
         @* Show who created the ingredient if email is available *@
         @if (!string.IsNullOrEmpty(ownerEmail))
@@ -52,7 +52,7 @@
         <!-- Simple key/value layout for ingredient info -->
         <dl class="row">
             <dt class="col-sm-2">Name</dt>
-            <dd class="col-sm-10">@Model.Name</dd>
+            <dd class="col-sm-10">@Model?.Name</dd>
         </dl>
     </div>
 </div>

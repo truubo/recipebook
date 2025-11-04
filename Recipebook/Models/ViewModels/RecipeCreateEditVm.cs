@@ -5,7 +5,7 @@ namespace Recipebook.Models.ViewModels
 {
     public class RecipeCreateEditVm
     {
-        public string UpdateButtonText { get; set; }
+        public string? UpdateButtonText { get; set; }
 
         public Recipe Recipe { get; set; } = new Recipe();
 

@@ -37,7 +37,7 @@
                         <ul class="list-inline mb-0">
                             @foreach (var cr in Model.CategoryRecipes)
                             {
-                                <li class="list-inline-item badge bg-info text-dark">@cr.Category.Name</li>
+                                <li class="list-inline-item badge bg-info text-dark">@cr.Category?.Name</li>
                             }
                         </ul>
                     }

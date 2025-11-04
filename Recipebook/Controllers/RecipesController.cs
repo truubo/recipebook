@@ -371,7 +371,7 @@ namespace Recipebook.Controllers
                         return new IngredientSelectViewModel
                         {
                             IngredientId = ir.IngredientId,
-                            IngredientName = ing.Name,
+                            IngredientName = ing?.Name,
                             Quantity = ir.Quantity,
                             Unit = ir.Unit
                         };

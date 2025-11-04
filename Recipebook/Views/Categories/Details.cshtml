@@ -35,7 +35,7 @@
     </div>
 
     <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Model.Name</h1>
+        <h1 class="recipe-title">@Model?.Name</h1>
 
         <div class="author d-flex justify-content-center align-items-center gap-2">
             <span>
@@ -50,7 +50,7 @@
             <span class="badge bg-success text-white">@itemCount</span>
         </h4>
 
-        @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
+        @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
         {
             <ul class="list-group">
                 @foreach (var cr in Model.CategoryRecipes)

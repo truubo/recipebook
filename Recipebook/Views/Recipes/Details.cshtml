@@ -16,7 +16,11 @@
     var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     @* Favorited iff any Favorite row exists for (this user, this recipe). Safe against null Favorites. *@
-    var isFav = User.Identity.IsAuthenticated && (Model.Favorites?.Any(f => f.UserId == uid) ?? false);
+    var isFav = false;
+    if (User.Identity.IsAuthenticated && Model.Favorites != null)
+    {
+        isFav = Model.Favorites.Any(f => f?.UserId == uid);
+    }
 
     @* Gate Edit/Delete by author check (email compare supplied in ViewData by controller). *@
     var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string)ViewData["AuthorEmail"]);
@@ -75,15 +79,15 @@
         <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
             <div>
                 @* Show linked category badges or a muted fallback. *@
-                @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
+                @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
                 {
                     foreach (var cr in Model.CategoryRecipes)
                     {
                         <a asp-controller="Categories"
                            asp-action="Details"
-                           asp-route-id="@cr.Category.Id"
+                           asp-route-id="@cr.Category?.Id"
                            class="badge bg-info text-dark text-decoration-none me-1">
-                            @cr.Category.Name
+                            @cr.Category?.Name
                         </a>
                     }
                 }
@@ -174,7 +178,7 @@
                 @foreach (var ir in Model.IngredientRecipes)
                 {
                     <li class="list-group-item bg-brown border-brown rounded-2">
-                        @_textNormalizer.FormatIngredientDisplay(ir.Quantity.ToString(), ir.Unit, ir.Ingredient.Name)
+                        @_textNormalizer.FormatIngredientDisplay(ir.Quantity.ToString(), ir.Unit, ir.Ingredient?.Name)
                     </li>
                 }
             </ul>
