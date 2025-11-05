@@ -20,7 +20,7 @@
 
         <div class="d-flex gap-2">
             @* Show Edit/Delete only to the ingredient's owner *@
-            @if (User.Identity.IsAuthenticated && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+            @if (User?.Identity?.IsAuthenticated ?? false && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
                     <i class="bi bi-pencil-square"></i>

@@ -98,7 +98,7 @@ namespace Recipebook.Controllers
 
             // Collect recipe titles for readable logs
             var recipeTitles = category.CategoryRecipes
-                .Where(cr => !cr.Recipe.IsArchived)
+                .Where(cr => !cr.Recipe!.IsArchived)
                 .Select(cr => cr.Recipe?.Title)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
                 .ToList();

@@ -61,7 +61,7 @@ namespace Recipebook.Controllers
             if (tagId.HasValue)
             {
                 int cid = tagId.Value;
-                query = query.Where(r => r.CategoryRecipes.Where(cr => !cr.Recipe.IsArchived).Any(cr => cr.CategoryId == cid));
+                query = query.Where(r => r.CategoryRecipes.Where(cr => !cr.Recipe!.IsArchived).Any(cr => cr.CategoryId == cid));
             }
 
             // Tabs: all / mine / favorites
@@ -367,11 +367,11 @@ namespace Recipebook.Controllers
                 SelectedCategories = recipe.CategoryRecipes.Select(cr => cr.CategoryId).ToArray(),
                 Ingredients = recipe.IngredientRecipes
                     .Select(ir => {
-                        Ingredient ing = _context.Ingredient.Find(ir.IngredientId);
+                        Ingredient? ing = _context.Ingredient.Find(ir.IngredientId);
                         return new IngredientSelectViewModel
                         {
                             IngredientId = ir.IngredientId,
-                            IngredientName = ing?.Name,
+                            IngredientName = ing?.Name!,
                             Quantity = ir.Quantity,
                             Unit = ir.Unit
                         };
@@ -437,7 +437,7 @@ namespace Recipebook.Controllers
                 await _context.SaveChangesAsync();
 
                 // Update categories
-                var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id && !cr.Recipe.IsArchived);
+                var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id && !cr.Recipe!.IsArchived);
                 _context.CategoryRecipes.RemoveRange(existingCategories);
 
                 if (vm.SelectedCategories?.Length > 0)
@@ -453,7 +453,7 @@ namespace Recipebook.Controllers
                 }
 
                 // Update ingredients
-                var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id && !ir.Recipe.IsArchived);
+                var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id && !ir.Recipe!.IsArchived);
                 _context.IngredientRecipes.RemoveRange(existingIngredients);
 
                 foreach (var ingVm in vm.Ingredients)
@@ -466,19 +466,6 @@ namespace Recipebook.Controllers
                         Unit = ingVm.Unit
                     });
                 }
-
-                
-
-                //foreach (Direction direction in vm.Recipe.DirectionsList)
-                //{
-                //    // we create a new Direction since the id for the old direction cannot be reused. Let EF generate a new one.
-                //    _context.Direction.Add(new Direction
-                //    {
-                //        RecipeId = vm.Recipe.Id,
-                //        StepNumber = direction.StepNumber,
-                //        StepDescription = direction.StepDescription
-                //    });
-                //}
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();

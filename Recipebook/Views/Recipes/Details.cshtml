@@ -17,13 +17,14 @@
 
     @* Favorited iff any Favorite row exists for (this user, this recipe). Safe against null Favorites. *@
     var isFav = false;
-    if (User.Identity.IsAuthenticated && Model.Favorites != null)
+    if (User?.Identity?.IsAuthenticated ?? false && Model.Favorites != null)
     {
         isFav = Model.Favorites.Any(f => f?.UserId == uid);
     }
 
     @* Gate Edit/Delete by author check (email compare supplied in ViewData by controller). *@
-    var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string)ViewData["AuthorEmail"]);
+    var isOwner = User?.Identity?.IsAuthenticated ?? false && (User.Identity.Name == (string?)ViewData["AuthorEmail"]);
+
 
     @* Lists provided by controller for Add-to-List modal; may be null/empty. *@
     var userLists = ViewBag.UserLists as IEnumerable<SelectListItem>;
@@ -45,7 +46,7 @@
         </a>
 
         <div class="d-flex align-items-center gap-2">
-            @if (User.Identity.IsAuthenticated)
+            @if (User?.Identity?.IsAuthenticated ?? false)
             {
                 @* Quick duplicate/copy action for signed-in users. *@
                 <a asp-action="Copy" asp-route-id="@Model.Id" class="btn btn-primary">
@@ -103,11 +104,11 @@
                 By <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
             </span>
             @* Privacy badge reflects Model.Private. *@
-            <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+            <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
             </span>
             <span>
-                @if (User.Identity.IsAuthenticated)
+                @if (User?.Identity?.IsAuthenticated ?? false)
                 {
                     @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
                     <form asp-controller="Favorites"
@@ -178,7 +179,7 @@
                 @foreach (var ir in Model.IngredientRecipes)
                 {
                     <li class="list-group-item bg-brown border-brown rounded-2">
-                        @_textNormalizer.FormatIngredientDisplay(ir.Quantity.ToString(), ir.Unit, ir.Ingredient?.Name)
+                        @_textNormalizer.FormatIngredientDisplay(ir.Quantity.ToString(), ir.Unit, ir.Ingredient!.Name!)
                     </li>
                 }
             </ul>
@@ -216,7 +217,7 @@
 @* ===============================================================
    Add-to-List Modal (unchanged)
    =============================================================== *@
-@if (User.Identity.IsAuthenticated)
+@if (User?.Identity?.IsAuthenticated ?? false)
 {
     <div class="modal fade add-to-list-modal" tabindex="-1" aria-labelledby="addToListLabel" aria-hidden="true">
         <div class="modal-dialog">

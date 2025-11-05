@@ -51,7 +51,7 @@
 
         <div class="d-flex gap-2 align-items-center">
             @* Owner-only controls *@
-            @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
+            @if (User?.Identity?.IsAuthenticated ?? false && ownerEmail == User.Identity.Name)
             {
                 @* Print is only useful for grocery/ingredients lists *@
                 @if (isIngredientsList)
@@ -80,7 +80,7 @@
             <span>
                 List created by <a href="mailto:@ownerEmail">@ownerEmail</a>
             </span>
-            <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+            <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
             </span>
         </div>
