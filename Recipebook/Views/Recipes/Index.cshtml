@@ -197,7 +197,7 @@
                             <small class="text-muted">By <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a></small>
 
                             @* Owner-only controls (unchanged) *@
-                            @if (isOwner)
+                            @if (isOwner || User.IsInRole("Admin"))
                             {
                                 <div class="btn-group">
                                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>

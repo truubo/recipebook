@@ -25,7 +25,6 @@ namespace Recipebook.Controllers
             _context = context;
             _logger = logger;
             _textNormalizer = textNormalizer;
-
         }
 
         // --------------------------- UTILITY HELPERS ----------------------------
@@ -174,12 +173,15 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            // Owner-only guard
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                // Owner-only guard
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             _logger.LogInformation("{Who} -> /Categories/Edit/{Id} '{Name}'", Who(), category.Id, category.Name);
@@ -207,12 +209,15 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            // Owner-only guard
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(existing.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                // Owner-only guard
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(existing.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             if (ModelState.IsValid)
@@ -268,11 +273,14 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             _logger.LogInformation("{Who} -> /Categories/Delete/{Id} '{Name}'", Who(), category.Id, category.Name);
@@ -297,11 +305,14 @@ namespace Recipebook.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             // Soft-delete the category

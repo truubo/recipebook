@@ -22,7 +22,7 @@
 
         <div class="d-flex gap-2">
             @* Only show Edit/Delete to the category owner *@
-            @if (User.Identity.IsAuthenticated && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+            @if (User.Identity.IsAuthenticated && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier) || User.IsInRole("Admin"))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
                     <i class="bi bi-pencil-square"></i>

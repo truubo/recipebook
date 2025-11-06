@@ -19,12 +19,8 @@ using static Recipebook.Services.CustomFormValidation;
 
 namespace Recipebook.Controllers
 {
-    // No class-level [Authorize]: Index/Details can be viewed without login.
     public class RecipesController : Controller
     {
-        // --------------------------- DEPENDENCIES (DI) ---------------------------
-        // _context: EF Core DbContext (DB access)
-        // _logger:  ILogger for diagnostic/audit logs
         private readonly ApplicationDbContext _context;
         private readonly ILogger<RecipesController> _logger;
         private readonly ITextNormalizationService _textNormalizer;
@@ -39,6 +35,7 @@ namespace Recipebook.Controllers
         // Small helper to pretty-print name lists in logs (e.g., category names)
         private static string JoinNames(IEnumerable<string> names) =>
             "[" + string.Join(", ", names) + "]";
+
 
         // --------------------------------- INDEX ---------------------------------
         // GET: Recipes
@@ -108,9 +105,6 @@ namespace Recipebook.Controllers
 
             return View(recipes);
         }
-
-
-
 
 
         // -------------------------------- DETAILS --------------------------------
@@ -186,6 +180,7 @@ namespace Recipebook.Controllers
 
             return View(recipe);
         }
+
 
         // -------------------------------- CREATE ---------------------------------
         // GET: Recipes/Create
@@ -394,6 +389,36 @@ namespace Recipebook.Controllers
         {
             vm.Recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // If the editor is an Admin, preserve the original recipe AuthorId.
+            // Otherwise, set AuthorId to the current user (normal behavior).
+            if (User.IsInRole("Admin"))
+            {
+                // Try to fetch the existing AuthorId from the DB
+                var existingAuthorId = await _context.Recipe
+                    .AsNoTracking()
+                    .Where(r => r.Id == id)
+                    .Select(r => r.AuthorId)
+                    .FirstOrDefaultAsync();
+
+                if (!string.IsNullOrWhiteSpace(existingAuthorId))
+                {
+                    vm.Recipe.AuthorId = existingAuthorId;
+                    _logger.LogInformation("Admin edit detected for recipe {Id}; preserving original AuthorId {AuthorId}.", id, existingAuthorId);
+                }
+                else
+                {
+                    // Fallback: if somehow the recipe wasn't found, fall back to current user
+                    vm.Recipe.AuthorId = currentUserId ?? string.Empty;
+                    _logger.LogWarning("Admin editing recipe {Id} but original author not found. Falling back to current user {UserId}.", id, currentUserId);
+                }
+            }
+            else
+            {
+                vm.Recipe.AuthorId = currentUserId ?? string.Empty;
+            }
+
             if (string.IsNullOrWhiteSpace(vm.Recipe.AuthorId))
             {
                 ModelState.AddModelError("", "You must be signed in to edit a recipe.");
@@ -467,19 +492,6 @@ namespace Recipebook.Controllers
                     });
                 }
 
-                
-
-                //foreach (Direction direction in vm.Recipe.DirectionsList)
-                //{
-                //    // we create a new Direction since the id for the old direction cannot be reused. Let EF generate a new one.
-                //    _context.Direction.Add(new Direction
-                //    {
-                //        RecipeId = vm.Recipe.Id,
-                //        StepNumber = direction.StepNumber,
-                //        StepDescription = direction.StepDescription
-                //    });
-                //}
-
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
@@ -531,12 +543,16 @@ namespace Recipebook.Controllers
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (recipe == null) return NotFound();
 
-            // Author-only guard
+            // Author-only guard (admin is able to bypass)
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty; // CS8601 fix
-            if (recipe.AuthorId != userId)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("Unauthorized delete GET on recipe {RecipeId} by user {UserId}.", id, userId);
-                return Forbid();
+                if (recipe.AuthorId != userId)
+                {
+                    _logger.LogWarning("Unauthorized delete GET on recipe {RecipeId} by user {UserId}.", id, userId);
+                    return Forbid();
+                }
             }
 
             var who = (await _context.Users.Where(u => u.Id == userId).Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
@@ -564,11 +580,14 @@ namespace Recipebook.Controllers
             if (recipe == null)
                 return RedirectToAction(nameof(Index));
 
-            // Author-only guard
-            if (recipe.AuthorId != userId)
+            // Author-only guard (admin can bypass) 
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("Unauthorized delete POST on recipe {RecipeId} by user {UserId}.", id, userId);
-                return Forbid();
+                if (recipe.AuthorId != userId)
+                {
+                    _logger.LogWarning("Unauthorized delete POST on recipe {RecipeId} by user {UserId}.", id, userId);
+                    return Forbid();
+                }
             }
 
             try

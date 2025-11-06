@@ -40,6 +40,7 @@ namespace Recipebook.Controllers
         // -------------------------------- INDEX ---------------------------------
         // GET: Ingredients
         // Supports optional search (?searchString=...)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? searchString)
         {
             var query = _context.Ingredient.Where(i => !i.IsArchived).AsQueryable();
@@ -57,30 +58,6 @@ namespace Recipebook.Controllers
             ViewBag.SearchString = searchString;
 
             return View(ingredients);
-        }
-
-        // -------------------------------- DETAILS --------------------------------
-        // GET: Ingredients/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                _logger.LogInformation("{Who} -> /Ingredients/Details (null id)", Who());
-                return NotFound();
-            }
-
-            var ingredient = await _context.Ingredient.Where(i => !i.IsArchived).FirstOrDefaultAsync(i => i.Id == id);
-
-            if (ingredient == null)
-            {
-                _logger.LogInformation("{Who} -> /Ingredients/Details/{Id} | not found", Who(), id);
-                return NotFound();
-            }
-
-            _logger.LogInformation("{Who} -> /Ingredients/Details/{Id} '{Name}'",
-                Who(), ingredient.Id, ingredient.Name);
-
-            return View(ingredient);
         }
 
         // -------------------------------- CREATE --------------------------------
@@ -113,7 +90,7 @@ namespace Recipebook.Controllers
                 var acceptHeader = Request.Headers[HeaderNames.Accept].ToString();
                 if (acceptHeader.Contains("application/json", StringComparison.OrdinalIgnoreCase))
                 {
-                    return CreatedAtAction(nameof(Details), new { id = ingredient.Id, name = ingredient.Name }, ingredient);
+                    return CreatedAtAction(nameof(Index), new { id = ingredient.Id, name = ingredient.Name }, ingredient);
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -141,11 +118,14 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Ingredients/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Ingredients/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             _logger.LogInformation("{Who} -> /Ingredients/Edit/{Id} '{Name}'", Who(), ingredient.Id, ingredient.Name);
@@ -172,11 +152,14 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(existing.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Ingredients/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(existing.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Ingredients/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             if (ModelState.IsValid)
@@ -232,11 +215,14 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Ingredients/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Ingredients/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             _logger.LogInformation("{Who} -> /Ingredients/Delete/{Id} '{Name}'", Who(), ingredient.Id, ingredient.Name);
@@ -260,11 +246,14 @@ namespace Recipebook.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Ingredients/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(ingredient.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Ingredients/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             // Soft-delete the ingredient

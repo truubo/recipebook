@@ -12,7 +12,7 @@
 <div class="container ingredient-index-page">
     <div class="index-header">
         <h1>Ingredients</h1>
-        <p class="lead text-muted">Browse ingredients or create your own!</p>
+        <p class="lead text-muted">Browse all ingredients, add new ones, or modify existing!</p>
     </div>
 
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -50,7 +50,7 @@
                     <h5 class="ingredient-name">@item.Name</h5>
 
                     @* Owner-only quick actions *@
-                    @if (User.Identity.IsAuthenticated && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+                    @if (User.Identity.IsAuthenticated && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier) || User.IsInRole("Admin"))
                     {
                         <div class="btn-container">
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>

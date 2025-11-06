@@ -54,7 +54,7 @@
                 </a>
             }
 
-            @if (isOwner)
+            @if (isOwner || User.IsInRole("Admin"))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
                     <i class="bi bi-pencil-square"></i>
