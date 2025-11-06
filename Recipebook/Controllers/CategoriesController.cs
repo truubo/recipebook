@@ -40,6 +40,7 @@ namespace Recipebook.Controllers
         // GET: Categories
         // Shows all categories. Also maps OwnerId -> Email for display.
         // Adds optional search by category name (?searchString=...)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? searchString)
         {
             var query = _context.Category.Where(c => !c.IsArchived).AsQueryable();
@@ -111,6 +112,8 @@ namespace Recipebook.Controllers
 
             _logger.LogInformation("{Who} -> /Categories/Details/{Id} '{Name}' | recipes={Count} [{Titles}]",
                 Who(), category.Id, category.Name, recipeTitles.Count, string.Join(", ", recipeTitles));
+
+            await SetOwnerInfoAsync(new[] { category.OwnerId });
 
             return View(category);
         }
@@ -256,7 +259,7 @@ namespace Recipebook.Controllers
 
         // --------------------------------- DELETE --------------------------------
         // GET: Categories/Delete/5
-        // Shows confirmation. Only owner may delete.
+        // Shows confirmation. Only owner (or admin) may delete.
         [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -338,6 +341,41 @@ namespace Recipebook.Controllers
         private bool CategoryExists(int id)
         {
             return _context.Category.Where(c => !c.IsArchived).Any(e => e.Id == id);
+        }
+
+        protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
+        {
+            var ids = ownerIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
+                return;
+            }
+
+            var adminRoleId = await _context.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var owners = await (
+                from u in _context.Users
+                where ids.Contains(u.Id)
+                join ur in _context.UserRoles on u.Id equals ur.UserId into userRoles
+                from ur in userRoles.DefaultIfEmpty()
+                select new
+                {
+                    u.Id,
+                    u.Email,
+                    IsAdmin = ur != null && ur.RoleId == adminRoleId
+                }
+            ).ToListAsync();
+
+            ViewBag.OwnerInfo = owners
+                .GroupBy(o => o.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                );
         }
     }
 }

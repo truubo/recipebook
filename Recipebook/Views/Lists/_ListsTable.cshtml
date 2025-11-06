@@ -75,8 +75,17 @@
                 </p>
 
                 <div class="card-footer d-flex justify-content-between align-items-center">
-                    @* Owner contact shortcut *@
-                    <small class="text-muted">By <a href="mailto:@ownerEmail">@ownerEmail</a></small>
+                    @{
+                        var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[l.OwnerId];
+                    }
+                    <small class="text-muted">
+                        By
+                        <a href="mailto:@owner.Email">@owner.Email</a>
+                        @if (owner.IsAdmin)
+                        {
+                            <i class="bi bi-shield-fill-check text-brown" title="Admin"></i>
+                        }
+                    </small>
 
                     @* Owner-only actions: Edit/Delete (requires auth + ownership) *@
                     @if (User.Identity.IsAuthenticated && l.OwnerId == myUserId || User.IsInRole("Admin"))

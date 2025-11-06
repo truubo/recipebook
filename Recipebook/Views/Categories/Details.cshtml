@@ -38,8 +38,16 @@
         <h1 class="recipe-title">@Model.Name</h1>
 
         <div class="author d-flex justify-content-center align-items-center gap-2">
+            @{
+                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model.OwnerId];
+            }
             <span>
-                Category created by <a href="mailto:@ownerEmail">@ownerEmail</a>
+                List created by
+                <a href="mailto:@ownerEmail">@ownerEmail</a>
+                @if (owner.IsAdmin)
+                {
+                    <i class="bi bi-shield-fill-check text-brown" title="Admin"></i>
+                }
             </span>
         </div>
     </div>

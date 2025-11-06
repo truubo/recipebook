@@ -11,6 +11,7 @@ using Recipebook.Models.ViewModels;
 using Recipebook.Services;
 using Recipebook.Services.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -103,6 +104,8 @@ namespace Recipebook.Controllers
             ViewBag.TagId = tagId;
             ViewBag.Scope = scope;
 
+            await SetOwnerInfoAsync(recipes.Select(r => r.AuthorId));
+
             return View(recipes);
         }
 
@@ -177,6 +180,8 @@ namespace Recipebook.Controllers
                 who, recipe.Id, recipe.Title, authorEmail, recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]",
                 userLists.Count()
             );
+
+            await SetOwnerInfoAsync(new[] { recipe.AuthorId });
 
             return View(recipe);
         }
@@ -627,6 +632,41 @@ namespace Recipebook.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
+        {
+            var ids = ownerIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
+                return;
+            }
+
+            var adminRoleId = await _context.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var owners = await (
+                from u in _context.Users
+                where ids.Contains(u.Id)
+                join ur in _context.UserRoles on u.Id equals ur.UserId into userRoles
+                from ur in userRoles.DefaultIfEmpty()
+                select new
+                {
+                    u.Id,
+                    u.Email,
+                    IsAdmin = ur != null && ur.RoleId == adminRoleId
+                }
+            ).ToListAsync();
+
+            ViewBag.OwnerInfo = owners
+                .GroupBy(o => o.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                );
         }
 
         [Authorize]

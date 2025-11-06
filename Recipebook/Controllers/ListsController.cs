@@ -1,9 +1,5 @@
 ﻿// Controllers/ListsController.cs
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +9,11 @@ using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Models.ViewModels;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Recipebook.Controllers
 {
@@ -56,6 +57,41 @@ namespace Recipebook.Controllers
                 ["Route"] = route
             };
             return _logger.BeginScope(state) ?? NullScope.Instance;
+        }
+
+        protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
+        {
+            var ids = ownerIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
+                return;
+            }
+
+            var adminRoleId = await _context.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var owners = await (
+                from u in _context.Users
+                where ids.Contains(u.Id)
+                join ur in _context.UserRoles on u.Id equals ur.UserId into userRoles
+                from ur in userRoles.DefaultIfEmpty()
+                select new
+                {
+                    u.Id,
+                    u.Email,
+                    IsAdmin = ur != null && ur.RoleId == adminRoleId
+                }
+            ).ToListAsync();
+
+            ViewBag.OwnerInfo = owners
+                .GroupBy(o => o.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                );
         }
 
         // --------------------------- SMALL FORMAT HELPERS ------------------------
@@ -168,6 +204,8 @@ namespace Recipebook.Controllers
                 MyUserId = uid
             };
 
+            await SetOwnerInfoAsync(lists.Select(l => l.OwnerId));
+
             return View(vm);
         }
 
@@ -236,6 +274,8 @@ namespace Recipebook.Controllers
 
             ViewBag.OwnerEmail = ownerEmail;
             ViewBag.SortType = sortType;
+
+            await SetOwnerInfoAsync(new[] { list.OwnerId });
 
             // Build a readable list of recipe titles for the log line.
             var titles = (list.ListRecipes ?? new List<ListRecipe>())
@@ -366,10 +406,14 @@ namespace Recipebook.Controllers
                 _logger.LogInformation("{Email} navigated to /Views/Lists/Edit/{ListId}, not found", myEmail, id);
                 return NotFound();
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} navigated to /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
-                return Forbid(); // 403 when someone else tries to edit
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} navigated to /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
+                    return Forbid(); // 403 when someone else tries to edit
+                }
             }
 
             list.ListRecipes ??= new List<ListRecipe>();
@@ -408,10 +452,14 @@ namespace Recipebook.Controllers
                 _logger.LogInformation("{Email} submitted /Views/Lists/Edit/{ListId}, not found", myEmail, id);
                 return NotFound();
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} submitted /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
-                return Forbid();
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} submitted /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
+                    return Forbid();
+                }
             }
 
             list.ListRecipes ??= new List<ListRecipe>();
@@ -483,10 +531,14 @@ namespace Recipebook.Controllers
                 _logger.LogInformation("{Email} navigated to /Views/Lists/Delete/{ListId}, not found", myEmail, id);
                 return NotFound();
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} navigated to /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
-                return Forbid();
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} navigated to /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
+                    return Forbid();
+                }
             }
 
             var ownerEmail = await _context.Users
@@ -527,10 +579,13 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            if (list.OwnerId != uid)
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} submitted /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
-                return Forbid();
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} submitted /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
+                    return Forbid();
+                }
             }
 
             // Soft delete the list
@@ -576,11 +631,15 @@ namespace Recipebook.Controllers
                 TempData["Error"] = "That list wasn’t found.";
                 return SafeRedirect(returnUrl);
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
-                TempData["Error"] = "You don’t have permission to modify that list.";
-                return SafeRedirect(returnUrl);
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
+                    TempData["Error"] = "You don’t have permission to modify that list.";
+                    return SafeRedirect(returnUrl);
+                }
             }
 
             // Ensure the recipe exists (prevents FK violations)
