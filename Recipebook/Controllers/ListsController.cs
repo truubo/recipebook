@@ -438,7 +438,21 @@ namespace Recipebook.Controllers
                 .Select(rid => new ListRecipe { ListId = list.Id, RecipeId = rid })
                 .ToList();
 
-            var toRemove = list.ListRecipes.Where(lr => !selected.Contains(lr.RecipeId) && !lr.Recipe.IsArchived).ToList();
+            // Determine which existing links are no longer selected (by RecipeId)
+            var candidateRemoveIds = list.ListRecipes
+                .Where(lr => !selected.Contains(lr.RecipeId))
+                .Select(lr => lr.RecipeId)
+                .ToList();
+
+            // Keep archived recipes from being removed (mimics original intent) without touching lr.Recipe
+            var nonArchivedRemoveIds = await _context.Recipe
+                .Where(r => candidateRemoveIds.Contains(r.Id) && !r.IsArchived)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            var toRemove = list.ListRecipes
+                .Where(lr => nonArchivedRemoveIds.Contains(lr.RecipeId))
+                .ToList();
 
             _context.ListRecipes.RemoveRange(toRemove);
             _context.ListRecipes.AddRange(toAdd);
