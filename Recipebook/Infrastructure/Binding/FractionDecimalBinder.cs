@@ -25,7 +25,7 @@ namespace Recipebook.Infrastructure.Binding
             if (TryParseFractionOrDecimal(s, out var d))
             {
                 // optional: round to 4 places
-                d = Math.Round(d, 4, MidpointRounding.AwayFromZero);
+                d = System.Math.Round(d, 4, System.MidpointRounding.AwayFromZero);
                 ctx.Result = ModelBindingResult.Success(d);
             }
             else
@@ -39,10 +39,24 @@ namespace Recipebook.Infrastructure.Binding
         private static string Normalize(string s)
         {
             // Unicode vulgar fractions → ASCII
-            s = s.Replace("½", "1/2").Replace("¼", "1/4").Replace("¾", "3/4")
-                 .Replace("⅓", "1/3").Replace("⅔", "2/3")
-                 .Replace("⅛", "1/8").Replace("⅜", "3/8")
-                 .Replace("⅝", "5/8").Replace("⅞", "7/8");
+            s = s.Replace("½", "0.5")
+                 .Replace("¼", "0.25")
+                 .Replace("¾", "0.75")
+                 .Replace("⅓", "0.3333")
+                 .Replace("⅔", "0.6667")
+                 .Replace("⅕", "0.2")
+                 .Replace("⅖", "0.4")
+                 .Replace("⅗", "0.6")
+                 .Replace("⅘", "0.8")
+                 .Replace("⅙", "0.1667")
+                 .Replace("⅚", "0.8333")
+                 .Replace("⅐", "0.142857")
+                 .Replace("⅛", "0.125")
+                 .Replace("⅜", "0.375")
+                 .Replace("⅝", "0.625")
+                 .Replace("⅞", "0.875")
+                 .Replace("⅑", "0.111111")
+                 .Replace("⅒", "0.1");
 
             // Comma decimals → dot (so 1,25 works)
             s = s.Replace(',', '.');
@@ -104,5 +118,75 @@ namespace Recipebook.Infrastructure.Binding
             value = num / den;
             return true;
         }
+
+        // ✅ Display-only helper for formatting decimals as readable fractions
+        // Usage in Razor: @FractionDecimalBinder.ToFraction(qty)
+        public static string ToFraction(decimal value)
+        {
+            if (value == 0m) return "0";
+
+            var sign = value < 0 ? "-" : "";
+            value = System.Math.Abs(value);
+
+            var whole = System.Math.Floor(value);
+            var remainder = (double)(value - (decimal)whole);
+
+            const int denom = 16; // round to nearest sixteenth
+            var num = (int)System.Math.Round(remainder * denom);
+
+            // carry if rounded to a whole
+            if (num == denom)
+            {
+                whole += 1;
+                num = 0;
+            }
+
+            if (num == 0) return $"{sign}{whole}";
+
+            // reduce fraction
+            int Gcd(int a, int b)
+            {
+                while (b != 0) { var t = b; b = a % b; a = t; }
+                return a;
+            }
+
+            var g = Gcd(num, denom);
+            num /= g;
+            var reducedDenom = denom / g;
+
+            var text = whole == 0
+                ? $"{sign}{num}/{reducedDenom}"
+                : $"{sign}{whole} {num}/{reducedDenom}";
+
+            // ✅ Convert to pretty glyphs (¼ ½ ¾, etc.)
+            return Pretty(text);
+        }
+
+        private static string Pretty(string s) => s
+                // 1/2, 1/3, 2/3, 1/4, 3/4
+                .Replace(" 1/2", " ½").Replace("1/2", "½")
+                .Replace(" 1/3", " ⅓").Replace("1/3", "⅓")
+                .Replace(" 2/3", " ⅔").Replace("2/3", "⅔")
+                .Replace(" 1/4", " ¼").Replace("1/4", "¼")
+                .Replace(" 3/4", " ¾").Replace("3/4", "¾")
+                // fifths
+                .Replace(" 1/5", " ⅕").Replace("1/5", "⅕")
+                .Replace(" 2/5", " ⅖").Replace("2/5", "⅖")
+                .Replace(" 3/5", " ⅗").Replace("3/5", "⅗")
+                .Replace(" 4/5", " ⅘").Replace("4/5", "⅘")
+                // sixths
+                .Replace(" 1/6", " ⅙").Replace("1/6", "⅙")
+                .Replace(" 5/6", " ⅚").Replace("5/6", "⅚")
+                // sevenths (only 1/7 exists)
+                .Replace(" 1/7", " ⅐").Replace("1/7", "⅐")
+                // eighths
+                .Replace(" 1/8", " ⅛").Replace("1/8", "⅛")
+                .Replace(" 3/8", " ⅜").Replace("3/8", "⅜")
+                .Replace(" 5/8", " ⅝").Replace("5/8", "⅝")
+                .Replace(" 7/8", " ⅞").Replace("7/8", "⅞")
+                // ninths (only 1/9 exists)
+                .Replace(" 1/9", " ⅑").Replace("1/9", "⅑")
+                // tenths (only 1/10 exists)
+                .Replace(" 1/10", " ⅒").Replace("1/10", "⅒");
     }
 }

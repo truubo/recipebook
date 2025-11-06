@@ -2,6 +2,7 @@
 @using System
 @using System.Linq
 @using Recipebook.Models
+@using Recipebook.Infrastructure.Binding
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <link href="/css/print.css" rel="stylesheet" />
@@ -112,40 +113,40 @@
             @if (isIngredientsList)
             {
                 @* Build the aggregated ingredient view-model (code-only; keep Razor happy inside a code block) *@
-                
-                    // 1) Flatten IngredientRecipes across ListRecipes
-                    // 2) Normalize names (Trim), convert quantities to decimal, stringify units
-                    // 3) Group by ingredient name (case-insensitive handled upstream in the count), then by Unit
-                    // 4) Sum quantities per unit; produce a stable order: units alphabetically, then ingredient name
-                    List<IngredientRow> allIngredients = new();
 
-                    if (Model.ListRecipes != null)
+                // 1) Flatten IngredientRecipes across ListRecipes
+                // 2) Normalize names (Trim), convert quantities to decimal, stringify units
+                // 3) Group by ingredient name (case-insensitive handled upstream in the count), then by Unit
+                // 4) Sum quantities per unit; produce a stable order: units alphabetically, then ingredient name
+                List<IngredientRow> allIngredients = new();
+
+                if (Model.ListRecipes != null)
+                {
+                    allIngredients = Model.ListRecipes
+                    .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+                    .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+                    .Where(ir => ir?.Ingredient?.Name != null)
+                    .Select(ir => new
                     {
-                        allIngredients = Model.ListRecipes
-                            .Where(lr => lr?.Recipe?.IngredientRecipes != null)
-                            .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
-                            .Where(ir => ir?.Ingredient?.Name != null)
-                            .Select(ir => new
-                            {
-                                Name = ir!.Ingredient!.Name!.Trim(),
-                                Qty  = Convert.ToDecimal(ir.Quantity),
-                                Unit = ir.Unit.ToString()
-                            })
-                            // Group by ingredient name only
-                            .GroupBy(x => x.Name)
-                            .Select(g => new IngredientRow
-                            {
-                                Name = g.Key,
-                                // Nested grouping by unit with summed quantities
-                                Units = g.GroupBy(x => x.Unit)
-                                         .Select(u => (u.Sum(x => x.Qty), u.Key))
-                                         .OrderBy(u => u.Key)
-                                         .ToList()
-                            })
-                            .OrderBy(r => r.Name)
-                            .ToList();
-                    }
-                
+                        Name = ir!.Ingredient!.Name!.Trim(),
+                        Qty = Convert.ToDecimal(ir.Quantity),
+                        Unit = ir.Unit.ToString()
+                    })
+                    // Group by ingredient name only
+                    .GroupBy(x => x.Name)
+                    .Select(g => new IngredientRow
+                        {
+                            Name = g.Key,
+                            // Nested grouping by unit with summed quantities
+                            Units = g.GroupBy(x => x.Unit)
+                        .Select(u => (u.Sum(x => x.Qty), u.Key))
+                        .OrderBy(u => u.Key)
+                        .ToList()
+                        })
+                    .OrderBy(r => r.Name)
+                    .ToList();
+                }
+
 
                 @* Render the aggregated grocery list *@
                 @if (allIngredients.Any())
@@ -160,7 +161,7 @@
                                     @foreach (var (qty, unit) in ing.Units)
                                     {
                                         var unitDisplay = qty == 1 ? unit : unit + "s";
-                                        <li>@qty.ToString("0.####") @unitDisplay</li>
+                                        <li>@FractionDecimalBinder.ToFraction(qty) @unitDisplay</li>
                                     }
                                 </ul>
                             </li>
