@@ -43,11 +43,13 @@
             }
             <span>
                 List created by
-                <a href="mailto:@ownerEmail">@ownerEmail</a>
-                @if (owner.IsAdmin)
-                {
-                    <i class="bi bi-shield-fill-check text-brown" title="Admin"></i>
-                }
+                <a href="mailto:@ownerEmail">
+                    @if (owner.IsAdmin)
+                    {
+                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                    }
+                    @ownerEmail
+                </a>
             </span>
         </div>
     </div>

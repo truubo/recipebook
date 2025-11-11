@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Recipebook.Models.Recipe>
+﻿@model IEnumerable<Recipe>
 @using Microsoft.AspNetCore.Mvc.Rendering
 @using System.Security.Claims
 
@@ -199,11 +199,14 @@
                             }
 
                             <small class="text-muted">
-                                By <a href="mailto:@owner.Email">@owner.Email</a>
-                                @if (owner.IsAdmin)
-                                {
-                                    <i class="bi bi-shield-fill-check text-brown" title="Admin"></i>
-                                }
+                                By
+                                <a href="mailto:@owner.Email">
+                                    @if (owner.IsAdmin)
+                                    {
+                                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                                    }
+                                    @owner.Email
+                                </a>
                             </small>
 
                             @* Owner-only controls (unchanged) *@
