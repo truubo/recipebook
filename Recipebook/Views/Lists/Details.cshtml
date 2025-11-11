@@ -51,7 +51,7 @@
 
         <div class="d-flex gap-2 align-items-center">
             @* Owner-only controls *@
-            @if (User?.Identity?.IsAuthenticated ?? false && ownerEmail == User.Identity.Name)
+            @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
             {
                 @* Print is only useful for grocery/ingredients lists *@
                 @if (isIngredientsList)

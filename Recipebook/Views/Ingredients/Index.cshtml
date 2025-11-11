@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Recipebook.Models.Ingredient>
+﻿@model IEnumerable<Ingredient>
 @using System.Security.Claims
 
 @{
@@ -50,7 +50,7 @@
                     <h5 class="ingredient-name">@item.Name</h5>
 
                     @* Owner-only quick actions *@
-                    @if (User?.Identity?.IsAuthenticated ?? false && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+                    @if (User.Identity.IsAuthenticated && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
                     {
                         <div class="btn-container">
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>

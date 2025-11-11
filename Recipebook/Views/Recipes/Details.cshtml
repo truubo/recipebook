@@ -23,7 +23,7 @@
     }
 
     @* Gate Edit/Delete by author check (email compare supplied in ViewData by controller). *@
-    var isOwner = User?.Identity?.IsAuthenticated ?? false && (User.Identity.Name == (string?)ViewData["AuthorEmail"]);
+    var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string?)ViewData["AuthorEmail"]);
 
 
     @* Lists provided by controller for Add-to-List modal; may be null/empty. *@

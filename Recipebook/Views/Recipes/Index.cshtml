@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Recipebook.Models.Recipe>
+﻿@model IEnumerable<Recipe>
 @using Microsoft.AspNetCore.Mvc.Rendering
 @using System.Security.Claims
 
@@ -88,7 +88,7 @@
     <!-- ===================== Results Grid ===================== -->
     <div class="index-card">
         <div class="card-grid">
-            @foreach (var item in Model ?? Enumerable.Empty<Recipebook.Models.Recipe>())
+            @foreach (var item in Model ?? Enumerable.Empty<Recipe>())
             {
                 // Show if recipe is public or owned by current user
                 if (!item.Private || item.AuthorEmail == User?.Identity?.Name)
@@ -98,9 +98,9 @@
                             // Current user id (for favorite detection)
                             var uid = User!.FindFirstValue(ClaimTypes.NameIdentifier);
                             // Is this item a favorite for the current user?
-                            var isFav = User?.Identity?.IsAuthenticated ?? false && (item.Favorites?.Any(f => f.UserId == uid) ?? false);
+                            var isFav = User.Identity.IsAuthenticated && (item.Favorites.Any(f => f.UserId == uid));
                             // Owner check (for Edit/Delete visibility in footer)
-                            var isOwner = User?.Identity?.IsAuthenticated ?? false && item.AuthorEmail == User.Identity.Name;
+                            var isOwner = User.Identity.IsAuthenticated && item.AuthorEmail == User.Identity.Name;
                         }
 
                         <!-- ===================== Card Header ===================== -->
