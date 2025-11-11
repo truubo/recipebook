@@ -15,6 +15,8 @@ namespace Recipebook.Models.ViewModels
         public int[] SelectedCategories { get; set; } = new int[0];
 
         public bool IsCopy { get; set; }
+
+        public IFormFile? ImageFile { get; set; }
     }
 
     public class IngredientSelectViewModel

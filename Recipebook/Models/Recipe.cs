@@ -59,6 +59,9 @@ namespace Recipebook.Models
         [Range(0, 999, ErrorMessage = "Cook time must be between 0 and 999 minutes.")]
         public int? CookTimeMinutes { get; set; }
 
+        [Column(TypeName = "nvarchar(2000)")]
+        public string? ImageFileName { get; set; }
+
         [NotMapped]
         public string FormattedPrepTime
         {

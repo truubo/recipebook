@@ -255,6 +255,23 @@ namespace Recipebook.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                if (vm.ImageFile != null)
+                {
+                    string imgDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "recipes");
+                    Directory.CreateDirectory(imgDir); // ensure folder exists
+
+                    string originalFileName = Path.GetFileNameWithoutExtension(vm.ImageFile.FileName);
+                    string ext = Path.GetExtension(vm.ImageFile.FileName);
+                    string safeFile = $"{originalFileName}_{Guid.NewGuid()}{ext}";
+                    string fullPath = Path.Combine(imgDir, safeFile);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await vm.ImageFile.CopyToAsync(stream);
+                    }
+
+                    vm.Recipe.ImageFileName = safeFile;
+                }
                 // 1) Save the recipe to get its generated Id
                 vm.Recipe.Title = _textNormalizer.NormalizeRecipeTitle(vm.Recipe.Title);
 
