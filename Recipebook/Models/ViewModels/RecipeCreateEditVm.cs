@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using Recipebook.Models;
 
 namespace Recipebook.Models.ViewModels
@@ -22,7 +23,9 @@ namespace Recipebook.Models.ViewModels
 
         public string IngredientName { get; set; } = string.Empty;
 
-        public int Quantity { get; set; } = 1;
+        // ✅ changed from int to decimal + binder
+        [ModelBinder(typeof(Recipebook.Infrastructure.Binding.FractionDecimalBinder))]
+        public decimal Quantity { get; set; } = 1m;
 
         public Unit Unit { get; set; } = Unit.Piece;
     }

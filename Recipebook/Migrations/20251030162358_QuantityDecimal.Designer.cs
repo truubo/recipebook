@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Recipebook.Data;
 
@@ -11,9 +12,11 @@ using Recipebook.Data;
 namespace Recipebook.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251030162358_QuantityDecimal")]
+    partial class QuantityDecimal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -287,31 +290,6 @@ namespace Recipebook.Migrations
                     b.ToTable("CategoryRecipes");
                 });
 
-            modelBuilder.Entity("Recipebook.Models.Direction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("RecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StepDescription")
-                        .IsRequired()
-                        .HasColumnType("varchar(2000)");
-
-                    b.Property<int>("StepNumber")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipeId");
-
-                    b.ToTable("Direction");
-                });
-
             modelBuilder.Entity("Recipebook.Models.Favorite", b =>
                 {
                     b.Property<string>("UserId")
@@ -492,6 +470,7 @@ namespace Recipebook.Migrations
                         .HasColumnType("varchar(2000)");
 
                     b.Property<string>("Directions")
+                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("varchar(2000)");
 
@@ -599,15 +578,6 @@ namespace Recipebook.Migrations
                     b.Navigation("Recipe");
                 });
 
-            modelBuilder.Entity("Recipebook.Models.Direction", b =>
-                {
-                    b.HasOne("Recipebook.Models.Recipe", null)
-                        .WithMany("DirectionsList")
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Recipebook.Models.Favorite", b =>
                 {
                     b.HasOne("Recipebook.Models.Recipe", "Recipe")
@@ -696,8 +666,6 @@ namespace Recipebook.Migrations
             modelBuilder.Entity("Recipebook.Models.Recipe", b =>
                 {
                     b.Navigation("CategoryRecipes");
-
-                    b.Navigation("DirectionsList");
 
                     b.Navigation("Favorites");
 

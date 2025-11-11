@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Recipebook.Models
@@ -36,9 +37,11 @@ namespace Recipebook.Models
         public int RecipeId { get; set; }
         public Recipe? Recipe { get; set; }
 
+        // ✅ changed: now supports fractions/decimals
         [Required]
-        [Column(TypeName = "int")]
-        public int Quantity { get; set; } = 1;
+        [ModelBinder(typeof(Recipebook.Infrastructure.Binding.FractionDecimalBinder))]
+        [Column(TypeName = "decimal(10,4)")]
+        public decimal Quantity { get; set; } = 1m;
 
         [Required, MaxLength(20)]
         [Column(TypeName = "varchar(20)")]

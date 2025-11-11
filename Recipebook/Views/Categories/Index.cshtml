@@ -16,7 +16,7 @@
 
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         @* Show create button only to logged-in users *@
-        @if (User?.Identity?.IsAuthenticated ?? false)
+        @if (User?.Identity is { IsAuthenticated: true })
         {
             <a asp-action="Create" class="btn btn-success btn-create">
                 <i class="bi bi-plus-circle"></i> Create

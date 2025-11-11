@@ -39,16 +39,35 @@
                 </div>
 
                 @{
-                    // Compute the number of *active* recipes on the list
-                    // - guard against null ListRecipes
-                    // - include only recipes that exist and are not archived
-                    var activeRecipes = l.ListRecipes?
-                    .Where(lr => lr.Recipe != null && !lr.Recipe.IsArchived)
-                    .ToList()
-                    ?? new List<Recipebook.Models.ListRecipe>();
+                    // Count items based on ListType.
+                    // For Ingredients lists: mirror Details.cshtml — count DISTINCT ingredient names
+                    // aggregated from the recipes attached to this list.
+                    int count = 0;
 
-                    var count = activeRecipes.Count;
+                    if (l.ListType == Recipebook.Models.ListType.Ingredients)
+                    {
+                        count = l.ListRecipes?
+                        .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+                        .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+                        .Where(ir => ir?.Ingredient?.Name != null)
+                        .Select(ir => ir!.Ingredient!.Name!.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .Count() ?? 0;
+                    }
+                    else if (l.ListType == Recipebook.Models.ListType.Recipes)
+                    {
+                        // Recipe lists: number of linked recipes
+                        count = l.ListRecipes?.Count() ?? 0;
+                    }
+                    else
+                    {
+                        // Fallback for any future list types
+                        count = 0;
+                    }
+
+                    string noun = count == 1 ? "item" : "items";
                 }
+
 
                 @* List type + pluralized item count *@
                 <p class="card-text">
@@ -60,7 +79,7 @@
                     <small class="text-muted">By <a href="mailto:@ownerEmail">@ownerEmail</a></small>
 
                     @* Owner-only actions: Edit/Delete (requires auth + ownership) *@
-                    @if (User.Identity.IsAuthenticated && l.OwnerId == myUserId)
+                    @if (User?.Identity is { IsAuthenticated: true } && l.OwnerId == myUserId)
                     {
                         <div class="btn-group">
                             <a asp-action="Edit" asp-route-id="@l.Id" class="btn btn-sm btn-primary">Edit</a>

@@ -1,10 +1,13 @@
-﻿namespace Recipebook.Models
+﻿using System.ComponentModel;
+
+namespace Recipebook.Models
 {
-    // ListType.cs
     public enum ListType
     {
-        Recipes = 0,     // meal plan
-        Ingredients = 1  // grocery list
-    }
+        [Description("Meal plan containing selected recipes")]
+        Recipes = 0,
 
+        [Description("Grocery list of ingredients to shop for")]
+        Ingredients = 1
+    }
 }

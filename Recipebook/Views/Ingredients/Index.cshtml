@@ -17,7 +17,7 @@
 
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         @* Only signed-in users can create new ingredients *@
-        @if (User?.Identity?.IsAuthenticated ?? false)
+        @if (User?.Identity is { IsAuthenticated: true })
         {
             <a asp-action="Create" class="btn btn-success btn-create">
                 <i class="bi bi-plus-circle"></i> Create
@@ -50,7 +50,7 @@
                     <h5 class="ingredient-name">@item.Name</h5>
 
                     @* Owner-only quick actions *@
-                    @if (User.Identity.IsAuthenticated && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
+                    @if (User?.Identity is { IsAuthenticated: true } && item.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier))
                     {
                         <div class="btn-container">
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>

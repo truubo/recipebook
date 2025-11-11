@@ -83,7 +83,7 @@ else
                         View
                     </a>
 
-                    @if (User.Identity?.IsAuthenticated == true && r.AuthorEmail == User.Identity?.Name)
+                        @if (User?.Identity is { IsAuthenticated: true } && r.AuthorEmail == User.Identity?.Name)
                     {
                         <a class="btn btn-sm btn-outline-secondary"
                            asp-controller="Recipes"

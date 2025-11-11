@@ -98,7 +98,6 @@ namespace Recipebook.Controllers
         // Adds optional search by list Name via ?searchString=...
         public async Task<IActionResult> Index(string? searchString, string? scope)
         {
-            // Identity basics: Get current user's Id and Email for personalization/logs.
             var uid = _userManager.GetUserId(User)!;
             var myEmail = await _context.Users
                 .Where(u => u.Id == uid)
@@ -110,67 +109,59 @@ namespace Recipebook.Controllers
             // Base queries (deferred); include recipe link counts for display.
             IQueryable<List>? listQ = null;
 
+            // 🧩 ALL SCOPES NOW INCLUDE INGREDIENT RECIPES CHAIN
             if (scope == "mine")
             {
                 listQ = _context.Lists
-                    .Where(l => !l.IsArchived)
-                    .Where(l => l.OwnerId == uid)
-                    .Include(l => l.ListRecipes)
-                        .ThenInclude(lr => lr.Recipe)
-                    .AsNoTracking();
-            }
-            else if (scope == "ingredients") // 🧩 NEW tab for Ingredients Lists
-            {
-                listQ = _context.Lists
-                    .Where(l => !l.IsArchived)
-                    .Where(l => l.ListType == ListType.Ingredients)  // ✅ only show ingredient-type lists
+                    .Where(l => !l.IsArchived && l.OwnerId == uid)
                     .Include(l => l.ListRecipes)
                         .ThenInclude(lr => lr.Recipe)
                             .ThenInclude(r => r.IngredientRecipes)
                                 .ThenInclude(ir => ir.Ingredient)
+                    .Include(l => l.ListIngredients)
+                        .ThenInclude(li => li.Ingredient)
+                    .AsNoTracking();
+            }
+            else if (scope == "ingredients")
+            {
+                listQ = _context.Lists
+                    .Where(l => !l.IsArchived && l.ListType == ListType.Ingredients)
+                    .Include(l => l.ListRecipes)
+                        .ThenInclude(lr => lr.Recipe)
+                            .ThenInclude(r => r.IngredientRecipes)
+                                .ThenInclude(ir => ir.Ingredient)
+                    .Include(l => l.ListIngredients)
+                        .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
             else // default: all lists
             {
                 listQ = _context.Lists
-                    .Where(l => !l.IsArchived)
-                    .Where(l => l.OwnerId == uid || l.Private == false)
+                    .Where(l => !l.IsArchived && (l.OwnerId == uid || !l.Private))
                     .Include(l => l.ListRecipes)
                         .ThenInclude(lr => lr.Recipe)
+                            .ThenInclude(r => r.IngredientRecipes)
+                                .ThenInclude(ir => ir.Ingredient)
+                    .Include(l => l.ListIngredients)
+                        .ThenInclude(li => li.Ingredient)
                     .AsNoTracking();
             }
 
-            // Optional title search (applies to both buckets)
             if (!string.IsNullOrWhiteSpace(searchString))
-            {
                 listQ = listQ.Where(l => l.Name.Contains(searchString) && !l.IsArchived);
-            }
 
-            var lists = await listQ
-                .Where(l => !l.IsArchived)
-                .OrderBy(l => l.Name)
-                .ToListAsync();
+            var lists = await listQ.OrderBy(l => l.Name).ToListAsync();
 
-            // Logging example required by assignment/narrative.
-            _logger.LogInformation(
-                "{Email} navigated to /Views/Lists/Index, loaded {AllCount} lists, search='{Search}'",
-                myEmail, lists.Count, searchString ?? string.Empty);
-
-            // For the view: map OwnerId -> OwnerEmail so we can display who owns what.
-            var ownerIds = lists
-                .Select(l => l.OwnerId)
-                .Distinct()
-                .ToList();
-
+            // Build owner email map
+            var ownerIds = lists.Select(l => l.OwnerId).Distinct().ToList();
             var ownerEmails = await _context.Users
                 .Where(u => ownerIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id, u => u.Email);
 
-            ViewBag.OwnerEmails = ownerEmails; // simple pass-through container
-            ViewBag.SearchString = searchString; // keep input sticky in the view
+            ViewBag.OwnerEmails = ownerEmails;
+            ViewBag.SearchString = searchString;
             ViewBag.Scope = scope;
 
-            // ViewModel tailored for the Index view
             var vm = new ListsIndexVm
             {
                 Lists = lists,
@@ -180,6 +171,8 @@ namespace Recipebook.Controllers
 
             return View(vm);
         }
+
+
 
 
         // -------------------------------- DETAILS --------------------------------
@@ -446,7 +439,21 @@ namespace Recipebook.Controllers
                 .Select(rid => new ListRecipe { ListId = list.Id, RecipeId = rid })
                 .ToList();
 
-            var toRemove = list.ListRecipes.Where(lr => !selected.Contains(lr.RecipeId) && !lr.Recipe.IsArchived).ToList();
+            // Determine which existing links are no longer selected (by RecipeId)
+            var candidateRemoveIds = list.ListRecipes
+                .Where(lr => !selected.Contains(lr.RecipeId))
+                .Select(lr => lr.RecipeId)
+                .ToList();
+
+            // Keep archived recipes from being removed (mimics original intent) without touching lr.Recipe
+            var nonArchivedRemoveIds = await _context.Recipe
+                .Where(r => candidateRemoveIds.Contains(r.Id) && !r.IsArchived)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            var toRemove = list.ListRecipes
+                .Where(lr => nonArchivedRemoveIds.Contains(lr.RecipeId))
+                .ToList();
 
             _context.ListRecipes.RemoveRange(toRemove);
             _context.ListRecipes.AddRange(toAdd);
