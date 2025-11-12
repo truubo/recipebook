@@ -443,6 +443,23 @@ namespace Recipebook.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                if (vm.ImageFile != null)
+                {
+                    string imgDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "recipes");
+                    Directory.CreateDirectory(imgDir); // ensure folder exists
+
+                    string originalFileName = Path.GetFileNameWithoutExtension(vm.ImageFile.FileName);
+                    string ext = Path.GetExtension(vm.ImageFile.FileName);
+                    string safeFile = $"{originalFileName}_{Guid.NewGuid()}{ext}";
+                    string fullPath = Path.Combine(imgDir, safeFile);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await vm.ImageFile.CopyToAsync(stream);
+                    }
+
+                    vm.Recipe.ImageFileName = safeFile;
+                }
                 var existingDirections = _context.Direction.Where(d => d.RecipeId == vm.Recipe.Id);
                 // Remove all existing directions for the recipe
                 _context.Direction.RemoveRange(existingDirections);
