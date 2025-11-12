@@ -12,8 +12,14 @@
     var ownerEmails = ViewBag.OwnerEmails as Dictionary<string, string>;
 }
 
+@{
+    var visibleLists = lists
+    .Where(l => !l.IsArchived && (!l.Private || l.OwnerId == myUserId))
+    .ToList();
+}
+
 @* Only render UI if there are any non-archived lists to show *@
-@if (lists != null && lists.Where(l => !l.IsArchived).Any())
+@if (visibleLists.Any())
 {
     <div class="card-grid">
         @foreach (var l in lists)
@@ -94,5 +100,5 @@
 else
 {
     @* Empty state for when there are no visible lists *@
-    <div class="alert alert-brown text-center">No lists to show.</div>
+    <div class="alert alert-brown text-center" data-persist="true">No lists to show.</div>
 }
