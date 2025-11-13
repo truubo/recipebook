@@ -14,10 +14,9 @@
 }
 
 @{
-    ViewData["Title"] = "List Details";
+    Layout = null; // prevent the entire layout from loading (navbar and footer not needed)
 
-    // Provided by controller for mailto links / attribution
-    var ownerEmail = ViewBag.OwnerEmail as string;
+    ViewData["Title"] = "List Details";
 
     // For recipes-list: simple count of items attached
     var itemCount = Model.ListRecipes?.Count() ?? 0;
@@ -39,48 +38,18 @@
     }
 }
 
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/Recipebook.styles.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="~/css/sitetheme.css" />
+<link rel="stylesheet" href="~/css/print.css" />
+
 <div class="details-page position-relative">
-
-    @* ===== Header: Back / Print (ingredients only) / Edit / Delete ===== *@
-    <div class="details-actions-top d-flex justify-content-between w-100">
-        <a onclick="history.back()" class="btn btn-brown" title="Back to lists">
-            <i class="bi bi-arrow-left-circle"></i>
-        </a>
-
-        <div class="d-flex gap-2 align-items-center">
-            @* Owner-only controls *@
-            @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
-            {
-                @* Print is only useful for grocery/ingredients lists *@
-                @if (isIngredientsList)
-                {
-                    <a asp-action="PrintFriendly" asp-route-id="@Model?.Id" class="btn btn-primary" title="Print list">
-                        <i class="bi bi-printer"></i>
-                    </a>
-                }
-
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit list">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger" title="Delete list">
-                    <i class="bi bi-trash"></i>
-                </a>
-            }
-        </div>
-    </div>
 
     @* ===== Title + owner info ===== *@
     <div class="details-header text-center mt-5">
         <h1 class="recipe-title">@Model.Name</h1>
-
-        <div class="author d-flex justify-content-center align-items-center gap-2">
-            <span>
-                List created by <a href="mailto:@ownerEmail">@ownerEmail</a>
-            </span>
-            <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
-                @(Model.Private ? "Private" : "Public")
-            </span>
-        </div>
     </div>
 
     @* ===== Body ===== *@
@@ -215,21 +184,6 @@
         }
     </div>
 </div>
-
-@* ===== Client-side sort enhancer (recipes list only). Triggers server-side re-query via ?sortType=... ===== *@
-@if (!isIngredientsList)
-{
-    <script>
-        const sortSelect = document.querySelector("#sortSelect");
-        if (sortSelect) {
-            sortSelect.addEventListener("change", function () {
-                window.location.href = `?sortType=${this.value}`;
-            });
-            sortSelect.querySelectorAll("option").forEach(item => {
-                if (item.value == new URLSearchParams(window.location.search).get("sortType")) {
-                    item.selected = true;
-                }
-            });
-        }
-    </script>
-}
+<script>
+    window.onload = function() { window.print(); }
+</script>
