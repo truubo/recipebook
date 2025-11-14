@@ -46,7 +46,7 @@
         </a>
 
         <div class="d-flex align-items-center gap-2">
-            <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-primary">
+            <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-danger">
                 <i class="bi bi-printer"></i>
             </a>
             @if (User?.Identity is { IsAuthenticated: true })
@@ -62,7 +62,7 @@
                 </a>
             }
 
-            @if (isOwner)
+            @if (isOwner || User.IsInRole("Admin"))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
                     <i class="bi bi-pencil-square"></i>
@@ -103,9 +103,21 @@
         </div>
 
         <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
-            <span>
-                By <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
-            </span>
+            @{
+                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model.AuthorId];
+            }
+
+            <small class="text-muted">
+                By 
+                <a href="mailto:@owner.Email">
+                    @if (owner.IsAdmin)
+                    {
+                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                    }
+                    @owner.Email
+                </a>
+            </small>
+
             @* Privacy badge reflects Model.Private. *@
             <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")

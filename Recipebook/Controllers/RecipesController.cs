@@ -11,6 +11,7 @@ using Recipebook.Models.ViewModels;
 using Recipebook.Services;
 using Recipebook.Services.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -19,12 +20,8 @@ using static Recipebook.Services.CustomFormValidation;
 
 namespace Recipebook.Controllers
 {
-    // No class-level [Authorize]: Index/Details can be viewed without login.
     public class RecipesController : Controller
     {
-        // --------------------------- DEPENDENCIES (DI) ---------------------------
-        // _context: EF Core DbContext (DB access)
-        // _logger:  ILogger for diagnostic/audit logs
         private readonly ApplicationDbContext _context;
         private readonly ILogger<RecipesController> _logger;
         private readonly ITextNormalizationService _textNormalizer;
@@ -39,6 +36,7 @@ namespace Recipebook.Controllers
         // Small helper to pretty-print name lists in logs (e.g., category names)
         private static string JoinNames(IEnumerable<string> names) =>
             "[" + string.Join(", ", names) + "]";
+
 
         // --------------------------------- INDEX ---------------------------------
         // GET: Recipes
@@ -106,11 +104,10 @@ namespace Recipebook.Controllers
             ViewBag.TagId = tagId;
             ViewBag.Scope = scope;
 
+            await SetOwnerInfoAsync(recipes.Select(r => r.AuthorId));
+
             return View(recipes);
         }
-
-
-
 
 
         // -------------------------------- DETAILS --------------------------------
@@ -183,6 +180,8 @@ namespace Recipebook.Controllers
                 who, recipe.Id, recipe.Title, authorEmail, recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]",
                 userLists.Count()
             );
+
+            await SetOwnerInfoAsync(new[] { recipe.AuthorId });
 
             return View(recipe);
         }
@@ -257,8 +256,11 @@ namespace Recipebook.Controllers
                 userLists.Count()
             );
 
+            await SetOwnerInfoAsync(new[] { recipe.AuthorId });
+
             return View(recipe);
         }
+
 
         // -------------------------------- CREATE ---------------------------------
         // GET: Recipes/Create
@@ -467,6 +469,36 @@ namespace Recipebook.Controllers
         {
             vm.Recipe.AuthorId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // If the editor is an Admin, preserve the original recipe AuthorId.
+            // Otherwise, set AuthorId to the current user (normal behavior).
+            if (User.IsInRole("Admin"))
+            {
+                // Try to fetch the existing AuthorId from the DB
+                var existingAuthorId = await _context.Recipe
+                    .AsNoTracking()
+                    .Where(r => r.Id == id)
+                    .Select(r => r.AuthorId)
+                    .FirstOrDefaultAsync();
+
+                if (!string.IsNullOrWhiteSpace(existingAuthorId))
+                {
+                    vm.Recipe.AuthorId = existingAuthorId;
+                    _logger.LogInformation("Admin edit detected for recipe {Id}; preserving original AuthorId {AuthorId}.", id, existingAuthorId);
+                }
+                else
+                {
+                    // Fallback: if somehow the recipe wasn't found, fall back to current user
+                    vm.Recipe.AuthorId = currentUserId ?? string.Empty;
+                    _logger.LogWarning("Admin editing recipe {Id} but original author not found. Falling back to current user {UserId}.", id, currentUserId);
+                }
+            }
+            else
+            {
+                vm.Recipe.AuthorId = currentUserId ?? string.Empty;
+            }
+
             if (string.IsNullOrWhiteSpace(vm.Recipe.AuthorId))
             {
                 ModelState.AddModelError("", "You must be signed in to edit a recipe.");
@@ -591,12 +623,16 @@ namespace Recipebook.Controllers
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (recipe == null) return NotFound();
 
-            // Author-only guard
+            // Author-only guard (admin is able to bypass)
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty; // CS8601 fix
-            if (recipe.AuthorId != userId)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("Unauthorized delete GET on recipe {RecipeId} by user {UserId}.", id, userId);
-                return Forbid();
+                if (recipe.AuthorId != userId)
+                {
+                    _logger.LogWarning("Unauthorized delete GET on recipe {RecipeId} by user {UserId}.", id, userId);
+                    return Forbid();
+                }
             }
 
             var who = (await _context.Users.Where(u => u.Id == userId).Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
@@ -624,11 +660,14 @@ namespace Recipebook.Controllers
             if (recipe == null)
                 return RedirectToAction(nameof(Index));
 
-            // Author-only guard
-            if (recipe.AuthorId != userId)
+            // Author-only guard (admin can bypass) 
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("Unauthorized delete POST on recipe {RecipeId} by user {UserId}.", id, userId);
-                return Forbid();
+                if (recipe.AuthorId != userId)
+                {
+                    _logger.LogWarning("Unauthorized delete POST on recipe {RecipeId} by user {UserId}.", id, userId);
+                    return Forbid();
+                }
             }
 
             try
@@ -668,6 +707,41 @@ namespace Recipebook.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
+        {
+            var ids = ownerIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
+                return;
+            }
+
+            var adminRoleId = await _context.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var owners = await (
+                from u in _context.Users
+                where ids.Contains(u.Id)
+                join ur in _context.UserRoles on u.Id equals ur.UserId into userRoles
+                from ur in userRoles.DefaultIfEmpty()
+                select new
+                {
+                    u.Id,
+                    u.Email,
+                    IsAdmin = ur != null && ur.RoleId == adminRoleId
+                }
+            ).ToListAsync();
+
+            ViewBag.OwnerInfo = owners
+                .GroupBy(o => o.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                );
         }
 
         [Authorize]

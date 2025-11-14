@@ -194,10 +194,23 @@
 
                         <!-- ===================== Card Footer ===================== -->
                         <div class="card-footer d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a></small>
+                            @{
+                                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[item.AuthorId];
+                            }
+
+                            <small class="text-muted">
+                                By
+                                <a href="mailto:@owner.Email">
+                                    @if (owner.IsAdmin)
+                                    {
+                                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                                    }
+                                    @owner.Email
+                                </a>
+                            </small>
 
                             @* Owner-only controls (unchanged) *@
-                            @if (isOwner)
+                            @if (isOwner || User.IsInRole("Admin"))
                             {
                                 <div class="btn-group">
                                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>

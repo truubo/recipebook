@@ -57,7 +57,7 @@
 
         <div class="d-flex gap-2 align-items-center">
             @* Owner-only controls *@
-            @if (User?.Identity is { IsAuthenticated: true } && ownerEmail == User.Identity.Name)
+            @if (User?.Identity is { IsAuthenticated: true } && ownerEmail == User.Identity.Name || User.IsInRole("Admin"))
             {
                 @* Print is only useful for grocery/ingredients lists *@
                 @if (isIngredientsList)
@@ -82,8 +82,18 @@
         <h1 class="recipe-title">@Model?.Name</h1>
 
         <div class="author d-flex justify-content-center align-items-center gap-2">
+            @{
+                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model.OwnerId];
+            }
             <span>
-                List created by <a href="mailto:@ownerEmail">@ownerEmail</a>
+                List created by
+                <a href="mailto:@ownerEmail">
+                    @if (owner.IsAdmin)
+                    {
+                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                    }
+                    @ownerEmail
+                </a>
             </span>
             <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
