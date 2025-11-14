@@ -106,7 +106,8 @@ namespace Recipebook.Controllers
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
-            IQueryable<Recipebook.Models.List> listQ;
+            // Base queries (deferred); include recipe link counts for display.
+            IQueryable<List>? listQ = null;
 
             // 🧩 ALL SCOPES NOW INCLUDE INGREDIENT RECIPES CHAIN
             if (scope == "mine")

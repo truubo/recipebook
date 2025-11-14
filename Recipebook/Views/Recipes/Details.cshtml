@@ -16,10 +16,15 @@
     var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     @* Favorited iff any Favorite row exists for (this user, this recipe). Safe against null Favorites. *@
-    var isFav = User.Identity.IsAuthenticated && (Model.Favorites?.Any(f => f.UserId == uid) ?? false);
+    var isFav = false;
+    if (User?.Identity is { IsAuthenticated: true } && Model.Favorites != null)
+    {
+        isFav = Model.Favorites.Any(f => f?.UserId == uid);
+    }
 
     @* Gate Edit/Delete by author check (email compare supplied in ViewData by controller). *@
-    var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string)ViewData["AuthorEmail"]);
+    var isOwner = User?.Identity is { IsAuthenticated: true } && (User.Identity.Name == (string?)ViewData["AuthorEmail"]);
+
 
     @* Lists provided by controller for Add-to-List modal; may be null/empty. *@
     var userLists = ViewBag.UserLists as IEnumerable<SelectListItem>;
@@ -44,7 +49,7 @@
             <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-primary">
                 <i class="bi bi-printer"></i>
             </a>
-            @if (User.Identity.IsAuthenticated)
+            @if (User?.Identity is { IsAuthenticated: true })
             {
                 @* Quick duplicate/copy action for signed-in users. *@
                 <a asp-action="Copy" asp-route-id="@Model.Id" class="btn btn-primary">
@@ -78,15 +83,15 @@
         <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
             <div>
                 @* Show linked category badges or a muted fallback. *@
-                @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
+                @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
                 {
                     foreach (var cr in Model.CategoryRecipes)
                     {
                         <a asp-controller="Categories"
                            asp-action="Details"
-                           asp-route-id="@cr.Category.Id"
+                           asp-route-id="@cr.Category?.Id"
                            class="badge bg-info text-dark text-decoration-none me-1">
-                            @cr.Category.Name
+                            @cr.Category?.Name
                         </a>
                     }
                 }
@@ -102,11 +107,11 @@
                 By <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
             </span>
             @* Privacy badge reflects Model.Private. *@
-            <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+            <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
             </span>
             <span>
-                @if (User.Identity.IsAuthenticated)
+                @if (User?.Identity is { IsAuthenticated: true })
                 {
                     @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
                     <form asp-controller="Favorites"
@@ -228,7 +233,7 @@
 @* ===============================================================
    Add-to-List Modal (unchanged)
    =============================================================== *@
-@if (User.Identity.IsAuthenticated)
+@if (User?.Identity is { IsAuthenticated: true })
 {
     <div class="modal fade add-to-list-modal" tabindex="-1" aria-labelledby="addToListLabel" aria-hidden="true">
         <div class="modal-dialog">

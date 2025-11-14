@@ -57,7 +57,7 @@
 
         <div class="d-flex gap-2 align-items-center">
             @* Owner-only controls *@
-            @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
+            @if (User?.Identity is { IsAuthenticated: true } && ownerEmail == User.Identity.Name)
             {
                 @* Print is only useful for grocery/ingredients lists *@
                 @if (isIngredientsList)
@@ -79,13 +79,13 @@
 
     @* ===== Title + owner info ===== *@
     <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Model.Name</h1>
+        <h1 class="recipe-title">@Model?.Name</h1>
 
         <div class="author d-flex justify-content-center align-items-center gap-2">
             <span>
                 List created by <a href="mailto:@ownerEmail">@ownerEmail</a>
             </span>
-            <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+            <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
             </span>
         </div>
@@ -274,7 +274,7 @@
                         {
                             <a asp-controller="Recipes"
                                asp-action="Details"
-                               asp-route-id="@lr.Recipe.Id"
+                               asp-route-id="@lr?.Recipe?.Id"
                                class="list-group-item my-1 text-decoration-none custom-list-item">
 
                                 <div>
