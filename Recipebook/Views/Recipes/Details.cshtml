@@ -46,7 +46,7 @@
         </a>
 
         <div class="d-flex align-items-center gap-2">
-            <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-primary">
+            <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-danger">
                 <i class="bi bi-printer"></i>
             </a>
             @if (User?.Identity is { IsAuthenticated: true })

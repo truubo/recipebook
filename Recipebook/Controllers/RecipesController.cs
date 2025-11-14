@@ -181,6 +181,8 @@ namespace Recipebook.Controllers
                 userLists.Count()
             );
 
+            await SetOwnerInfoAsync(new[] { recipe.AuthorId });
+
             return View(recipe);
         }
 

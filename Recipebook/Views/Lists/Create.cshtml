@@ -36,23 +36,22 @@
                 <div class="mb-3">
                     <label asp-for="List.ListType" class="form-label fw-bold">Type</label>
 
-                    <select asp-for="List.ListType" class="form-select" id="listTypeSelect">
-                        @foreach (var value in Enum.GetValues(typeof(Recipebook.Models.ListType)).Cast<Recipebook.Models.ListType>())
+                    @{
+                        var listTypeItems = Enum.GetValues(typeof(Recipebook.Models.ListType))
+                        .Cast<Recipebook.Models.ListType>()
+                        .Select(e =>
                         {
-                            var field = value.GetType().GetField(value.ToString());
+                            var field = e.GetType().GetField(e.ToString());
                             var attr = (System.ComponentModel.DescriptionAttribute?)Attribute
-                            .GetCustomAttribute(field!, typeof(System.ComponentModel.DescriptionAttribute));
+                                            .GetCustomAttribute(field!, typeof(System.ComponentModel.DescriptionAttribute));
+                            var text = string.IsNullOrWhiteSpace(attr?.Description)
+                                            ? e.ToString()
+                                            : $"{e} — {attr.Description}";
+                            return new SelectListItem { Value = ((int)e).ToString(), Text = text, Selected = (Model.List.ListType == e) };
+                        }).ToList();
+                    }
 
-                            var name = value.ToString();
-                            var desc = attr?.Description;
-                            var text = string.IsNullOrWhiteSpace(desc) ? name : $"{name} — {desc}";
-
-                            <select asp-for="List.ListType"
-                                    asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"
-                                    class="form-control">
-                            </select>
-                        }
-                    </select>
+                    <select asp-for="List.ListType" asp-items="listTypeItems" class="form-select" id="listTypeSelect"></select>
 
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
