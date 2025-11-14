@@ -62,7 +62,7 @@
                 </a>
             }
 
-            @if (isOwner || User.IsInRole("Admin"))
+            @if (isOwner || User!.IsInRole("Admin"))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
                     <i class="bi bi-pencil-square"></i>
@@ -104,7 +104,7 @@
 
         <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
             @{
-                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model.AuthorId];
+                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model?.AuthorId!];
             }
 
             <small class="text-muted">
@@ -219,25 +219,12 @@
 
         <h4 class="section-title mt-4">Directions</h4>
         <link rel="stylesheet" href="/css/directions.css" />
-        @* Ensure recipes created before the directions overhaul still show directions *@
-        @if (Model.DirectionsList == null || !Model.DirectionsList.Any())
+        @foreach (Direction d in Model.DirectionsList)
         {
-            if (Model.Directions != null)
-            {
-                <p>@Model.Directions</p>
-            } else
-            {
-                <p>No directions.</p>
-            }
-        } else
-        {
-            foreach (Direction d in Model.DirectionsList)
-            {
-                    <div class="direction p-3 bg-brown border-brown rounded-2">
-                        <div class="step-number">@d.StepNumber</div>
-                        <div class="text">@d.StepDescription</div>
-                    </div>
-            }
+            <div class="direction p-3 bg-brown border-brown rounded-2">
+                <div class="step-number">@d.StepNumber</div>
+                <div class="text">@d.StepDescription</div>
+            </div>
         }
     </div>
 </div>
