@@ -5,8 +5,6 @@
 @using Recipebook.Infrastructure.Binding
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<link href="/css/print.css" rel="stylesheet" />
-
 @functions {
     // View-only DTO so the aggregation is strongly-typed (cleaner than anonymous types for later rendering)
     public class IngredientRow
@@ -59,15 +57,14 @@
 
         <div class="d-flex gap-2 align-items-center">
             @* Owner-only controls *@
-            @if (User.Identity.IsAuthenticated && ownerEmail == User.Identity.Name)
+            @if (User?.Identity is { IsAuthenticated: true } && ownerEmail == User.Identity.Name || User.IsInRole("Admin"))
             {
                 @* Print is only useful for grocery/ingredients lists *@
                 @if (isIngredientsList)
                 {
-                    <button type="button" class="btn btn-brown print-btn" onclick="window.print()" title="Print list">
-                        <i class="bi bi-printer me-1"></i>
-                        <span>Print List</span>
-                    </button>
+                    <a asp-action="PrintFriendly" asp-route-id="@Model?.Id" class="btn btn-primary" title="Print list">
+                        <i class="bi bi-printer"></i>
+                    </a>
                 }
 
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit list">
@@ -82,13 +79,23 @@
 
     @* ===== Title + owner info ===== *@
     <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Model.Name</h1>
+        <h1 class="recipe-title">@Model?.Name</h1>
 
         <div class="author d-flex justify-content-center align-items-center gap-2">
+            @{
+                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model.OwnerId];
+            }
             <span>
-                List created by <a href="mailto:@ownerEmail">@ownerEmail</a>
+                List created by
+                <a href="mailto:@ownerEmail">
+                    @if (owner.IsAdmin)
+                    {
+                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                    }
+                    @ownerEmail
+                </a>
             </span>
-            <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
+            <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                 @(Model.Private ? "Private" : "Public")
             </span>
         </div>
@@ -277,7 +284,7 @@
                         {
                             <a asp-controller="Recipes"
                                asp-action="Details"
-                               asp-route-id="@lr.Recipe.Id"
+                               asp-route-id="@lr?.Recipe?.Id"
                                class="list-group-item my-1 text-decoration-none custom-list-item">
 
                                 <div>

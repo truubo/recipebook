@@ -37,10 +37,10 @@
                             var desc = attr?.Description;
                             var text = string.IsNullOrWhiteSpace(desc) ? name : $"{name} — {desc}";
 
-                            <option value="@((int)value)"
-                                    selected="@( (int)value == (int)Model.List.ListType ? "selected" : null)">
-                                @text
-                            </option>
+                            <select asp-for="List.ListType"
+                                    asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"
+                                    class="form-control">
+                            </select>
                         }
                     </select>
                     <span asp-validation-for="List.ListType" class="text-danger"></span>

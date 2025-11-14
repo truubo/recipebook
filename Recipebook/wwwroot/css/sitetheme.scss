@@ -409,6 +409,11 @@ textarea.form-control {
     color: white !important;
 }
 
+// Admin shield
+i.bi.bi-shield-fill-check::before {
+    color: $red !important;
+}
+
 // ------------------------------
 // Form inputs
 // ------------------------------
