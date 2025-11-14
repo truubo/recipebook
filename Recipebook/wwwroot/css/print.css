@@ -1,24 +1,28 @@
-﻿@media print {
-    body {
-        background-color: #fff;
-        color: black;
-    }
-
-    header,
-    button,
-    footer,
-    .details-actions-top,
-    .author,
-    .details-body > div.d-flex {
-        display: none !important;
-    }
-
-    .details-page {
-        max-width: none;
-        margin: 0;
-        padding: 0;
-        background-color: white;
-        border: none;
-        box-shadow: none;
-    }
+﻿body {
+    background-color: #fff;
+    color: #000 !important;
 }
+
+header,
+button,
+footer,
+.details-actions-top,
+.author,
+.details-body > div.d-flex {
+    display: none !important;
+}
+
+.details-page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    border: none;
+    box-shadow: none;
+}
+
+.direction, li.list-group-item {
+    border: 1px solid black !important;
+    background: none !important;
+    color: #000 !important;
+} 

@@ -22,7 +22,7 @@
 
         <div class="d-flex gap-2">
             @* Only show Edit/Delete to the category owner *@
-            @if (User.Identity.IsAuthenticated && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier) || User.IsInRole("Admin"))
+            @if (User?.Identity is { IsAuthenticated: true } && Model?.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier) || User.IsInRole("Admin"))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
                     <i class="bi bi-pencil-square"></i>
@@ -35,7 +35,7 @@
     </div>
 
     <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Model.Name</h1>
+        <h1 class="recipe-title">@Model?.Name</h1>
 
         <div class="author d-flex justify-content-center align-items-center gap-2">
             @{
@@ -60,7 +60,7 @@
             <span class="badge bg-success text-white">@itemCount</span>
         </h4>
 
-        @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
+        @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
         {
             <ul class="list-group">
                 @foreach (var cr in Model.CategoryRecipes)

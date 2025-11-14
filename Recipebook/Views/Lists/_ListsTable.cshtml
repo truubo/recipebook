@@ -90,7 +90,7 @@
                     </small>
 
                     @* Owner-only actions: Edit/Delete (requires auth + ownership) *@
-                    @if (User.Identity.IsAuthenticated && l.OwnerId == myUserId || User.IsInRole("Admin"))
+                    @if (User?.Identity is { IsAuthenticated: true } && l.OwnerId == myUserId || User.IsInRole("Admin"))
                     {
                         <div class="btn-group">
                             <a asp-action="Edit" asp-route-id="@l.Id" class="btn btn-sm btn-primary">Edit</a>

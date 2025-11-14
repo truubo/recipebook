@@ -1,24 +1,25 @@
 ﻿@model Recipebook.Models.ViewModels.RecipeCreateEditVm
 
 @{
-    @* Decide target action based on VM-provided button text (set by controller). *@
     string action = Model.UpdateButtonText == "Create" ? "Create" : "Edit";
 }
 
 <style>
-
+    #categoriesDropdown .dropdown-item.active,
+    #categoriesDropdown .dropdown-item:active {
+        background-color: #6b3b3b !important;
+        color: #f2e5cf !important;
+    }
 </style>
+
 <div class="card shadow-sm mb-4">
     <div class="card-body">
         <form asp-action="@action" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            @* Include key when editing so binder targets existing entity. *@
-            @{
-                if (action != "Create")
-                {
-                    <input type="hidden" asp-for="Recipe.Id" />
-                }
+            @if (action != "Create")
+            {
+                <input type="hidden" asp-for="Recipe.Id" />
             }
 
             <div class="mb-3">
@@ -34,15 +35,59 @@
                 </label>
             </div>
 
-            @* Multi-select categories: name matches VM property SelectedCategories for binding. *@
+            @* ===== CATEGORIES ===== *@
             <div class="mb-3">
                 <label class="form-label fw-bold">Categories</label>
-                <select name="SelectedCategories"
-                        asp-items="ViewBag.AllCategories"
-                        multiple="multiple"
-                        class="form-control">
-                </select>
+
+                <div class="dropdown" id="categoriesDropdown" data-bs-auto-close="outside">
+                    <select id="SelectedCategories"
+                            name="SelectedCategories"
+                            asp-items="ViewBag.AllCategories"
+                            multiple="multiple"
+                            class="d-none">
+                    </select>
+
+                    <button class="form-control dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        <span id="categoriesDropdownText">Select categories...</span>
+                    </button>
+
+                    <ul class="dropdown-menu p-2">
+                        <li>
+                            <input type="text"
+                                   class="form-control my-2"
+                                   placeholder="Search..."
+                                   oninput="searchCategories(this)" />
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item btn-success" onclick="promptNewCategory()">
+                                <b>+</b> Create new category
+                            </a>
+                        </li>
+
+                        <li>
+                            <ul id="categoriesList" class="list-unstyled mb-0">
+                                @foreach (var cat in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.AllCategories)
+                                {
+                                    <li>
+                                        <a href="#"
+                                           class="dropdown-item category-option @(cat.Selected ? "active" : "")"
+                                           data-id="@cat.Value"
+                                           data-name="@cat.Text"
+                                           onclick="toggleCategoryFromList(event, this)">
+                                            @cat.Text
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
             </div>
+            @* ===== END CATEGORIES SECTION ===== *@
 
             <div class="mb-3">
                 <label asp-for="Recipe.Description" class="form-label fw-bold"></label>
@@ -50,7 +95,6 @@
                 <span asp-validation-for="Recipe.Description" class="text-danger"></span>
             </div>
 
-            @* Prep/Cook time inputs: numeric minutes with client-side min/max. *@
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label asp-for="Recipe.PrepTimeMinutes" class="form-label fw-bold"></label>
@@ -63,11 +107,9 @@
                     <span asp-validation-for="Recipe.CookTimeMinutes" class="text-danger"></span>
                 </div>
             </div>
-            @* ==== END ADDED ==== *@
 
             <h4>Ingredients</h4>
 
-            @* Container for ingredient rows; index-based names enable list binding on POST. *@
             <div class="ingredients-container">
                 @if (Model.Ingredients.Count > 0)
                 {
@@ -83,139 +125,155 @@
                     <div class="ingredient-row mb-3">
                         <div class="row g-2 align-items-center">
                             <div class="col">
-                                @* Hidden IngredientId for binding; dropdown populated by JS. *@
                                 <div class="dropdown" id="Ingredients[@i]">
                                     <input type="hidden" asp-for="Ingredients[@i].IngredientId" class="ingredientIdInput" value="@Model.Ingredients[@i].IngredientId">
                                     <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
                                         @Model.Ingredients[@i].IngredientName
                                     </button>
                                     <ul class="dropdown-menu p-2">
-                                        <input type="text" id="ingredientSearchBox" oninput="searchIngredients(this)" class="form-control my-2" placeholder="Search..." />
-                                        <li><a class="dropdown-item btn-success" onclick="promptNewIngredient(this)"><b>+</b> Create new ingredient</a></li>
-                                        <div id="ingredientsList">
-                                        <li id="loadingIngredientsText">Loading ingredients...</li>
+                                        <li>
+                                            <input type="text" id="ingredientSearchBox" oninput="searchIngredients(this)" class="form-control my-2" placeholder="Search..." />
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item btn-success" onclick="promptNewIngredient(this)">
+                                                <b>+</b> Create new ingredient
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <ul id="ingredientsList" class="list-unstyled mb-0">
+                                                <li id="loadingIngredientsText">Loading ingredients...</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
                                 </div>
-                                </ul>
                             </div>
-                        </div>
-                        <div class="col">
-                                @* ✅ FIX: use Quantity so FractionDecimalBinder runs on edit *@
-                            <input name="Ingredients[@i].Quantity"
-                                   class="form-control"
-                                   type="text"
-                                   value="@Model.Ingredients[@i].Quantity"
-                                   placeholder="e.g. 0.5, 1.25, 1/2, 1 1/4"
-                                   oninput="this.value = this.value.replace(/[^0-9./,\s+-]/g, '')" />
-                        </div>
-                        <div class="col">
-                                @* Unit list from Unit enum; values match enum names for binder. *@
-                            <select asp-for="Ingredients[@i].Unit" class="form-control">
+
+                            <div class="col">
+                                <input name="Ingredients[@i].Quantity"
+                                       class="form-control"
+                                       type="text"
+                                       value="@Model.Ingredients[@i].Quantity"
+                                       placeholder="e.g. 0.5, 1.25, 1/2, 1 1/4"
+                                       oninput="this.value = this.value.replace(/[^0-9./,\s+-]/g, '')" />
+                            </div>
+
+                            <div class="col">
+                                <select asp-for="Ingredients[@i].Unit" class="form-control">
                                     @foreach (var unit in Enum.GetValues(typeof(Unit)))
                                     {
-                                    <option value="@unit">@unit</option>
+                                        <option value="@unit">@unit</option>
                                     }
-                            </select>
+                                </select>
+                            </div>
                         </div>
+                        <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove</button>
+                        <hr />
                     </div>
-                        @* Client-only removal; POST includes remaining rows. *@
-                    <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove</button>
-                    <hr />
-                </div>
                 }
-    </div>
+            </div>
 
-    <button type="button" class="btn btn-brown btn-sm mb-3 add-ingredient-btn w-50 mx-auto">Add Ingredient</button>
-    <link href="/css/directions.css" rel="stylesheet" />
-    <div class="direction-container mb-3">
+            <button type="button" class="btn btn-brown btn-sm mb-3 add-ingredient-btn w-50 mx-auto">Add Ingredient</button>
+
+            <link href="/css/directions.css" rel="stylesheet" />
+
+            <div class="direction-container mb-3">
                 @{
-                    // convert to list to allow indexing (directions[i])
                     var directions = Model.Recipe.DirectionsList.ToList();
                 }
                 @for (int i = 0; i < directions.Count; i++)
                 {
+                    <div class="direction p-3 bg-brown border-brown rounded-2">
+                        <input hidden name="Recipe.DirectionsList[@i].StepNumber" value="@directions[i].StepNumber" />
+                        <div class="step-number">@directions[i].StepNumber</div>
+                        <div class="text"><textarea name="Recipe.DirectionsList[@i].StepDescription" required>@directions[i].StepDescription</textarea></div>
+                        <div class="direction-delete">
+                            <i class="bi bi-trash-fill" onclick="removeDirection(this)"></i>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <button type="button" class="btn btn-brown btn-sm mb-3 w-50 mx-auto" onclick="addDirection()">Add Direction</button>
+
+            <div class="d-flex justify-content-center gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    @if (Model.UpdateButtonText == "Create")
+                    {
+                        <i class="bi bi-plus-circle"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-save"></i>
+                    }
+                    @Model.UpdateButtonText
+                </button>
+                <a onclick="history.back()" class="btn btn-brown btn-lg">Cancel</a>
+            </div>
+        </form>
+
+        <div class="direction-template d-none">
             <div class="direction p-3 bg-brown border-brown rounded-2">
-                <input hidden name="Recipe.DirectionsList[@i].StepNumber" value="@directions[i].StepNumber" />
-                <div class="step-number">@directions[i].StepNumber</div>
-                <div class="text"><textarea name="Recipe.DirectionsList[@i].StepDescription" required>@directions[i].StepDescription</textarea></div>
+                <input hidden name="Recipe.DirectionsList[__index__].StepNumber" value="__visibleIndex__" />
+                <div class="step-number">__visibleIndex__</div>
+                <div class="text"><textarea name="Recipe.DirectionsList[__index__].StepDescription" required></textarea></div>
                 <div class="direction-delete">
                     <i class="bi bi-trash-fill" onclick="removeDirection(this)"></i>
                 </div>
             </div>
-                }
-    </div>
-    <button type="button" class="btn btn-brown btn-sm mb-3 w-50 mx-auto" onclick="addDirection()">Add Direction</button>
-
-    <div class="d-flex justify-content-center gap-2">
-        <button type="submit" class="btn btn-success btn-lg">
-                    @{
-                        @* Icon choice is cosmetic only. *@
-                        if (Model.UpdateButtonText == "Create")
-                        {
-                    <i class="bi bi-plus-circle"></i>
-                        }
-                        else
-                        {
-                    <i class="bi bi-save"></i>
-                        }
-                    }
-                    @Model.UpdateButtonText
-        </button>
-        <a onclick="history.back()" class="btn btn-brown btn-lg">
-            Cancel
-        </a>
-    </div>
-    </form>
-    <div class="direction-template d-none">
-        <div class="direction p-3 bg-brown border-brown rounded-2">
-            <input hidden name="Recipe.DirectionsList[__index__].StepNumber" value="__visibleIndex__" />
-            <div class="step-number">__visibleIndex__</div>
-            <div class="text"><textarea name="Recipe.DirectionsList[__index__].StepDescription" required></textarea></div>
-            <div class="direction-delete">
-                <i class="bi bi-trash-fill" onclick="removeDirection(this)"></i>
-            </div>
         </div>
-    </div>
-    <div class="ingredient-template d-none">
-        <div class="ingredient-row mb-3">
-            <div class="row g-2 align-items-center">
-                <div class="col">
-                    <div class="dropdown" id="Ingredients[__index__]">
-                        <input hidden name="Ingredients[__index__].IngredientId" class="ingredientIdInput" value="">
-                        <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
-                            Select ingredient...
-                        </button>
-                        <ul class="dropdown-menu p-2">
-                            <input type="text" id="ingredientSearchBox" oninput="searchIngredients(this)" class="form-control my-2" placeholder="Search..." />
-                            <li><a class="dropdown-item btn-success" onclick="promptNewIngredient(this)"><b>+</b> Create new ingredient</a></li>
-                            <div id="ingredientsList">
-                            <li id="loadingIngredientsText">Loading ingredients...</li>
+
+        <div class="ingredient-template d-none">
+            <div class="ingredient-row mb-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="dropdown" id="Ingredients[__index__]">
+                            <input hidden name="Ingredients[__index__].IngredientId" class="ingredientIdInput" value="">
+                            <button class="form-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchIngredients(this, true)">
+                                Select ingredient...
+                            </button>
+                            <ul class="dropdown-menu p-2">
+                                <li>
+                                    <input type="text" id="ingredientSearchBox" oninput="searchIngredients(this)" class="form-control my-2" placeholder="Search..." />
+                                </li>
+                                <li>
+                                    <a class="dropdown-item btn-success" onclick="promptNewIngredient(this)">
+                                        <b>+</b> Create new ingredient
+                                    </a>
+                                </li>
+                                <li>
+                                    <ul id="ingredientsList" class="list-unstyled mb-0">
+                                        <li id="loadingIngredientsText">Loading ingredients...</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                    </ul>
-                </div>
-            </div>
-            <div class="col">
-                <input name="Ingredients[__index__].Quantity"
-                       class="form-control"
-                       type="text"
-                       inputmode="decimal"
-                       placeholder="e.g. 0.5, 1.25, 1/2, 1 1/4"
-                       oninput="this.value = this.value.replace(/[^0-9./,\s+-]/g, '')" />
-            </div>
-            <div class="col">
-                <select name="Ingredients[__index__].Unit" class="form-control">
+
+                    <div class="col">
+                        <input name="Ingredients[__index__].Quantity"
+                               class="form-control"
+                               type="text"
+                               inputmode="decimal"
+                               placeholder="e.g. 0.5, 1.25, 1/2, 1 1/4"
+                               oninput="this.value = this.value.replace(/[^0-9./,\s+-]/g, '')" />
+                    </div>
+
+                    <div class="col">
+                        <select name="Ingredients[__index__].Unit" class="form-control">
                             @foreach (var unit in Enum.GetValues(typeof(Unit)))
                             {
-                        <option value="@unit">@unit</option>
+                                <option value="@unit">@unit</option>
                             }
-                </select>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove</button>
+                <hr />
             </div>
         </div>
-        <button type="button" class="btn btn-danger btn-sm remove-ingredient-btn mt-1">Remove</button>
-        <hr />
     </div>
 </div>
-    </div>
-</div>
+
 <div class="modal" id="createIngredientModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -228,7 +286,6 @@
                 <input id="ingredientName" class="form-control" />
             </div>
             <div class="modal-footer">
-                @* Spinner toggled by JS during create call. *@
                 <div class="spinner-border" style="display:none;" role="status">
                     <span class="sr-only">Loading...</span>
                 </div>

@@ -60,7 +60,7 @@ namespace Recipebook.Controllers
             if (tagId.HasValue)
             {
                 int cid = tagId.Value;
-                query = query.Where(r => r.CategoryRecipes.Where(cr => !cr.Recipe.IsArchived).Any(cr => cr.CategoryId == cid));
+                query = query.Where(r => r.CategoryRecipes.Where(cr => !cr.Recipe!.IsArchived).Any(cr => cr.CategoryId == cid));
             }
 
             // Tabs: all / mine / favorites
@@ -117,6 +117,79 @@ namespace Recipebook.Controllers
             if (id == null)
             {
                 _logger.LogWarning("Details requested with null id.");
+                return Redirect("/Error/NotFound");
+            }
+
+            var recipe = await _context.Recipe
+                .Where(r => !r.IsArchived)
+                .Include(r => r.CategoryRecipes)
+                    .ThenInclude(cr => cr.Category)
+                .Include(r => r.IngredientRecipes)       // <-- Include ingredients
+                    .ThenInclude(ir => ir.Ingredient)   // <-- Include ingredient details
+                .Include(r => r.Favorites)               // ? ADDED (favorites) - for star state
+                .Include(r => r.DirectionsList)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (recipe == null)
+            {
+                _logger.LogWarning("Details requested for missing recipe {RecipeId}.", id);
+                return Redirect("/Error/NotFound");
+            }
+
+            // For the view: resolve author email to display who created it
+            var authorEmail = await _context.Users
+                .Where(u => u.Id == recipe.AuthorId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+            ViewData["AuthorEmail"] = authorEmail;
+
+            // Current viewer identity (email if possible) for logs
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string who = (uid == null)
+                ? "anonymous"
+                : (await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync()) ?? uid;
+
+            // List category names for a readable log line
+            var catNames = recipe.CategoryRecipes
+                .Select(cr => cr.Category?.Name)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Cast<string>()
+                .ToList();
+
+            // ?? NEW: Provide the lists for the "Add to List" modal
+            // Expects your List entity to have an OwnerId (string) and Name (string)
+            // Adjust property names if yours differ.
+            IEnumerable<SelectListItem> userLists = Enumerable.Empty<SelectListItem>();
+            if (User?.Identity is { IsAuthenticated: true } && !string.IsNullOrEmpty(uid))
+            {
+                userLists = await _context.Lists
+                    .AsNoTracking()
+                    .Where(l => l.OwnerId == uid && !l.IsArchived)   // <- added !IsArchived filter
+                    .OrderBy(l => l.Name)
+                    .Select(l => new SelectListItem
+                    {
+                        Value = l.Id.ToString(),
+                        Text = l.Name
+                    })
+                    .ToListAsync();
+            }
+            ViewBag.UserLists = userLists;
+
+            _logger.LogInformation(
+                "{Who} -> /Recipes/Details/{Id} '{Title}' | author={AuthorEmail} private={Private} categories={Count} {Categories} | listsLoaded={ListCount}",
+                who, recipe.Id, recipe.Title, authorEmail, recipe.Private, catNames.Count, "[" + string.Join(", ", catNames) + "]",
+                userLists.Count()
+            );
+
+            return View(recipe);
+        }
+
+        // GET: Recipes/PrintFriendly/id
+        public async Task<IActionResult> PrintFriendly(int? id)
+        {
+            if (id == null)
+            {
+                _logger.LogWarning("PrintFriendly requested with null id.");
                 return Redirect("/Error/NotFound");
             }
 
@@ -368,11 +441,11 @@ namespace Recipebook.Controllers
                 SelectedCategories = recipe.CategoryRecipes.Select(cr => cr.CategoryId).ToArray(),
                 Ingredients = recipe.IngredientRecipes
                     .Select(ir => {
-                        Ingredient ing = _context.Ingredient.Find(ir.IngredientId);
+                        Ingredient? ing = _context.Ingredient.Find(ir.IngredientId);
                         return new IngredientSelectViewModel
                         {
                             IngredientId = ir.IngredientId,
-                            IngredientName = ing.Name,
+                            IngredientName = ing?.Name!,
                             Quantity = ir.Quantity,
                             Unit = ir.Unit
                         };
@@ -467,7 +540,7 @@ namespace Recipebook.Controllers
                 await _context.SaveChangesAsync();
 
                 // Update categories
-                var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id && !cr.Recipe.IsArchived);
+                var existingCategories = _context.CategoryRecipes.Where(cr => cr.RecipeId == vm.Recipe.Id && !cr.Recipe!.IsArchived);
                 _context.CategoryRecipes.RemoveRange(existingCategories);
 
                 if (vm.SelectedCategories?.Length > 0)
@@ -483,7 +556,7 @@ namespace Recipebook.Controllers
                 }
 
                 // Update ingredients
-                var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id && !ir.Recipe.IsArchived);
+                var existingIngredients = _context.IngredientRecipes.Where(ir => ir.RecipeId == vm.Recipe.Id && !ir.Recipe!.IsArchived);
                 _context.IngredientRecipes.RemoveRange(existingIngredients);
 
                 foreach (var ingVm in vm.Ingredients.Where(x => x.IngredientId > 0))

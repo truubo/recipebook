@@ -47,7 +47,7 @@ namespace Recipebook.Controllers
 
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(i => i.Name.Contains(searchString) && !i.IsArchived);
+                query = query.Where(i => i.Name!.Contains(searchString) && !i.IsArchived);
             }
 
             var ingredients = await query.Where(i => !i.IsArchived).ToListAsync();
@@ -78,7 +78,10 @@ namespace Recipebook.Controllers
             {
                 ingredient.OwnerId = string.Empty;
 
-                ingredient.Name = _textNormalizer.NormalizeIngredientName(ingredient.Name);
+                if (ingredient.Name != null)
+                {
+                    ingredient.Name = _textNormalizer.NormalizeIngredientName(ingredient.Name);
+                }
 
                 _context.Add(ingredient);
                 await _context.SaveChangesAsync();
@@ -166,7 +169,10 @@ namespace Recipebook.Controllers
             {
                 try
                 {
-                    existing.Name = _textNormalizer.NormalizeIngredientName(ingredient.Name);
+                    if (existing.Name != null)
+                    {
+                        existing.Name = _textNormalizer.NormalizeIngredientName(ingredient.Name!);
+                    }
 
                     await _context.SaveChangesAsync();
 
