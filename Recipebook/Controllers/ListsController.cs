@@ -252,6 +252,82 @@ namespace Recipebook.Controllers
             return View(list);
         }
 
+        // GET: /Lists/PrintFriendly/5
+        // A printer-friendly version of details.
+        public async Task<IActionResult> PrintFriendly(int? id, int? sortType)
+        {
+            if (id is null) return NotFound();
+
+            var uid = _userManager.GetUserId(User)!;
+            var myEmail = await _context.Users
+                .Where(u => u.Id == uid)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            using var _ = BeginUserScope(uid, myEmail, "Lists/Details");
+
+            // ✅ Eager-load full chain so Ingredients view has data
+            var list = await _context.Lists
+                .Where(l => !l.IsArchived)
+                .Include(l => l.ListRecipes)!
+                    .ThenInclude(lr => lr.Recipe)!
+                        .ThenInclude(r => r.IngredientRecipes)!
+                            .ThenInclude(ir => ir.Ingredient)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l =>
+                    l.Id == id &&
+                    (l.OwnerId == uid || l.Private == false));
+
+            if (list is null)
+            {
+                _logger.LogInformation("{Email} navigated to /Views/Lists/Details/{ListId}, not found or not visible", myEmail, id);
+                return NotFound();
+            }
+
+            // Normalize sortType default
+            sortType ??= 0;
+
+            // Optional sorting for non-ingredients lists (null-safe and skip archived recipes)
+            switch ((SortType)sortType)
+            {
+                case SortType.AlphabeticalAsc:
+                    list.ListRecipes = (list.ListRecipes ?? Enumerable.Empty<ListRecipe>())
+                        .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                        .OrderBy(lr => lr.Recipe.Title)
+                        .ToList();
+                    break;
+
+                case SortType.AlphabeticalDesc:
+                    list.ListRecipes = (list.ListRecipes ?? Enumerable.Empty<ListRecipe>())
+                        .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                        .OrderByDescending(lr => lr.Recipe.Title)
+                        .ToList();
+                    break;
+            }
+
+            // Look up owner email for display.
+            var ownerEmail = await _context.Users
+                .Where(u => u.Id == list.OwnerId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            ViewBag.OwnerEmail = ownerEmail;
+            ViewBag.SortType = sortType;
+
+            // Build a readable list of recipe titles for the log line.
+            var titles = (list.ListRecipes ?? new List<ListRecipe>())
+                .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                .Select(lr => lr.Recipe!.Title)
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .ToList();
+
+            _logger.LogInformation(
+                "{Email} navigated to /Views/Lists/Details/{ListId}, name '{Name}', owner {OwnerEmail}, recipes {RecipeCount}, titles {Titles}",
+                myEmail, list.Id, list.Name, ownerEmail, list.ListRecipes?.Count ?? 0, JoinTitles(titles));
+
+            return View(list);
+        }
+
 
         // -------------------------------- CREATE ---------------------------------
         // GET: Lists/Create
