@@ -1,10 +1,4 @@
-﻿@* ===============================================================
-   Recipe Details View
-   - Back button: simple link to /Recipes/Index (no auto-redirect)
-   - Favorites + Add-to-List unchanged
-   =============================================================== *@
-
-@model Recipebook.Models.Recipe
+﻿@model Recipebook.Models.Recipe
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Mvc.Rendering  @* needed for SelectListItem cast below *@
 @inject Recipebook.Services.Interfaces.ITextNormalizationService _textNormalizer
@@ -31,12 +25,6 @@
 }
 
 <div class="details-page position-relative">
-
-    @* ===============================================================
-    TOP ACTION BAR
-    - Left: Back button (static link to Recipes/Index; no JS)
-    - Right: Add to List (if logged in) + Edit/Delete (if owner)
-    =============================================================== *@
     <div class="details-actions-top d-flex justify-content-between align-items-center w-100">
         @* Back button — only navigates when clicked *@
         <a onclick="history.back()"
@@ -109,7 +97,7 @@
 
             <small class="text-muted">
                 By 
-                <a href="mailto:@owner.Email">
+                <a>
                     @if (owner.IsAdmin)
                     {
                         <i class="bi bi-shield-fill-check" title="Admin"></i>
