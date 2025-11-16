@@ -55,7 +55,7 @@
                         count = l.ListRecipes?
                         .Where(lr => lr?.Recipe?.IngredientRecipes != null)
                         .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
-                        .Where(ir => ir?.Ingredient?.Name != null)
+                        .Where(ir => ir?.Ingredient?.Name != null && !ir.Ingredient.IsArchived)
                         .Select(ir => ir!.Ingredient!.Name!.Trim())
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .Count() ?? 0;
@@ -63,7 +63,7 @@
                     else if (l.ListType == Recipebook.Models.ListType.Recipes)
                     {
                         // Recipe lists: number of linked recipes
-                        count = l.ListRecipes?.Count() ?? 0;
+                        count = l.ListRecipes?.Where(lr => !lr.Recipe.IsArchived).Count() ?? 0;
                     }
                     else
                     {
