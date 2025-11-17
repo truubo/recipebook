@@ -150,15 +150,15 @@
                 @if (Model.PrepTimeMinutes.HasValue || Model.CookTimeMinutes.HasValue)
                 {
                     <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown">
-                        <div class="d-flex justify-content-center flex-wrap gap-5">
+                        <div class="d-flex justify-content-evenly">
                             <div>
-                                <strong>Prep Time:</strong> <span>@Model.FormattedPrepTime</span>
+                                <strong>Prep Time:</strong><br /> <span>@Model.FormattedPrepTime</span>
                             </div>
                             <div>
-                                <strong>Cook Time:</strong> <span>@Model.FormattedCookTime</span>
+                                <strong>Cook Time:</strong> <br /><span>@Model.FormattedCookTime</span>
                             </div>
                             <div>
-                                <strong>Total Time:</strong> <span>@Model.FormattedTotalTime</span>
+                                <strong>Total Time:</strong> <br><span>@Model.FormattedTotalTime</span>
                             </div>
                         </div>
                     </div>
@@ -172,7 +172,7 @@
             @if (Model.ImageFileName != null && Model.ImageFileName != "")
             {
                 <div class="col d-flex justify-content-center">
-                    <div style="max-height:175px;aspect-ratio:16/9;overflow:hidden;">
+                    <div style="aspect-ratio:16/9;overflow:hidden;">
                         <img src="/img/recipes/@Model.ImageFileName" style="width:100%;height:100%;object-fit:cover;" />
                     </div>
                 </div>

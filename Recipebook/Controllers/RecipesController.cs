@@ -565,6 +565,23 @@ namespace Recipebook.Controllers
 
                     vm.Recipe.ImageFileName = safeFile;
                 }
+                else
+                {
+                    // Preserve existing ImageFileName when no new image was uploaded
+                    var existingImageFileName = await _context.Recipe
+                        .AsNoTracking()
+                        .Where(r => r.Id == id)
+                        .Select(r => r.ImageFileName)
+                        .FirstOrDefaultAsync();
+
+                    if (!string.IsNullOrEmpty(existingImageFileName))
+                    {
+                        vm.Recipe.ImageFileName = existingImageFileName;
+                    }
+                    // If existingImageFileName is null/empty and no new file was uploaded,
+                    // vm.Recipe.ImageFileName will remain as provided in the VM (likely null),
+                    // which is acceptable (it will clear the filename only if the form explicitly provided that).
+                }
                 var existingDirections = _context.Direction.Where(d => d.RecipeId == vm.Recipe.Id);
                 // Remove all existing directions for the recipe
                 _context.Direction.RemoveRange(existingDirections);

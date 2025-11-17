@@ -7,7 +7,7 @@
         {
             // If less than 60 minutes, just return minutes with correct pluralization
             if (totalMinutes < 60)
-                return $"{totalMinutes} minute{(totalMinutes == 1 ? "" : "s")}";
+                return $"{totalMinutes} min";
 
             // Calculate full hours and remaining minutes
             int hours = totalMinutes / 60;
@@ -15,10 +15,10 @@
 
             // If evenly divisible by 60, return only hours
             if (minutes == 0)
-                return $"{hours} hour{(hours == 1 ? "" : "s")}";
+                return $"{hours} hr";
 
             // Otherwise, return both hours and minutes with correct pluralization
-            return $"{hours} hour{(hours == 1 ? "" : "s")} {minutes} minute{(minutes == 1 ? "" : "s")}";
+            return $"{hours} hr {minutes} min";
         }
     }
 }
