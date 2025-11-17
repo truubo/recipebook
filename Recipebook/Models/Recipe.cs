@@ -39,7 +39,7 @@ namespace Recipebook.Models
         [Required]
         [Column(TypeName = "nvarchar(450)")]
         [ForeignKey("AspNetUsers")]
-        public string AuthorId { get; set; }
+        public string? AuthorId { get; set; }
 
         // author emails may change, so AuthorEmail will be set locally whenever needed
         // 🔧 Not persisted, not posted, not validated

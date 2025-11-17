@@ -16,10 +16,15 @@
     var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     @* Favorited iff any Favorite row exists for (this user, this recipe). Safe against null Favorites. *@
-    var isFav = User.Identity.IsAuthenticated && (Model.Favorites?.Any(f => f.UserId == uid) ?? false);
+    var isFav = false;
+    if (User?.Identity is { IsAuthenticated: true } && Model.Favorites != null)
+    {
+        isFav = Model.Favorites.Any(f => f?.UserId == uid);
+    }
 
     @* Gate Edit/Delete by author check (email compare supplied in ViewData by controller). *@
-    var isOwner = User.Identity.IsAuthenticated && (User.Identity.Name == (string)ViewData["AuthorEmail"]);
+    var isOwner = User?.Identity is { IsAuthenticated: true } && (User.Identity.Name == (string?)ViewData["AuthorEmail"]);
+
 
     @* Lists provided by controller for Add-to-List modal; may be null/empty. *@
     var userLists = ViewBag.UserLists as IEnumerable<SelectListItem>;
@@ -41,7 +46,10 @@
         </a>
 
         <div class="d-flex align-items-center gap-2">
-            @if (User.Identity.IsAuthenticated)
+            <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-danger">
+                <i class="bi bi-printer"></i>
+            </a>
+            @if (User?.Identity is { IsAuthenticated: true })
             {
                 @* Quick duplicate/copy action for signed-in users. *@
                 <a asp-action="Copy" asp-route-id="@Model.Id" class="btn btn-primary">
@@ -54,7 +62,7 @@
                 </a>
             }
 
-            @if (isOwner)
+            @if (isOwner || User!.IsInRole("Admin"))
             {
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit">
                     <i class="bi bi-pencil-square"></i>
@@ -74,50 +82,62 @@
             <div class="col">
                 <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
 
-                <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
-                    <div>
-                        @* Show linked category badges or a muted fallback. *@
-                        @if (Model.CategoryRecipes != null && Model.CategoryRecipes.Any())
-                        {
-                            foreach (var cr in Model.CategoryRecipes)
-                            {
-                                <a asp-controller="Categories"
-                                   asp-action="Details"
-                                   asp-route-id="@cr.Category.Id"
-                                   class="badge bg-info text-dark text-decoration-none me-1">
-                                    @cr.Category.Name
-                                </a>
-                            }
-                        }
-                        else
-                        {
-                            <span class="text-muted">No Categories</span>
-                        }
-                    </div>
-                </div>
+        <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
+            <div>
+                @* Show linked category badges or a muted fallback. *@
+                @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
+                {
+                    foreach (var cr in Model.CategoryRecipes)
+                    {
+                        <a asp-controller="Categories"
+                           asp-action="Details"
+                           asp-route-id="@cr.Category?.Id"
+                           class="badge bg-info text-dark text-decoration-none me-1">
+                            @cr.Category?.Name
+                        </a>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted">No Categories</span>
+                }
+            </div>
+        </div>
 
-                <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
-                    <span>
-                        By <a href="mailto:@ViewData["AuthorEmail"]">@ViewData["AuthorEmail"]</a>
-                    </span>
-                    @* Privacy badge reflects Model.Private. *@
-                    <span class="badge @(Model.Private ? "bg-danger" : "bg-success")">
-                        @(Model.Private ? "Private" : "Public")
-                    </span>
-                    <span>
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
-                            <form asp-controller="Favorites"
-                                  asp-action="Toggle"
-                                  method="post"
-                                  class="d-inline js-fav-toggle"
-                                  title="Toggle favorite"
-                                  aria-label="Toggle favorite"
-                                  data-recipe-name="@Model.Title">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="recipeId" value="@Model.Id" />
-                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+        <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
+            @{
+                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model?.AuthorId!];
+            }
+
+            <small class="text-muted">
+                By 
+                <a href="mailto:@owner.Email">
+                    @if (owner.IsAdmin)
+                    {
+                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                    }
+                    @owner.Email
+                </a>
+            </small>
+
+            @* Privacy badge reflects Model.Private. *@
+            <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
+                @(Model.Private ? "Private" : "Public")
+            </span>
+            <span>
+                @if (User?.Identity is { IsAuthenticated: true })
+                {
+                    @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
+                    <form asp-controller="Favorites"
+                          asp-action="Toggle"
+                          method="post"
+                          class="d-inline js-fav-toggle"
+                          title="Toggle favorite"
+                          aria-label="Toggle favorite"
+                          data-recipe-name="@Model.Title">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="recipeId" value="@Model.Id" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
                                 <button type="submit" class="btn btn-link p-0 star-btn">
                                     <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
@@ -208,25 +228,12 @@
 
         <h4 class="section-title mt-4">Directions</h4>
         <link rel="stylesheet" href="/css/directions.css" />
-        @* Ensure recipes created before the directions overhaul still show directions *@
-        @if (Model.DirectionsList == null || !Model.DirectionsList.Any())
+        @foreach (Direction d in Model.DirectionsList)
         {
-            if (Model.Directions != null)
-            {
-                <p>@Model.Directions</p>
-            } else
-            {
-                <p>No directions.</p>
-            }
-        } else
-        {
-            foreach (Direction d in Model.DirectionsList)
-            {
-                    <div class="direction p-3 bg-brown border-brown rounded-2">
-                        <div class="step-number">@d.StepNumber</div>
-                        <div class="text">@d.StepDescription</div>
-                    </div>
-            }
+            <div class="direction p-3 bg-brown border-brown rounded-2">
+                <div class="step-number">@d.StepNumber</div>
+                <div class="text">@d.StepDescription</div>
+            </div>
         }
     </div>
 </div>
@@ -234,7 +241,7 @@
 @* ===============================================================
    Add-to-List Modal (unchanged)
    =============================================================== *@
-@if (User.Identity.IsAuthenticated)
+@if (User?.Identity is { IsAuthenticated: true })
 {
     <div class="modal fade add-to-list-modal" tabindex="-1" aria-labelledby="addToListLabel" aria-hidden="true">
         <div class="modal-dialog">

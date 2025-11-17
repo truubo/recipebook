@@ -14,13 +14,13 @@ namespace Recipebook.Models
         [ForeignKey("Ingredient")]
         public int IngredientId { get; set; }
         
-        public Ingredient Ingredient { get; set; }
+        public Ingredient? Ingredient { get; set; }
 
         [Required]
         [Column(TypeName = "int")]
         [ForeignKey("List")]
         public int ListId { get; set; }
-        public List List { get; set; }
+        public List? List { get; set; }
 
         [Required]
         [Column(TypeName = "int")]

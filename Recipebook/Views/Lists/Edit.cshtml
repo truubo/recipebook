@@ -23,12 +23,25 @@
                     <span asp-validation-for="List.Name" class="text-danger"></span>
                 </div>
 
-                @* List type: Recipes vs Ingredients (enum) *@
+                @* ? List type: Recipes vs Ingredients (enum with name + description) *@
                 <div class="mb-3">
                     <label asp-for="List.ListType" class="form-label fw-bold"></label>
-                    <select asp-for="List.ListType"
-                            class="form-control"
-                            asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()">
+                    <select asp-for="List.ListType" class="form-control">
+                        @foreach (var value in Enum.GetValues(typeof(Recipebook.Models.ListType)).Cast<Recipebook.Models.ListType>())
+                        {
+                            var field = value.GetType().GetField(value.ToString());
+                            var attr = (System.ComponentModel.DescriptionAttribute?)Attribute
+                            .GetCustomAttribute(field!, typeof(System.ComponentModel.DescriptionAttribute));
+
+                            var name = value.ToString();
+                            var desc = attr?.Description;
+                            var text = string.IsNullOrWhiteSpace(desc) ? name : $"{name} — {desc}";
+
+                            <select asp-for="List.ListType"
+                                    asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"
+                                    class="form-control">
+                            </select>
+                        }
                     </select>
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>

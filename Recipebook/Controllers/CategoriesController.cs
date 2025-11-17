@@ -13,6 +13,11 @@ using Recipebook.Services.Interfaces;
 
 namespace Recipebook.Controllers
 {
+    public class CategoryCreateFromRecipeDto
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
     public class CategoriesController : Controller
     {
         // --------------------------- DEPENDENCIES -------------------------------
@@ -25,7 +30,6 @@ namespace Recipebook.Controllers
             _context = context;
             _logger = logger;
             _textNormalizer = textNormalizer;
-
         }
 
         // --------------------------- UTILITY HELPERS ----------------------------
@@ -41,6 +45,7 @@ namespace Recipebook.Controllers
         // GET: Categories
         // Shows all categories. Also maps OwnerId -> Email for display.
         // Adds optional search by category name (?searchString=...)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? searchString)
         {
             var query = _context.Category.Where(c => !c.IsArchived).AsQueryable();
@@ -98,7 +103,7 @@ namespace Recipebook.Controllers
 
             // Collect recipe titles for readable logs
             var recipeTitles = category.CategoryRecipes
-                .Where(cr => !cr.Recipe.IsArchived)
+                .Where(cr => !cr.Recipe!.IsArchived)
                 .Select(cr => cr.Recipe?.Title)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
                 .ToList();
@@ -112,6 +117,8 @@ namespace Recipebook.Controllers
 
             _logger.LogInformation("{Who} -> /Categories/Details/{Id} '{Name}' | recipes={Count} [{Titles}]",
                 Who(), category.Id, category.Name, recipeTitles.Count, string.Join(", ", recipeTitles));
+
+            await SetOwnerInfoAsync(new[] { category.OwnerId });
 
             return View(category);
         }
@@ -155,6 +162,58 @@ namespace Recipebook.Controllers
             return View(category);
         }
 
+                // -------------------------------- AJAX CREATE FROM RECIPE ---------------
+        // POST: Categories/CreateFromRecipe
+        // Lightweight endpoint for the recipe form "Create new category" modal.
+        // - Normalizes the name
+        // - Reuses an existing non-archived category with same name if found
+        // - Otherwise creates a new one
+        // Returns JSON { id, name } so the client can update the dropdown.
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreateFromRecipe([FromBody] CategoryCreateFromRecipeDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Name))
+            {
+                _logger.LogInformation("{Who} -> /Categories/CreateFromRecipe | missing name", Who());
+                return BadRequest("Name is required.");
+            }
+
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var normalizedName = _textNormalizer.NormalizeCategory(dto.Name);
+
+            // If a non-archived category with this normalized name already exists,
+            // just reuse it instead of creating duplicates.
+            var existing = await _context.Category
+                .Where(c => !c.IsArchived)
+                .FirstOrDefaultAsync(c => c.Name == normalizedName);
+
+            if (existing != null)
+            {
+                _logger.LogInformation("{Who} reused existing category '{Name}' (Id {Id}) via AJAX create",
+                    Who(), existing.Name, existing.Id);
+
+                return Json(new { id = existing.Id, name = existing.Name });
+            }
+
+            var category = new Category
+            {
+                Name = normalizedName,
+                OwnerId = uid,
+                IsArchived = false
+            };
+
+            _context.Category.Add(category);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("{Who} created category '{Name}' (Id {Id}) via AJAX from recipe form",
+                Who(), category.Name, category.Id);
+
+            // Shape must match what the JS expects: { id, name }
+            return Json(new { id = category.Id, name = category.Name });
+        }
+
+
         // ---------------------------------- EDIT --------------------------------
         // GET: Categories/Edit/5
         // Loads category for editing. Only owner can edit.
@@ -174,12 +233,15 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            // Owner-only guard
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                // Owner-only guard
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             _logger.LogInformation("{Who} -> /Categories/Edit/{Id} '{Name}'", Who(), category.Id, category.Name);
@@ -207,12 +269,15 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            // Owner-only guard
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(existing.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                // Owner-only guard
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(existing.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Edit/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             if (ModelState.IsValid)
@@ -251,7 +316,7 @@ namespace Recipebook.Controllers
 
         // --------------------------------- DELETE --------------------------------
         // GET: Categories/Delete/5
-        // Shows confirmation. Only owner may delete.
+        // Shows confirmation. Only owner (or admin) may delete.
         [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -268,11 +333,14 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             _logger.LogInformation("{Who} -> /Categories/Delete/{Id} '{Name}'", Who(), category.Id, category.Name);
@@ -297,11 +365,14 @@ namespace Recipebook.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
-                return Forbid();
+                var uid = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                if (!string.Equals(category.OwnerId, uid, StringComparison.Ordinal))
+                {
+                    _logger.LogWarning("{Who} -> /Categories/Delete/{Id} | forbidden (owner mismatch)", Who(), id);
+                    return Forbid();
+                }
             }
 
             // Soft-delete the category
@@ -327,6 +398,41 @@ namespace Recipebook.Controllers
         private bool CategoryExists(int id)
         {
             return _context.Category.Where(c => !c.IsArchived).Any(e => e.Id == id);
+        }
+
+        protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
+        {
+            var ids = ownerIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
+                return;
+            }
+
+            var adminRoleId = await _context.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var owners = await (
+                from u in _context.Users
+                where ids.Contains(u.Id)
+                join ur in _context.UserRoles on u.Id equals ur.UserId into userRoles
+                from ur in userRoles.DefaultIfEmpty()
+                select new
+                {
+                    u.Id,
+                    u.Email,
+                    IsAdmin = ur != null && ur.RoleId == adminRoleId
+                }
+            ).ToListAsync();
+
+            ViewBag.OwnerInfo = owners
+                .GroupBy(o => o.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                );
         }
     }
 }

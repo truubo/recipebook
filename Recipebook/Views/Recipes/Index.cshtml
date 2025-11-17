@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Recipebook.Models.Recipe>
+﻿@model IEnumerable<Recipe>
 @using Microsoft.AspNetCore.Mvc.Rendering
 @using System.Security.Claims
 
@@ -26,7 +26,7 @@
     <!-- ===================== Create + Search/Filter ===================== -->
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         @* Create button shown only to authenticated users *@
-        @if (User.Identity.IsAuthenticated)
+        @if (User?.Identity is { IsAuthenticated: true })
         {
             <a asp-action="Create" class="btn btn-success">
                 <i class="bi bi-plus-circle"></i> Create
@@ -63,7 +63,7 @@
            asp-route-searchString="@q"
            asp-route-tagId="@tag">All</a>
 
-        @if (User.Identity.IsAuthenticated)
+        @if (User?.Identity is { IsAuthenticated: true })
         {
             <a class="btn @(scope == "mine" ? "btn-primary" : "btn-secondary")"
                asp-action="Index"
@@ -88,19 +88,19 @@
     <!-- ===================== Results Grid ===================== -->
     <div class="index-card">
         <div class="card-grid">
-            @foreach (var item in Model ?? Enumerable.Empty<Recipebook.Models.Recipe>())
+            @foreach (var item in Model ?? Enumerable.Empty<Recipe>())
             {
                 // Show if recipe is public or owned by current user
-                if (!item.Private || item.AuthorEmail == User.Identity.Name)
+                if (!item.Private || item.AuthorEmail == User?.Identity?.Name)
                 {
                     <div class="recipe-card" style="position:relative;">
                         @{
                             // Current user id (for favorite detection)
-                            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                            var uid = User!.FindFirstValue(ClaimTypes.NameIdentifier);
                             // Is this item a favorite for the current user?
-                            var isFav = User.Identity.IsAuthenticated && (item.Favorites?.Any(f => f.UserId == uid) ?? false);
+                            var isFav = User?.Identity is {IsAuthenticated: true } && (item.Favorites.Any(f => f.UserId == uid));
                             // Owner check (for Edit/Delete visibility in footer)
-                            var isOwner = User.Identity.IsAuthenticated && item.AuthorEmail == User.Identity.Name;
+                            var isOwner = User?.Identity is {IsAuthenticated: true } && item.AuthorEmail == User.Identity.Name;
                         }
 
                         <!-- ===================== Card Header ===================== -->
@@ -127,7 +127,7 @@
                         - POST to Favorites/Toggle with antiforgery & returnUrl
                         - AJAX handler (below) prevents full-page reload
                         =================================================================== *@
-                                @if (User.Identity.IsAuthenticated)
+                                @if (User?.Identity is { IsAuthenticated: true })
                                 {
                                     <form asp-controller="Favorites"
                                           asp-action="Toggle"
@@ -158,9 +158,9 @@
                                     {
                                         <a asp-controller="Categories"
                                            asp-action="Details"
-                                           asp-route-id="@cr.Category.Id"
+                                           asp-route-id="@cr.Category?.Id"
                                            class="badge bg-info text-dark me-1 text-decoration-none">
-                                            @cr.Category.Name
+                                            @cr.Category?.Name
                                         </a>
                                     }
                                 }
@@ -194,10 +194,23 @@
 
                         <!-- ===================== Card Footer ===================== -->
                         <div class="card-footer d-flex justify-content-between align-items-center">
-                            <small class="text-muted">By <a href="mailto:@item.AuthorEmail">@item.AuthorEmail</a></small>
+                            @{
+                                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[item.AuthorId];
+                            }
+
+                            <small class="text-muted">
+                                By
+                                <a href="mailto:@owner.Email">
+                                    @if (owner.IsAdmin)
+                                    {
+                                        <i class="bi bi-shield-fill-check" title="Admin"></i>
+                                    }
+                                    @owner.Email
+                                </a>
+                            </small>
 
                             @* Owner-only controls (unchanged) *@
-                            @if (isOwner)
+                            @if (isOwner || User.IsInRole("Admin"))
                             {
                                 <div class="btn-group">
                                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Edit</a>

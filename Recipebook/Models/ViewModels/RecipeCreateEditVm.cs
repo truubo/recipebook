@@ -6,13 +6,14 @@ namespace Recipebook.Models.ViewModels
 {
     public class RecipeCreateEditVm
     {
-        public string UpdateButtonText { get; set; }
+        public string? UpdateButtonText { get; set; }
 
         public Recipe Recipe { get; set; } = new Recipe();
 
         public List<IngredientSelectViewModel> Ingredients { get; set; } = new List<IngredientSelectViewModel>();
 
         public int[] SelectedCategories { get; set; } = new int[0];
+        public List<Direction> DirectionsList { get; set; } = new List<Direction>();
 
         public bool IsCopy { get; set; }
 

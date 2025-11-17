@@ -32,14 +32,27 @@
                     <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck"></label>
                 </div>
 
-                @* List type: Recipes vs Ingredients (enum bound to List.ListType) *@
+                @* ? List type: Recipes vs Ingredients (enum with name + description) *@
                 <div class="mb-3">
                     <label asp-for="List.ListType" class="form-label fw-bold">Type</label>
-                    <select asp-for="List.ListType"
-                            class="form-select"
-                            asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"
-                            id="listTypeSelect">
-                    </select>
+
+                    @{
+                        var listTypeItems = Enum.GetValues(typeof(Recipebook.Models.ListType))
+                        .Cast<Recipebook.Models.ListType>()
+                        .Select(e =>
+                        {
+                            var field = e.GetType().GetField(e.ToString());
+                            var attr = (System.ComponentModel.DescriptionAttribute?)Attribute
+                                            .GetCustomAttribute(field!, typeof(System.ComponentModel.DescriptionAttribute));
+                            var text = string.IsNullOrWhiteSpace(attr?.Description)
+                                            ? e.ToString()
+                                            : $"{e} — {attr.Description}";
+                            return new SelectListItem { Value = ((int)e).ToString(), Text = text, Selected = (Model.List.ListType == e) };
+                        }).ToList();
+                    }
+
+                    <select asp-for="List.ListType" asp-items="listTypeItems" class="form-select" id="listTypeSelect"></select>
+
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
 

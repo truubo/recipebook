@@ -12192,6 +12192,10 @@ textarea.form-control:focus {
   color: white !important;
 }
 
+i.bi.bi-shield-fill-check::before {
+  color: #8c1c13 !important;
+}
+
 .form-control {
   background-color: #e7d7c1;
   border: 1px solid rgb(113.7777777778, 88, 78.2222222222);

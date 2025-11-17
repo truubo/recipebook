@@ -49,7 +49,7 @@
                         count = l.ListRecipes?
                         .Where(lr => lr?.Recipe?.IngredientRecipes != null)
                         .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
-                        .Where(ir => ir?.Ingredient?.Name != null)
+                        .Where(ir => ir?.Ingredient?.Name != null && !ir.Ingredient.IsArchived)
                         .Select(ir => ir!.Ingredient!.Name!.Trim())
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .Count() ?? 0;
@@ -57,7 +57,7 @@
                     else if (l.ListType == Recipebook.Models.ListType.Recipes)
                     {
                         // Recipe lists: number of linked recipes
-                        count = l.ListRecipes?.Count() ?? 0;
+                        count = l.ListRecipes?.Where(lr => !lr.Recipe.IsArchived).Count() ?? 0;
                     }
                     else
                     {
@@ -75,11 +75,22 @@
                 </p>
 
                 <div class="card-footer d-flex justify-content-between align-items-center">
-                    @* Owner contact shortcut *@
-                    <small class="text-muted">By <a href="mailto:@ownerEmail">@ownerEmail</a></small>
+                    @{
+                        var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[l.OwnerId];
+                    }
+                    <small class="text-muted">
+                        By
+                        <a href="mailto:@owner.Email">
+                            @if (owner.IsAdmin)
+                            {
+                                <i class="bi bi-shield-fill-check" title="Admin"></i>
+                            }
+                            @owner.Email
+                        </a>
+                    </small>
 
                     @* Owner-only actions: Edit/Delete (requires auth + ownership) *@
-                    @if (User.Identity.IsAuthenticated && l.OwnerId == myUserId)
+                    @if (User?.Identity is { IsAuthenticated: true } && l.OwnerId == myUserId || User.IsInRole("Admin"))
                     {
                         <div class="btn-group">
                             <a asp-action="Edit" asp-route-id="@l.Id" class="btn btn-sm btn-primary">Edit</a>

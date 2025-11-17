@@ -1,9 +1,5 @@
 ﻿// Controllers/ListsController.cs
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +9,11 @@ using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Models.ViewModels;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Recipebook.Controllers
 {
@@ -56,6 +57,41 @@ namespace Recipebook.Controllers
                 ["Route"] = route
             };
             return _logger.BeginScope(state) ?? NullScope.Instance;
+        }
+
+        protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
+        {
+            var ids = ownerIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
+                return;
+            }
+
+            var adminRoleId = await _context.Roles
+                .Where(r => r.Name == "Admin")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var owners = await (
+                from u in _context.Users
+                where ids.Contains(u.Id)
+                join ur in _context.UserRoles on u.Id equals ur.UserId into userRoles
+                from ur in userRoles.DefaultIfEmpty()
+                select new
+                {
+                    u.Id,
+                    u.Email,
+                    IsAdmin = ur != null && ur.RoleId == adminRoleId
+                }
+            ).ToListAsync();
+
+            ViewBag.OwnerInfo = owners
+                .GroupBy(o => o.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                );
         }
 
         // --------------------------- SMALL FORMAT HELPERS ------------------------
@@ -106,7 +142,8 @@ namespace Recipebook.Controllers
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
-            IQueryable<Recipebook.Models.List> listQ;
+            // Base queries (deferred); include recipe link counts for display.
+            IQueryable<List>? listQ = null;
 
             // 🧩 ALL SCOPES NOW INCLUDE INGREDIENT RECIPES CHAIN
             if (scope == "mine")
@@ -168,6 +205,8 @@ namespace Recipebook.Controllers
                 MyUserId = uid
             };
 
+            await SetOwnerInfoAsync(lists.Select(l => l.OwnerId));
+
             return View(vm);
         }
 
@@ -178,6 +217,84 @@ namespace Recipebook.Controllers
         // GET: Lists/Details/5
         // Visibility: allow if the list belongs to the user OR the list is public.
         public async Task<IActionResult> Details(int? id, int? sortType)
+        {
+            if (id is null) return NotFound();
+
+            var uid = _userManager.GetUserId(User)!;
+            var myEmail = await _context.Users
+                .Where(u => u.Id == uid)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            using var _ = BeginUserScope(uid, myEmail, "Lists/Details");
+
+            // ✅ Eager-load full chain so Ingredients view has data
+            var list = await _context.Lists
+                .Where(l => !l.IsArchived)
+                .Include(l => l.ListRecipes)!
+                    .ThenInclude(lr => lr.Recipe)!
+                        .ThenInclude(r => r.IngredientRecipes)!
+                            .ThenInclude(ir => ir.Ingredient)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l =>
+                    l.Id == id &&
+                    (l.OwnerId == uid || l.Private == false));
+
+            if (list is null)
+            {
+                _logger.LogInformation("{Email} navigated to /Views/Lists/Details/{ListId}, not found or not visible", myEmail, id);
+                return NotFound();
+            }
+
+            // Normalize sortType default
+            sortType ??= 0;
+
+            // Optional sorting for non-ingredients lists (null-safe and skip archived recipes)
+            switch ((SortType)sortType)
+            {
+                case SortType.AlphabeticalAsc:
+                    list.ListRecipes = (list.ListRecipes ?? Enumerable.Empty<ListRecipe>())
+                        .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                        .OrderBy(lr => lr.Recipe.Title)
+                        .ToList();
+                    break;
+
+                case SortType.AlphabeticalDesc:
+                    list.ListRecipes = (list.ListRecipes ?? Enumerable.Empty<ListRecipe>())
+                        .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                        .OrderByDescending(lr => lr.Recipe.Title)
+                        .ToList();
+                    break;
+            }
+
+            // Look up owner email for display.
+            var ownerEmail = await _context.Users
+                .Where(u => u.Id == list.OwnerId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            ViewBag.OwnerEmail = ownerEmail;
+            ViewBag.SortType = sortType;
+
+            await SetOwnerInfoAsync(new[] { list.OwnerId });
+
+            // Build a readable list of recipe titles for the log line.
+            var titles = (list.ListRecipes ?? new List<ListRecipe>())
+                .Where(lr => lr?.Recipe != null && !lr.Recipe.IsArchived)
+                .Select(lr => lr.Recipe!.Title)
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .ToList();
+
+            _logger.LogInformation(
+                "{Email} navigated to /Views/Lists/Details/{ListId}, name '{Name}', owner {OwnerEmail}, recipes {RecipeCount}, titles {Titles}",
+                myEmail, list.Id, list.Name, ownerEmail, list.ListRecipes?.Count ?? 0, JoinTitles(titles));
+
+            return View(list);
+        }
+
+        // GET: /Lists/PrintFriendly/5
+        // A printer-friendly version of details.
+        public async Task<IActionResult> PrintFriendly(int? id, int? sortType)
         {
             if (id is null) return NotFound();
 
@@ -366,10 +483,14 @@ namespace Recipebook.Controllers
                 _logger.LogInformation("{Email} navigated to /Views/Lists/Edit/{ListId}, not found", myEmail, id);
                 return NotFound();
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} navigated to /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
-                return Forbid(); // 403 when someone else tries to edit
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} navigated to /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
+                    return Forbid(); // 403 when someone else tries to edit
+                }
             }
 
             list.ListRecipes ??= new List<ListRecipe>();
@@ -408,10 +529,14 @@ namespace Recipebook.Controllers
                 _logger.LogInformation("{Email} submitted /Views/Lists/Edit/{ListId}, not found", myEmail, id);
                 return NotFound();
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} submitted /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
-                return Forbid();
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} submitted /Views/Lists/Edit/{ListId}, forbidden", myEmail, id);
+                    return Forbid();
+                }
             }
 
             list.ListRecipes ??= new List<ListRecipe>();
@@ -438,7 +563,21 @@ namespace Recipebook.Controllers
                 .Select(rid => new ListRecipe { ListId = list.Id, RecipeId = rid })
                 .ToList();
 
-            var toRemove = list.ListRecipes.Where(lr => !selected.Contains(lr.RecipeId) && !lr.Recipe.IsArchived).ToList();
+            // Determine which existing links are no longer selected (by RecipeId)
+            var candidateRemoveIds = list.ListRecipes
+                .Where(lr => !selected.Contains(lr.RecipeId))
+                .Select(lr => lr.RecipeId)
+                .ToList();
+
+            // Keep archived recipes from being removed (mimics original intent) without touching lr.Recipe
+            var nonArchivedRemoveIds = await _context.Recipe
+                .Where(r => candidateRemoveIds.Contains(r.Id) && !r.IsArchived)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            var toRemove = list.ListRecipes
+                .Where(lr => nonArchivedRemoveIds.Contains(lr.RecipeId))
+                .ToList();
 
             _context.ListRecipes.RemoveRange(toRemove);
             _context.ListRecipes.AddRange(toAdd);
@@ -483,10 +622,14 @@ namespace Recipebook.Controllers
                 _logger.LogInformation("{Email} navigated to /Views/Lists/Delete/{ListId}, not found", myEmail, id);
                 return NotFound();
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} navigated to /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
-                return Forbid();
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} navigated to /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
+                    return Forbid();
+                }
             }
 
             var ownerEmail = await _context.Users
@@ -527,10 +670,13 @@ namespace Recipebook.Controllers
                 return NotFound();
             }
 
-            if (list.OwnerId != uid)
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} submitted /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
-                return Forbid();
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} submitted /Views/Lists/Delete/{ListId}, forbidden", myEmail, id);
+                    return Forbid();
+                }
             }
 
             // Soft delete the list
@@ -576,11 +722,15 @@ namespace Recipebook.Controllers
                 TempData["Error"] = "That list wasn’t found.";
                 return SafeRedirect(returnUrl);
             }
-            if (list.OwnerId != uid)
+
+            if (!User.IsInRole("Admin"))
             {
-                _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
-                TempData["Error"] = "You don’t have permission to modify that list.";
-                return SafeRedirect(returnUrl);
+                if (list.OwnerId != uid)
+                {
+                    _logger.LogInformation("{Email} tried AddToList: list {ListId} forbidden (owner {OwnerId})", myEmail, listId, list.OwnerId);
+                    TempData["Error"] = "You don’t have permission to modify that list.";
+                    return SafeRedirect(returnUrl);
+                }
             }
 
             // Ensure the recipe exists (prevents FK violations)
