@@ -1,152 +1,160 @@
-﻿// wwwroot/js/categoriesHandler.js
+﻿// /wwwroot/js/categoriesHandler.js
+function getSelectedCategoriesSelect() {
+    return document.getElementById("SelectedCategories");
+}
 
-// Modal instance for "Create new category"
-const categoryModalElement = document.getElementById("createCategoryModal");
-const categoryModal = categoryModalElement
-    ? new bootstrap.Modal(categoryModalElement, {})
-    : null;
+function getActiveCategoryItems() {
+    return document.querySelectorAll("#categoriesList .category-option.active");
+}
 
-// ==============================
-// Helpers
-// ==============================
+// Update hidden <select> based on active list items
+function syncCategoriesSelection() {
+    const select = getSelectedCategoriesSelect();
+    if (!select) return;
 
-// Update the button text based on selected options
+    const activeItems = getActiveCategoryItems();
+
+    // Clear all selected flags
+    Array.from(select.options).forEach(o => (o.selected = false));
+
+    // Mark/append options that correspond to active items
+    activeItems.forEach(item => {
+        const id = item.dataset.id;
+        const name = item.dataset.name;
+
+        let opt = Array.from(select.options).find(o => o.value === id);
+        if (!opt) {
+            opt = new Option(name, id, true, true);
+            select.add(opt);
+        } else {
+            opt.selected = true;
+        }
+    });
+
+    updateCategoriesDropdownText();
+}
+
+// Set the button text summary
 function updateCategoriesDropdownText() {
-    const select = document.getElementById("SelectedCategories");
-    const buttonText = document.getElementById("categoriesDropdownText");
-    if (!select || !buttonText) return;
+    const span = document.getElementById("categoriesDropdownText");
+    if (!span) return;
 
-    const selected = Array.from(select.options)
-        .filter(o => o.selected)
-        .map(o => o.text);
+    const active = Array.from(getActiveCategoryItems());
+    const count = active.length;
 
-    if (selected.length === 0) {
-        buttonText.innerText = "Select categories...";
-    } else if (selected.length === 1) {
-        buttonText.innerText = selected[0];
+    if (count === 0) {
+        span.textContent = "Select categories...";
+        return;
+    }
+
+    // Show "FirstName + N more" when multiple selected
+    const firstName = active[0].dataset.name;
+    if (count === 1) {
+        span.textContent = firstName;
     } else {
-        buttonText.innerText = `${selected[0]} +${selected.length - 1} more`;
+        const remaining = count - 1; // this is the "5 more" part, etc.
+        span.textContent = `${firstName} + ${remaining} more`;
     }
 }
 
-// Initialize once DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
-    updateCategoriesDropdownText();
-});
+// ----- event handlers used by Razor -----
 
-// ==============================
-// Dropdown interaction
-// ==============================
+// Called from onclick="toggleCategoryFromList(event, this)"
+function toggleCategoryFromList(evt, el) {
+    // Prevent page jump / navigation and keep dropdown from closing
+    evt.preventDefault();
+    evt.stopPropagation();
 
-// Toggle one category on/off when a list item is clicked
-function toggleCategoryFromList(event, element) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const id = element.dataset.id;
-    const select = document.getElementById("SelectedCategories");
-    if (!select) return;
-
-    const option = Array.from(select.options).find(o => o.value === id);
-    if (!option) return;
-
-    // Toggle selected state
-    option.selected = !option.selected;
-
-    // Toggle highlight on the visible item
-    element.classList.toggle("active", option.selected);
-
-    // Refresh button text
-    updateCategoriesDropdownText();
+    el.classList.toggle("active");
+    syncCategoriesSelection();
 }
 
-// Client-side search filtering
+// Called from oninput="searchCategories(this)"
 function searchCategories(input) {
-    const term = input.value.toLowerCase();
-    const items = document.querySelectorAll("#categoriesList .category-option");
+    const term = (input.value || "").toLowerCase();
+    const options = document.querySelectorAll("#categoriesList .category-option");
 
-    items.forEach(a => {
-        const name = a.dataset.name.toLowerCase();
-        const li = a.closest("li");
+    options.forEach(opt => {
+        const name = opt.dataset.name.toLowerCase();
+        const li = opt.closest("li");
         if (!li) return;
+
         li.style.display = name.includes(term) ? "" : "none";
     });
 }
 
-// ==============================
-// Create-new-category flow
-// ==============================
-
-// Open the modal
+// Called from onclick="promptNewCategory()"
 function promptNewCategory() {
-    if (!categoryModal) return;
+    const modalEl = document.getElementById("createCategoryModal");
+    if (!modalEl) return;
 
     const nameInput = document.getElementById("categoryName");
-    if (nameInput) {
-        nameInput.value = "";
-    }
+    if (nameInput) nameInput.value = "";
 
-    categoryModal.show();
-
-    // Focus input
-    setTimeout(() => {
-        nameInput && nameInput.focus();
-    }, 150);
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
 }
 
-// POST to /Categories/Create and update UI
+// Called from onclick="createCategory()" in the modal
 async function createCategory() {
-    const nameInput = document.querySelector("#createCategoryModal input#categoryName");
-    if (!nameInput) return;
+    const modalEl = document.getElementById("createCategoryModal");
+    if (!modalEl) return;
 
-    const name = nameInput.value.trim();
-    if (!name) return;
+    const nameInput = document.getElementById("categoryName");
+    const spinner = modalEl.querySelector(".spinner-border");
 
-    // Mirror ingredient create: send FormData with Name
-    const formData = new FormData();
-    formData.append("Name", name);
-
-    const response = await fetch("/Categories/Create", {
-        method: "POST",
-        body: formData,
-        headers: { "Accept": "application/json" }
-    });
-
-    if (!response.ok) {
-        alert("Error creating category.");
+    const name = (nameInput.value || "").trim();
+    if (!name) {
+        nameInput.focus();
         return;
     }
 
-    const data = await response.json(); // { id, name }
+    spinner.style.display = "inline-block";
 
-    // Update hidden select
-    const select = document.getElementById("SelectedCategories");
-    let option = Array.from(select.options).find(o => o.value === String(data.id));
-    if (!option) {
-        option = new Option(data.name, data.id, true, true);
-        select.add(option);
-    } else {
-        option.selected = true;
-    }
+    try {
+        const resp = await fetch("/Categories/CreateFromRecipe", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name })
+        });
 
-    // Add to visible dropdown list
-    const list = document.getElementById("categoriesList");
-    if (list) {
+        if (!resp.ok) {
+            console.error("CreateFromRecipe failed, status:", resp.status);
+            throw new Error("Failed to create category");
+        }
+
+        // Expect { id: 123, name: "Foo" }
+        const data = await resp.json();
+
+        const list = document.getElementById("categoriesList");
         const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = "#";
-        a.className = "dropdown-item category-option active";
-        a.dataset.id = data.id;
-        a.dataset.name = data.name;
-        a.textContent = data.name;
-        a.setAttribute("onclick", "toggleCategoryFromList(event, this)");
-        li.appendChild(a);
+        li.innerHTML = `
+            <a href="#"
+               class="dropdown-item category-option active"
+               data-id="${data.id}"
+               data-name="${data.name}"
+               onclick="toggleCategoryFromList(event, this)">
+                ${data.name}
+            </a>
+        `;
         list.appendChild(li);
+
+        // Sync selection + preview text
+        syncCategoriesSelection();
+
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    } catch (err) {
+        console.error(err);
+        alert("Error creating category. Please try again.");
+    } finally {
+        spinner.style.display = "none";
     }
-
-    updateCategoriesDropdownText();
-
-    // Close modal and reset
-    nameInput.value = "";
-    categoryModal.hide();
 }
+
+// On page load, initialize the dropdown text & hidden select (for Edit page)
+document.addEventListener("DOMContentLoaded", () => {
+    syncCategoriesSelection();
+});
