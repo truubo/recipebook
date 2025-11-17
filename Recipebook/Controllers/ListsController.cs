@@ -62,7 +62,7 @@ namespace Recipebook.Controllers
         protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
         {
             var ids = ownerIds.Distinct().ToList();
-            if (!ids.Any())
+            if (ids.Count == 0)
             {
                 ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
                 return;
@@ -81,7 +81,7 @@ namespace Recipebook.Controllers
                 select new
                 {
                     u.Id,
-                    u.Email,
+                    u.UserName,
                     IsAdmin = ur != null && ur.RoleId == adminRoleId
                 }
             ).ToListAsync();
@@ -90,7 +90,7 @@ namespace Recipebook.Controllers
                 .GroupBy(o => o.Id)
                 .ToDictionary(
                     g => g.Key,
-                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                    g => (Email: g.First().UserName!, IsAdmin: g.Any(x => x.IsAdmin))
                 );
         }
 
@@ -137,7 +137,7 @@ namespace Recipebook.Controllers
             var uid = _userManager.GetUserId(User)!;
             var myEmail = await _context.Users
                 .Where(u => u.Id == uid)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
@@ -172,15 +172,30 @@ namespace Recipebook.Controllers
             }
             else // default: all lists
             {
-                listQ = _context.Lists
-                    .Where(l => !l.IsArchived && (l.OwnerId == uid || !l.Private))
-                    .Include(l => l.ListRecipes)
-                        .ThenInclude(lr => lr.Recipe)
-                            .ThenInclude(r => r.IngredientRecipes)
-                                .ThenInclude(ir => ir.Ingredient)
-                    .Include(l => l.ListIngredients)
-                        .ThenInclude(li => li.Ingredient)
-                    .AsNoTracking();
+                if (User.IsInRole("Admin"))
+                {
+                    listQ = _context.Lists
+                        .Where(l => !l.IsArchived)
+                        .Include(l => l.ListRecipes)
+                            .ThenInclude(lr => lr.Recipe)
+                                .ThenInclude(r => r.IngredientRecipes)
+                                    .ThenInclude(ir => ir.Ingredient)
+                        .Include(l => l.ListIngredients)
+                            .ThenInclude(li => li.Ingredient)
+                        .AsNoTracking();
+                }
+                else
+                {
+                    listQ = _context.Lists
+                        .Where(l => !l.IsArchived && (l.OwnerId == uid || !l.Private))
+                        .Include(l => l.ListRecipes)
+                            .ThenInclude(lr => lr.Recipe)
+                                .ThenInclude(r => r.IngredientRecipes)
+                                    .ThenInclude(ir => ir.Ingredient)
+                        .Include(l => l.ListIngredients)
+                            .ThenInclude(li => li.Ingredient)
+                        .AsNoTracking();
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(searchString))
@@ -192,7 +207,7 @@ namespace Recipebook.Controllers
             var ownerIds = lists.Select(l => l.OwnerId).Distinct().ToList();
             var ownerEmails = await _context.Users
                 .Where(u => ownerIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.Email);
+                .ToDictionaryAsync(u => u.Id, u => u.UserName);
 
             ViewBag.OwnerEmails = ownerEmails;
             ViewBag.SearchString = searchString;
@@ -212,7 +227,6 @@ namespace Recipebook.Controllers
 
 
 
-
         // -------------------------------- DETAILS --------------------------------
         // GET: Lists/Details/5
         // Visibility: allow if the list belongs to the user OR the list is public.
@@ -223,7 +237,7 @@ namespace Recipebook.Controllers
             var uid = _userManager.GetUserId(User)!;
             var myEmail = await _context.Users
                 .Where(u => u.Id == uid)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Details");
@@ -270,7 +284,7 @@ namespace Recipebook.Controllers
             // Look up owner email for display.
             var ownerEmail = await _context.Users
                 .Where(u => u.Id == list.OwnerId)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             ViewBag.OwnerEmail = ownerEmail;
@@ -301,7 +315,7 @@ namespace Recipebook.Controllers
             var uid = _userManager.GetUserId(User)!;
             var myEmail = await _context.Users
                 .Where(u => u.Id == uid)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Details");
@@ -348,7 +362,7 @@ namespace Recipebook.Controllers
             // Look up owner email for display.
             var ownerEmail = await _context.Users
                 .Where(u => u.Id == list.OwnerId)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             ViewBag.OwnerEmail = ownerEmail;
@@ -376,7 +390,7 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Create()
         {
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.UserName).FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Create(GET)");
 
@@ -397,7 +411,7 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Create(ListEditVm vm)
         {
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.UserName).FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Create(POST)");
 
@@ -469,7 +483,7 @@ namespace Recipebook.Controllers
         {
             if (id is null) return NotFound();
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.UserName).FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Edit(GET)");
 
@@ -515,7 +529,7 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Edit(int id, ListEditVm vm)
         {
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.UserName).FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Edit(POST)");
 
@@ -608,7 +622,7 @@ namespace Recipebook.Controllers
         {
             if (id is null) return NotFound();
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync();
+            var myEmail = await _context.Users.Where(u => u.Id == uid).Select(u => u.UserName).FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Delete(GET)");
 
@@ -634,7 +648,7 @@ namespace Recipebook.Controllers
 
             var ownerEmail = await _context.Users
                 .Where(u => u.Id == list.OwnerId)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             ViewBag.OwnerEmail = ownerEmail;
@@ -653,7 +667,7 @@ namespace Recipebook.Controllers
             var uid = _userManager.GetUserId(User)!;
             var myEmail = await _context.Users
                 .Where(u => u.Id == uid)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Delete(POST)");
@@ -709,7 +723,7 @@ namespace Recipebook.Controllers
             var uid = _userManager.GetUserId(User)!;
             var myEmail = await _context.Users
                 .Where(u => u.Id == uid)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/AddToList(POST)");

@@ -1,4 +1,4 @@
-﻿@model Tuple<IEnumerable<Recipebook.Models.List>, string?>
+﻿@model Tuple<IEnumerable<List>, string?>
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
@@ -12,11 +12,17 @@
     var ownerEmails = ViewBag.OwnerEmails as Dictionary<string, string>;
 }
 
+@{
+    var visibleLists = lists
+    .Where(l => !l.IsArchived && (!l.Private || l.OwnerId == myUserId))
+    .ToList();
+}
+
 @* Only render UI if there are any non-archived lists to show *@
-@if (lists != null && lists.Where(l => !l.IsArchived).Any())
+@if (visibleLists.Any())
 {
     <div class="card-grid">
-        @foreach (var l in lists)
+        @foreach (var l in visibleLists)
         {
             // Skip archived lists in the grid (defensive: the parent check already filters, but we keep this local guard explicit)
             if (l.IsArchived) { continue; }
@@ -80,7 +86,7 @@
                     }
                     <small class="text-muted">
                         By
-                        <a href="mailto:@owner.Email">
+                        <a>
                             @if (owner.IsAdmin)
                             {
                                 <i class="bi bi-shield-fill-check" title="Admin"></i>
@@ -105,5 +111,5 @@
 else
 {
     @* Empty state for when there are no visible lists *@
-    <div class="alert alert-brown text-center">No lists to show.</div>
+    <div class="alert alert-brown text-center" data-persist="true">No lists to show.</div>
 }

@@ -54,6 +54,15 @@
     }
 }
 
+// Global
+
+.form-control:disabled,
+.form-control[readonly] {
+    background-color: $light-brown !important;
+    color: #fff !important;
+    opacity: 1 !important;
+}
+
 // ------------------------------
 // Body
 // ------------------------------
@@ -115,6 +124,36 @@ body {
         &:focus,
         &:active {
             color: white !important;
+        }
+    }
+}
+
+.manage-nav {
+    .nav-link {
+        color: inherit;
+        transition: background-color 0.2s ease, color 0.2s ease;
+
+        &:hover {
+            background-color: $light-red;
+            color: white;
+        }
+
+        &.active {
+            background-color: $red;
+            color: white;
+            font-weight: bold;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .manage-layout {
+        .col-md-3 {
+            margin-bottom: 2rem;
+        }
+
+        .col-md-9 {
+            margin-top: 1.5rem;
         }
     }
 }

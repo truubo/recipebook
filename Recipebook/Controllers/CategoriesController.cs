@@ -33,12 +33,12 @@ namespace Recipebook.Controllers
         }
 
         // --------------------------- UTILITY HELPERS ----------------------------
-        // Quick helper to log "who" is acting: prefer email, then Id, else anonymous
+        // Quick helper to log "who" is acting: prefer userName, then Id, else anonymous
         private string Who()
         {
-            var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var userName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return !string.IsNullOrWhiteSpace(email) ? email : (!string.IsNullOrWhiteSpace(uid) ? uid : "anonymous");
+            return !string.IsNullOrWhiteSpace(userName) ? userName : (!string.IsNullOrWhiteSpace(uid) ? uid : "anonymous");
         }
 
         // -------------------------------- INDEX ---------------------------------
@@ -69,7 +69,7 @@ namespace Recipebook.Controllers
             var ownerIds = categories.Select(c => c.OwnerId).Distinct().ToList();
             ViewBag.OwnerEmails = await _context.Users
                 .Where(u => ownerIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => u.Email);
+                .ToDictionaryAsync(u => u.Id, u => u.UserName);
 
             // Preserve current search term for sticky input in the view
             ViewBag.SearchString = searchString;
@@ -110,7 +110,7 @@ namespace Recipebook.Controllers
 
             var ownerEmail = await _context.Users
                 .Where(u => u.Id == category.OwnerId)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
 
             ViewBag.OwnerEmail = ownerEmail;
@@ -403,7 +403,7 @@ namespace Recipebook.Controllers
         protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
         {
             var ids = ownerIds.Distinct().ToList();
-            if (!ids.Any())
+            if (ids.Count == 0)
             {
                 ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
                 return;
@@ -422,7 +422,7 @@ namespace Recipebook.Controllers
                 select new
                 {
                     u.Id,
-                    u.Email,
+                    u.UserName,
                     IsAdmin = ur != null && ur.RoleId == adminRoleId
                 }
             ).ToListAsync();
@@ -431,7 +431,7 @@ namespace Recipebook.Controllers
                 .GroupBy(o => o.Id)
                 .ToDictionary(
                     g => g.Key,
-                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                    g => (Email: g.First().UserName!, IsAdmin: g.Any(x => x.IsAdmin))
                 );
         }
     }

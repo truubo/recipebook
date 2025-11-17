@@ -2,12 +2,19 @@
 
 @{
     ViewData["Title"] = "Edit";
-    // Set button text so the shared partial (_RecipeForm) renders Edit behavior/UI.
-    Model.UpdateButtonText = "Update";
 }
 
 <div class="recipe-form-page">
-    <h1>Edit Recipe</h1>
+    @if (Model.IsCopy)
+    {
+        Model.UpdateButtonText = "Create Copy";
+        <h1>Copy Recipe</h1>
+    }
+    else
+    {
+        Model.UpdateButtonText = "Update";
+        <h1>Edit Recipe</h1>
+    }
     @* Reuse the shared form partial; it keys off UpdateButtonText to choose action. *@
     @await Html.PartialAsync("_RecipeForm")
 </div>

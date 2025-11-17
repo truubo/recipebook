@@ -56,17 +56,12 @@
         </a>
 
         <div class="d-flex gap-2 align-items-center">
+            <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-danger">
+                <i class="bi bi-printer"></i>
+            </a>
             @* Owner-only controls *@
             @if (User?.Identity is { IsAuthenticated: true } && ownerEmail == User.Identity.Name || User.IsInRole("Admin"))
             {
-                @* Print is only useful for grocery/ingredients lists *@
-                @if (isIngredientsList)
-                {
-                    <a asp-action="PrintFriendly" asp-route-id="@Model?.Id" class="btn btn-primary" title="Print list">
-                        <i class="bi bi-printer"></i>
-                    </a>
-                }
-
                 <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary" title="Edit list">
                     <i class="bi bi-pencil-square"></i>
                 </a>
@@ -87,7 +82,7 @@
             }
             <span>
                 List created by
-                <a href="mailto:@ownerEmail">
+                <a>
                     @if (owner.IsAdmin)
                     {
                         <i class="bi bi-shield-fill-check" title="Admin"></i>
@@ -299,9 +294,9 @@
                                             }
                                             else
                                             {
-                                                if (desc.Length > 100)
+                                                if (desc.Length > 50)
                                                 {
-                                                    desc = desc.Substring(0, 100) + "...";
+                                                    desc = desc.Substring(0, 50) + "...";
                                                 }
                                                 @desc
                                             }

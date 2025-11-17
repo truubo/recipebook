@@ -28,11 +28,10 @@
                 <span asp-validation-for="Recipe.Title" class="text-danger"></span>
             </div>
 
-            <div class="form-check mb-3">
-                <input class="form-check-input" asp-for="Recipe.Private" />
-                <label class="form-check-label fw-bold">
-                    @Html.DisplayNameFor(model => model.Recipe.Private)
-                </label>
+            <div class="mb-3">
+                <label asp-for="Recipe.Description" class="form-label fw-bold"></label>
+                <textarea asp-for="Recipe.Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Recipe.Description" class="text-danger"></span>
             </div>
 
             @* ===== CATEGORIES ===== *@
@@ -88,12 +87,6 @@
                 </div>
             </div>
             @* ===== END CATEGORIES SECTION ===== *@
-
-            <div class="mb-3">
-                <label asp-for="Recipe.Description" class="form-label fw-bold"></label>
-                <textarea asp-for="Recipe.Description" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Recipe.Description" class="text-danger"></span>
-            </div>
 
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -173,6 +166,8 @@
             </div>
 
             <button type="button" class="btn btn-brown btn-sm mb-3 add-ingredient-btn w-50 mx-auto">Add Ingredient</button>
+
+            <h4>Directions</h4>
 
             <link href="/css/directions.css" rel="stylesheet" />
 
