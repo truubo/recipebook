@@ -69,9 +69,13 @@
             const alerts = document.querySelectorAll(".alert");
 
             alerts.forEach(function (alert) {
+                // Skip alerts that have data-persist="true"
+                if (alert.getAttribute("data-persist") === "true") {
+                    return; // do not auto-dismiss
+                }
+
                 // Auto-close after 5 seconds
                 setTimeout(function () {
-                    // Use Bootstrap's built-in dismiss (requires bootstrap.bundle.js)
                     var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
                     bsAlert.close();
                 }, 5000);

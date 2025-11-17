@@ -80,14 +80,12 @@ namespace Recipebook.Controllers
             {
                 r.AuthorEmail = (await _context.Users
                     .Where(u => u.Id == r.AuthorId)
-                    .Select(u => u.Email)
+                    .Select(u => u.UserName)
                     .FirstOrDefaultAsync()) ?? string.Empty;
             }
 
-            // Actor for logging: email if signed-in, else "anonymous"
-            string who = (uid == null)
-                ? "anonymous"
-                : (await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync()) ?? uid;
+            // Actor for logging: username or anonymous
+            string who = User.Identity?.Name ?? "anonymous";
 
             _logger.LogInformation(
                 "{Who} -> /Recipes/Index | count={Count} search='{Search}' tagId={TagId} scope={Scope}",
@@ -139,15 +137,13 @@ namespace Recipebook.Controllers
             // For the view: resolve author email to display who created it
             var authorEmail = await _context.Users
                 .Where(u => u.Id == recipe.AuthorId)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
             ViewData["AuthorEmail"] = authorEmail;
 
             // Current viewer identity (email if possible) for logs
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string who = (uid == null)
-                ? "anonymous"
-                : (await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync()) ?? uid;
+            string who = User.Identity?.Name ?? "anonymous";
 
             // List category names for a readable log line
             var catNames = recipe.CategoryRecipes
@@ -214,15 +210,13 @@ namespace Recipebook.Controllers
             // For the view: resolve author email to display who created it
             var authorEmail = await _context.Users
                 .Where(u => u.Id == recipe.AuthorId)
-                .Select(u => u.Email)
+                .Select(u => u.UserName)
                 .FirstOrDefaultAsync();
             ViewData["AuthorEmail"] = authorEmail;
 
             // Current viewer identity (email if possible) for logs
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string who = (uid == null)
-                ? "anonymous"
-                : (await _context.Users.Where(u => u.Id == uid).Select(u => u.Email).FirstOrDefaultAsync()) ?? uid;
+            string who = User.Identity?.Name ?? "anonymous";
 
             // List category names for a readable log line
             var catNames = recipe.CategoryRecipes
@@ -384,10 +378,7 @@ namespace Recipebook.Controllers
                     .Join(_context.Category, id => id, c => c.Id, (id, c) => c.Name!)
                     .ToList();
 
-                var who = (await _context.Users
-                    .Where(u => u.Id == vm.Recipe.AuthorId)
-                    .Select(u => u.Email)
-                    .FirstOrDefaultAsync()) ?? vm.Recipe.AuthorId;
+                var who = User.Identity?.Name ?? "anonymous";
 
                 // ==== CHANGED: include prep/cook times in log ====
                 _logger.LogInformation(
@@ -397,7 +388,7 @@ namespace Recipebook.Controllers
                 // =================================================
 
                 TempData["Success"] = "Recipe created successfully.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = vm.Recipe.Id });
             }
             catch (Exception ex)
             {
@@ -420,8 +411,7 @@ namespace Recipebook.Controllers
         [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var who = uid ?? "anonymous";
+            string who = User.Identity?.Name ?? "anonymous";
             _logger.LogInformation("{Who} -> /Recipes/Edit/{Id}", who, id);
 
             var recipe = await _context.Recipe
@@ -580,10 +570,7 @@ namespace Recipebook.Controllers
                     .Join(_context.Category, id => id, c => c.Id, (id, c) => c.Name!)
                     .ToList();
 
-                var who = (await _context.Users
-                    .Where(u => u.Id == vm.Recipe.AuthorId)
-                    .Select(u => u.Email)
-                    .FirstOrDefaultAsync()) ?? vm.Recipe.AuthorId;
+                var who = User.Identity?.Name ?? "anonymous";
 
                 // ==== CHANGED: include prep/cook times in log ====
                 _logger.LogInformation(
@@ -635,7 +622,7 @@ namespace Recipebook.Controllers
                 }
             }
 
-            var who = (await _context.Users.Where(u => u.Id == userId).Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
+            var who = User.Identity?.Name ?? "anonymous";
             _logger.LogInformation("{Who} -> /Recipes/Delete/{Id} '{Title}'", who, recipe.Id, recipe.Title);
 
             return View(recipe);
@@ -688,8 +675,7 @@ namespace Recipebook.Controllers
 
                 await _context.SaveChangesAsync();
 
-                var who = (await _context.Users.Where(u => u.Id == userId)
-                    .Select(u => u.Email).FirstOrDefaultAsync()) ?? userId;
+                var who = User.Identity?.Name ?? userId;
 
                 _logger.LogInformation("{Who} archived recipe '{Title}' (Id {Id}) and removed join rows: Categories={CatCount}, Ingredients={IngCount}, Favorites={FavCount}",
                     who, recipe.Title, recipe.Id,
@@ -712,7 +698,7 @@ namespace Recipebook.Controllers
         protected async Task SetOwnerInfoAsync(IEnumerable<string> ownerIds)
         {
             var ids = ownerIds.Distinct().ToList();
-            if (!ids.Any())
+            if (ids.Count == 0)
             {
                 ViewBag.OwnerInfo = new Dictionary<string, (string Email, bool IsAdmin)>();
                 return;
@@ -731,7 +717,7 @@ namespace Recipebook.Controllers
                 select new
                 {
                     u.Id,
-                    u.Email,
+                    u.UserName,
                     IsAdmin = ur != null && ur.RoleId == adminRoleId
                 }
             ).ToListAsync();
@@ -740,7 +726,7 @@ namespace Recipebook.Controllers
                 .GroupBy(o => o.Id)
                 .ToDictionary(
                     g => g.Key,
-                    g => (Email: g.First().Email!, IsAdmin: g.Any(x => x.IsAdmin))
+                    g => (Email: g.First().UserName!, IsAdmin: g.Any(x => x.IsAdmin))
                 );
         }
 

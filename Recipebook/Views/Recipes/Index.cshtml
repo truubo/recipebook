@@ -82,7 +82,7 @@
     <!-- ===================== Empty-state ===================== -->
     @if (!(Model?.Any() ?? false))
     {
-        <div class="alert alert-brown">No results found.</div>
+        <div class="alert alert-brown" data-persist="true">No results found.</div>
     }
 
     <!-- ===================== Results Grid ===================== -->
@@ -200,7 +200,7 @@
 
                             <small class="text-muted">
                                 By
-                                <a href="mailto:@owner.Email">
+                                <a>
                                     @if (owner.IsAdmin)
                                     {
                                         <i class="bi bi-shield-fill-check" title="Admin"></i>
