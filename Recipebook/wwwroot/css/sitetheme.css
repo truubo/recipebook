@@ -13004,3 +13004,8 @@ main {
   border-color: rgb(15.75, 11.25, 9.75) !important;
   color: #fff !important;
 }
+
+.form-control::file-selector-button {
+  background-color: #8c1c13 !important;
+  color: #fff;
+}

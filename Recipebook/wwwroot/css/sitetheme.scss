@@ -1322,3 +1322,8 @@ main {
             }
         }
     }
+
+.form-control::file-selector-button {
+    background-color: $red !important;
+    color: #fff;
+}

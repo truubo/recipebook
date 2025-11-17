@@ -14,7 +14,7 @@
 
 <div class="card shadow-sm mb-4">
     <div class="card-body">
-        <form asp-action="@action" method="post">
+        <form asp-action="@action" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
             @if (action != "Create")
@@ -186,26 +186,25 @@
                         </div>
                     </div>
                 }
-            </div>
-
-            <button type="button" class="btn btn-brown btn-sm mb-3 w-50 mx-auto" onclick="addDirection()">Add Direction</button>
-
-            <div class="form-check mb-3">
-                <input class="form-check-input" asp-for="Recipe.Private" />
-                <label class="form-check-label fw-bold">
-                    @Html.DisplayNameFor(model => model.Recipe.Private)?
-                </label>
-            </div>
-
-            <div class="d-flex justify-content-center gap-2">
-                <button type="submit" class="btn btn-success btn-lg">
-                    @if (Model.UpdateButtonText == "Create")
-                    {
-                        <i class="bi bi-plus-circle"></i>
-                    }
-                    else
-                    {
-                        <i class="bi bi-save"></i>
+    </div>
+    <button type="button" class="btn btn-brown btn-sm mb-3 w-50 mx-auto" onclick="addDirection()">Add Direction</button>
+    <div class="form-group">
+        <label asp-for="ImageFile">Recipe Image</label>
+        <input asp-for="ImageFile" type="file" class="form-control" />
+        <span asp-validation-for="ImageFile" class="text-danger"></span>
+    </div>
+    <div class="d-flex justify-content-center gap-2">
+        <button type="submit" class="btn btn-success btn-lg">
+                    @{
+                        @* Icon choice is cosmetic only. *@
+                        if (Model.UpdateButtonText == "Create")
+                        {
+                    <i class="bi bi-plus-circle"></i>
+                        }
+                        else
+                        {
+                    <i class="bi bi-save"></i>
+                        }
                     }
                     @Model.UpdateButtonText
                 </button>

@@ -16,6 +16,8 @@ namespace Recipebook.Models.ViewModels
         public List<Direction> DirectionsList { get; set; } = new List<Direction>();
 
         public bool IsCopy { get; set; }
+
+        public IFormFile? ImageFile { get; set; }
     }
 
     public class IngredientSelectViewModel

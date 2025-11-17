@@ -324,6 +324,23 @@ namespace Recipebook.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                if (vm.ImageFile != null)
+                {
+                    string imgDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "recipes");
+                    Directory.CreateDirectory(imgDir); // ensure folder exists
+
+                    string originalFileName = Path.GetFileNameWithoutExtension(vm.ImageFile.FileName);
+                    string ext = Path.GetExtension(vm.ImageFile.FileName);
+                    string safeFile = $"{originalFileName}_{Guid.NewGuid()}{ext}";
+                    string fullPath = Path.Combine(imgDir, safeFile);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await vm.ImageFile.CopyToAsync(stream);
+                    }
+
+                    vm.Recipe.ImageFileName = safeFile;
+                }
                 // 1) Save the recipe to get its generated Id
                 vm.Recipe.Title = _textNormalizer.NormalizeRecipeTitle(vm.Recipe.Title);
 
@@ -521,6 +538,40 @@ namespace Recipebook.Controllers
             await using var tx = await _context.Database.BeginTransactionAsync();
             try
             {
+                if (vm.ImageFile != null)
+                {
+                    string imgDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "recipes");
+                    Directory.CreateDirectory(imgDir); // ensure folder exists
+
+                    string originalFileName = Path.GetFileNameWithoutExtension(vm.ImageFile.FileName);
+                    string ext = Path.GetExtension(vm.ImageFile.FileName);
+                    string safeFile = $"{originalFileName}_{Guid.NewGuid()}{ext}";
+                    string fullPath = Path.Combine(imgDir, safeFile);
+
+                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await vm.ImageFile.CopyToAsync(stream);
+                    }
+
+                    vm.Recipe.ImageFileName = safeFile;
+                }
+                else
+                {
+                    // Preserve existing ImageFileName when no new image was uploaded
+                    var existingImageFileName = await _context.Recipe
+                        .AsNoTracking()
+                        .Where(r => r.Id == id)
+                        .Select(r => r.ImageFileName)
+                        .FirstOrDefaultAsync();
+
+                    if (!string.IsNullOrEmpty(existingImageFileName))
+                    {
+                        vm.Recipe.ImageFileName = existingImageFileName;
+                    }
+                    // If existingImageFileName is null/empty and no new file was uploaded,
+                    // vm.Recipe.ImageFileName will remain as provided in the VM (likely null),
+                    // which is acceptable (it will clear the filename only if the form explicitly provided that).
+                }
                 var existingDirections = _context.Direction.Where(d => d.RecipeId == vm.Recipe.Id);
                 // Remove all existing directions for the recipe
                 _context.Direction.RemoveRange(existingDirections);

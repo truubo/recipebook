@@ -66,7 +66,9 @@
     HEADER: Title, categories, author, privacy badge
     =============================================================== *@
     <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
+        <div class="row">
+            <div class="col">
+                <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
 
         <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
             <div>
@@ -125,12 +127,44 @@
                         <input type="hidden" name="recipeId" value="@Model.Id" />
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
-                        <button type="submit" class="btn btn-link p-0 star-btn">
-                            <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
-                        </button>
-                    </form>
+                                <button type="submit" class="btn btn-link p-0 star-btn">
+                                    <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>
+                                </button>
+                            </form>
+                        }
+                    </span>
+                </div>
+                @* Timing bar only if any timing values present; formatted strings come from the model. *@
+                @if (Model.PrepTimeMinutes.HasValue || Model.CookTimeMinutes.HasValue)
+                {
+                    <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown">
+                        <div class="d-flex justify-content-evenly">
+                            <div>
+                                <strong>Prep Time:</strong><br /> <span>@Model.FormattedPrepTime</span>
+                            </div>
+                            <div>
+                                <strong>Cook Time:</strong> <br /><span>@Model.FormattedCookTime</span>
+                            </div>
+                            <div>
+                                <strong>Total Time:</strong> <br><span>@Model.FormattedTotalTime</span>
+                            </div>
+                        </div>
+                    </div>
                 }
-            </span>
+                else
+                {
+                    <p class="text-muted mt-4 text-center">No timing information available.</p>
+                }
+                @* ==== END UPDATED ==== *@
+            </div>
+            @if (Model.ImageFileName != null && Model.ImageFileName != "")
+            {
+                <div class="col d-flex justify-content-center">
+                    <div style="aspect-ratio:16/9;overflow:hidden;">
+                        <img src="/img/recipes/@Model.ImageFileName" style="width:100%;height:100%;object-fit:cover;border-radius:0.75rem;border:2px solid #000;" />
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
@@ -138,31 +172,6 @@
     BODY: Description, (ADDED Timing), Ingredients, Directions
     =============================================================== *@
     <div class="details-body mt-4">
-
-        @* Timing bar only if any timing values present; formatted strings come from the model. *@
-        @if (Model.PrepTimeMinutes.HasValue || Model.CookTimeMinutes.HasValue)
-        {
-            <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown">
-                <div class="d-flex justify-content-center flex-wrap gap-5">
-                    <div>
-                        <strong>Prep Time:</strong> <span>@Model.FormattedPrepTime</span>
-                    </div>
-                    <div>
-                        <strong>Cook Time:</strong> <span>@Model.FormattedCookTime</span>
-                    </div>
-                    <div>
-                        <strong>Total Time:</strong> <span>@Model.FormattedTotalTime</span>
-                    </div>
-                </div>
-            </div>
-        }
-        else
-        {
-            <p class="text-muted mt-4 text-center">No timing information available.</p>
-        }
-        @* ==== END UPDATED ==== *@
-
-
         <h4 class="section-title mt-4">Description</h4>
         @if (!string.IsNullOrEmpty(Model.Description))
         {
