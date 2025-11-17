@@ -388,7 +388,7 @@ namespace Recipebook.Controllers
                 // =================================================
 
                 TempData["Success"] = "Recipe created successfully.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Details), new { id = vm.Recipe.Id });
             }
             catch (Exception ex)
             {

@@ -26,8 +26,8 @@
 
 <div class="details-page position-relative">
     <div class="details-actions-top d-flex justify-content-between align-items-center w-100">
-        @* Back button — only navigates when clicked *@
-        <a onclick="history.back()"
+        <a asp-controller="Recipes"
+           asp-action="Index"
            class="btn btn-brown"
            title="Back to recipes">
             <i class="bi bi-arrow-left-circle"></i>
