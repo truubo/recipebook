@@ -74,19 +74,19 @@
         @if (scope == "ingredients")
         {
             <div class="tab-pane fade show active" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
-                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.Lists, Model.MyUserId))
+                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<List>, string?>(Model.Lists, Model.MyUserId))
             </div>
         }
         else if (scope == "mine")
         {
             <div class="tab-pane fade show active" id="mine" role="tabpanel" aria-labelledby="mine-tab">
-                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.Lists, Model.MyUserId))
+                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<List>, string?>(Model.Lists, Model.MyUserId))
             </div>
         }
         else
         {
             <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
-                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<Recipebook.Models.List>, string?>(Model.Lists, Model.MyUserId))
+                @await Html.PartialAsync("_ListsTable", new Tuple<IEnumerable<List>, string?>(Model.Lists, Model.MyUserId))
             </div>
         }
     </div>

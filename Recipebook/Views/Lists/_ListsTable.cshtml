@@ -1,4 +1,4 @@
-﻿@model Tuple<IEnumerable<Recipebook.Models.List>, string?>
+﻿@model Tuple<IEnumerable<List>, string?>
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
@@ -22,7 +22,7 @@
 @if (visibleLists.Any())
 {
     <div class="card-grid">
-        @foreach (var l in lists)
+        @foreach (var l in visibleLists)
         {
             // Skip archived lists in the grid (defensive: the parent check already filters, but we keep this local guard explicit)
             if (l.IsArchived) { continue; }
