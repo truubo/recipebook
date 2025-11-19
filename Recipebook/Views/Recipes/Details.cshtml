@@ -404,5 +404,53 @@
                 showAlert(`Something went wrong with '${recipeName}'. Please try again.`, "danger");
             }
         });
+
+        document.addEventListener('submit', async (e) => {
+            const form = e.target;
+
+            // Only handle Like/Dislike forms
+            if (!form.matches('form[action*="Votes/ToggleLike"], form[action*="Votes/ToggleDislike"]'))
+            return;
+
+            e.preventDefault(); // ⛔ stop page from reloading
+
+            const btn = form.querySelector("button");
+            const icon = btn.querySelector("i");
+            const countSpan = btn.querySelector("span");
+            const isLikeButton = form.action.includes("ToggleLike");
+
+            // Remember old values (for rollback)
+            const oldIcon = icon.className;
+            const oldCount = parseInt(countSpan.textContent);
+
+            // Optimistic UI update
+            const togglingOn = !oldIcon.includes("-fill");
+            icon.classList.toggle("bi-hand-thumbs-up-fill", isLikeButton && togglingOn);
+            icon.classList.toggle("bi-hand-thumbs-up", isLikeButton && !togglingOn);
+            icon.classList.toggle("bi-hand-thumbs-down-fill", !isLikeButton && togglingOn);
+            icon.classList.toggle("bi-hand-thumbs-down", !isLikeButton && !togglingOn);
+
+            countSpan.textContent = togglingOn ? oldCount + 1 : oldCount - 1;
+
+            try {
+                const res = await fetch(form.action, {
+                method: 'POST',
+            body: new FormData(form),
+            headers: {'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+            if (!res.ok) throw new Error();
+
+                // If switching from like → dislike or vice-versa,
+                // refresh the OTHER button too (optional)
+                // Could re-query the DOM and update counts via JSON if needed.
+
+            } catch {
+                // Revert UI on failure
+                icon.className = oldIcon;
+            countSpan.textContent = oldCount;
+            alert("Vote failed — please try again.");
+            }
+        });
     </script>
 }

@@ -137,12 +137,6 @@
                             </h5>
 
                             <div class="d-flex align-items-center gap-2" style="pointer-events:auto;">
-                                @* Private badge (if applicable) *@
-                                @if (item.Private)
-                                {
-                                    <span class="badge bg-danger private-badge">Private</span>
-                                }
-
                                 @* NEW: like / dislike for each card (matches Details styling) *@
                                 <div class="d-flex align-items-center gap-1">
                                     @if (User?.Identity is { IsAuthenticated: true })
@@ -220,10 +214,21 @@
 
                         <!-- ===================== Card Body ===================== -->
                         <div class="card-body position-relative">
-                            <div class="categories mb-2">
+                            <div class="categories mb-2 d-flex align-items-center flex-wrap">
+                                @* Private badge FIRST *@
+                                @if (item.Private)
+                                {
+                                    <span class="badge bg-info text-dark me-1">Private</span>
+                                }
+
+                                @* Categories *@
                                 @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
                                 {
-                                    foreach (var cr in item.CategoryRecipes)
+                                    var categories = item.CategoryRecipes.ToList();
+                                    var maxVisible = 2;
+                                    var total = categories.Count;
+
+                                    foreach (var cr in categories.Take(maxVisible))
                                     {
                                         <a asp-controller="Categories"
                                            asp-action="Details"
@@ -232,12 +237,23 @@
                                             @cr.Category?.Name
                                         </a>
                                     }
+
+                                    if (total > maxVisible)
+                                    {
+                                        <span class="badge bg-info text-dark me-1">
+                                            +@(total - maxVisible) more
+                                        </span>
+                                    }
                                 }
                                 else
                                 {
                                     <span class="text-muted">No Categories</span>
                                 }
                             </div>
+
+
+
+
 
                             <div class="small text-muted mt-2 mb-2">
                                 <span class="fw-semibold">Time:</span> @item.FormattedTotalTime
@@ -371,6 +387,54 @@
                     icon.classList.toggle('bi-star-fill');
                     icon.classList.toggle('unchecked');
                     showAlert(`Something went wrong with '${recipeName}'. Please try again.`, "danger");
+                }
+            });
+
+            document.addEventListener('submit', async (e) => {
+                const form = e.target;
+
+                // Only handle Like/Dislike forms
+                if (!form.matches('form[action*="Votes/ToggleLike"], form[action*="Votes/ToggleDislike"]'))
+                return;
+
+                e.preventDefault(); // ⛔ stop page from reloading
+
+                const btn = form.querySelector("button");
+                const icon = btn.querySelector("i");
+                const countSpan = btn.querySelector("span");
+                const isLikeButton = form.action.includes("ToggleLike");
+
+                // Remember old values (for rollback)
+                const oldIcon = icon.className;
+                const oldCount = parseInt(countSpan.textContent);
+
+                // Optimistic UI update
+                const togglingOn = !oldIcon.includes("-fill");
+                icon.classList.toggle("bi-hand-thumbs-up-fill", isLikeButton && togglingOn);
+                icon.classList.toggle("bi-hand-thumbs-up", isLikeButton && !togglingOn);
+                icon.classList.toggle("bi-hand-thumbs-down-fill", !isLikeButton && togglingOn);
+                icon.classList.toggle("bi-hand-thumbs-down", !isLikeButton && !togglingOn);
+
+                countSpan.textContent = togglingOn ? oldCount + 1 : oldCount - 1;
+
+                try {
+                    const res = await fetch(form.action, {
+                    method: 'POST',
+                body: new FormData(form),
+                headers: {'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                if (!res.ok) throw new Error();
+
+                    // If switching from like → dislike or vice-versa,
+                    // refresh the OTHER button too (optional)
+                    // Could re-query the DOM and update counts via JSON if needed.
+
+                } catch {
+                    // Revert UI on failure
+                    icon.className = oldIcon;
+                countSpan.textContent = oldCount;
+                alert("Vote failed — please try again.");
                 }
             });
         </script>

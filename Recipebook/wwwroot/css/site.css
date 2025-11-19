@@ -21,71 +21,28 @@ body {
   margin-bottom: 60px;
 }
 
-/* Scope to recipe details so we don't mess up other pages */
-.details-page .btn-success,
-.details-page .btn-success:focus {
-    background-color: #5b3a32; /* your brown */
-    border-color: #5b3a32;
-    color: #fff;
+/* LIKE outline button (thicker brown outline) */
+.btn-outline-success {
+    border-width: 1.5px !important;
+    border-color: #3d241f !important; /* dark brown for visibility */
+    color: #3d241f !important;
 }
 
-    .details-page .btn-success:hover {
-        background-color: #4a2f28; /* slightly darker brown */
-        border-color: #4a2f28;
-        color: #fff;
-    }
-
-.details-page .btn-outline-success,
-.details-page .btn-outline-success:focus {
-    color: #5b3a32;
-    border-color: #5b3a32;
-    background-color: transparent;
+/* DISLIKE outline button (thicker red outline) */
+.btn-outline-danger {
+    border-width: 1.5px !important;
+    border-color: #b52a2a !important;
+    color: #b52a2a !important;
 }
 
-    .details-page .btn-outline-success:hover {
-        background-color: #5b3a32;
-        border-color: #5b3a32;
-        color: #fff;
-    }
-
-/* Optional: tweak guest badges so they match too */
-.details-page .badge.bg-dark {
-    background-color: #5b3a32 !important;
+/* Hover stays the same—but now pops more */
+.btn-outline-success:hover {
+    background-color: #3d241f !important;
+    color: #fff !important;
 }
 
-.details-page .badge.bg-secondary {
-    background-color: #b52a2a !important; /* match your btn-danger tone */
+.btn-outline-danger:hover {
+    background-color: #b52a2a !important;
+    color: #fff !important;
 }
-
-.details-page .btn-success,
-.details-page .btn-success:focus,
-.recipe-index-page .btn-success,
-.recipe-index-page .btn-success:focus {
-    background-color: #5b3a32;
-    border-color: #5b3a32;
-    color: #fff;
-}
-
-    .details-page .btn-success:hover,
-    .recipe-index-page .btn-success:hover {
-        background-color: #4a2f28;
-        border-color: #4a2f28;
-        color: #fff;
-    }
-
-.details-page .btn-outline-success,
-.details-page .btn-outline-success:focus,
-.recipe-index-page .btn-outline-success,
-.recipe-index-page .btn-outline-success:focus {
-    color: #5b3a32;
-    border-color: #5b3a32;
-    background-color: transparent;
-}
-
-    .details-page .btn-outline-success:hover,
-    .recipe-index-page .btn-outline-success:hover {
-        background-color: #5b3a32;
-        border-color: #5b3a32;
-        color: #fff;
-    }
 
