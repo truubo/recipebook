@@ -101,12 +101,27 @@
                             </div>
                         }
                         @{
-                            // Current user id (for favorite detection)
+                            // Current user id (for favorite / vote detection)
                             var uid = User!.FindFirstValue(ClaimTypes.NameIdentifier);
+
                             // Is this item a favorite for the current user?
-                            var isFav = User?.Identity is {IsAuthenticated: true } && (item.Favorites.Any(f => f.UserId == uid));
+                            var isFav = User?.Identity is { IsAuthenticated: true } && (item.Favorites.Any(f => f.UserId == uid));
+
                             // Owner check (for Edit/Delete visibility in footer)
-                            var isOwner = User?.Identity is {IsAuthenticated: true } && item.AuthorEmail == User.Identity.Name;
+                            var isOwner = User?.Identity is { IsAuthenticated: true } && item.AuthorEmail == User.Identity.Name;
+
+                            // --- NEW: like / dislike counts + current user vote for this card ---
+                            var likeCount = item.RecipeVotes?.Count(v => v.IsLike) ?? 0;
+                            var dislikeCount = item.RecipeVotes?.Count(v => !v.IsLike) ?? 0;
+
+                            Recipebook.Models.RecipeVote? userVote = null;
+                            if (User?.Identity is { IsAuthenticated: true } && item.RecipeVotes != null)
+                            {
+                                userVote = item.RecipeVotes.FirstOrDefault(v => v.UserId == uid);
+                            }
+                            var userLiked = userVote?.IsLike == true;
+                            var userDisliked = userVote?.IsLike == false;
+                            // --- END NEW ---
                         }
 
                         <!-- ===================== Card Header ===================== -->
@@ -127,6 +142,54 @@
                                 {
                                     <span class="badge bg-danger private-badge">Private</span>
                                 }
+
+                                @* NEW: like / dislike for each card (matches Details styling) *@
+                                <div class="d-flex align-items-center gap-1">
+                                    @if (User?.Identity is { IsAuthenticated: true })
+                                    {
+                                        <form asp-controller="Votes"
+                                              asp-action="ToggleLike"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="recipeId" value="@item.Id" />
+                                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                            <button type="submit"
+                                                    class="btn btn-sm @(userLiked ? "btn-success" : "btn-outline-success") rounded-pill d-flex align-items-center px-2"
+                                                    title="Like this recipe">
+                                                <i class="bi bi-hand-thumbs-up@(userLiked ? "-fill" : "")"></i>
+                                                <span class="ms-1">@likeCount</span>
+                                            </button>
+                                        </form>
+
+                                        <form asp-controller="Votes"
+                                              asp-action="ToggleDislike"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="recipeId" value="@item.Id" />
+                                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                            <button type="submit"
+                                                    class="btn btn-sm @(userDisliked ? "btn-danger" : "btn-outline-danger") rounded-pill d-flex align-items-center px-2"
+                                                    title="Dislike this recipe">
+                                                <i class="bi bi-hand-thumbs-down@(userDisliked ? "-fill" : "")"></i>
+                                                <span class="ms-1">@dislikeCount</span>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-dark rounded-pill d-flex align-items-center">
+                                            <i class="bi bi-hand-thumbs-up"></i>
+                                            <span class="ms-1">@likeCount</span>
+                                        </span>
+                                        <span class="badge bg-secondary rounded-pill d-flex align-items-center">
+                                            <i class="bi bi-hand-thumbs-down"></i>
+                                            <span class="ms-1">@dislikeCount</span>
+                                        </span>
+                                    }
+                                </div>
+                                @* END NEW *@
 
                                 @* ===================== Favorite Star (KEEP HERE) =====================
                         - Visible to ANY authenticated user

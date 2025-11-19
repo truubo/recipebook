@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Recipebook.Data;
 
@@ -11,9 +12,11 @@ using Recipebook.Data;
 namespace Recipebook.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251119163107_test")]
+    partial class test
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -513,32 +516,6 @@ namespace Recipebook.Migrations
                     b.ToTable("Recipe");
                 });
 
-            modelBuilder.Entity("Recipebook.Models.RecipeVote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsLike")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("RecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipeId", "UserId")
-                        .IsUnique();
-
-                    b.ToTable("RecipeVotes");
-                });
-
             modelBuilder.Entity("CategoryRecipe", b =>
                 {
                     b.HasOne("Recipebook.Models.Category", null)
@@ -701,17 +678,6 @@ namespace Recipebook.Migrations
                     b.Navigation("Recipe");
                 });
 
-            modelBuilder.Entity("Recipebook.Models.RecipeVote", b =>
-                {
-                    b.HasOne("Recipebook.Models.Recipe", "Recipe")
-                        .WithMany("RecipeVotes")
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Recipe");
-                });
-
             modelBuilder.Entity("Recipebook.Models.Category", b =>
                 {
                     b.Navigation("CategoryRecipes");
@@ -740,8 +706,6 @@ namespace Recipebook.Migrations
                     b.Navigation("IngredientRecipes");
 
                     b.Navigation("ListRecipes");
-
-                    b.Navigation("RecipeVotes");
                 });
 #pragma warning restore 612, 618
         }

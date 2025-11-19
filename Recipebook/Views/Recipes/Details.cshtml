@@ -19,9 +19,21 @@
     @* Gate Edit/Delete by author check (email compare supplied in ViewData by controller). *@
     var isOwner = User?.Identity is { IsAuthenticated: true } && (User.Identity.Name == (string?)ViewData["AuthorEmail"]);
 
-
     @* Lists provided by controller for Add-to-List modal; may be null/empty. *@
     var userLists = ViewBag.UserLists as IEnumerable<SelectListItem>;
+
+    @* --- NEW: like / dislike counts + current user vote --- *@
+    var likeCount = Model.RecipeVotes?.Count(v => v.IsLike) ?? 0;
+    var dislikeCount = Model.RecipeVotes?.Count(v => !v.IsLike) ?? 0;
+
+    Recipebook.Models.RecipeVote? userVote = null;
+    if (User?.Identity is { IsAuthenticated: true } && Model.RecipeVotes != null)
+    {
+        userVote = Model.RecipeVotes.FirstOrDefault(v => v.UserId == uid);
+    }
+    var userLiked = userVote?.IsLike == true;
+    var userDisliked = userVote?.IsLike == false;
+    @* --- END NEW --- *@
 }
 
 <div class="details-page position-relative">
@@ -70,62 +82,111 @@
             <div class="col">
                 <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
 
-        <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
-            <div>
-                @* Show linked category badges or a muted fallback. *@
-                @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
-                {
-                    foreach (var cr in Model.CategoryRecipes)
-                    {
-                        <a asp-controller="Categories"
-                           asp-action="Details"
-                           asp-route-id="@cr.Category?.Id"
-                           class="badge bg-info text-dark text-decoration-none me-1">
-                            @cr.Category?.Name
+                <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
+                    <div>
+                        @* Show linked category badges or a muted fallback. *@
+                        @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
+                        {
+                            foreach (var cr in Model.CategoryRecipes)
+                            {
+                                <a asp-controller="Categories"
+                                   asp-action="Details"
+                                   asp-route-id="@cr.Category?.Id"
+                                   class="badge bg-info text-dark text-decoration-none me-1">
+                                    @cr.Category?.Name
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">No Categories</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
+                    @{
+                        var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model?.AuthorId!];
+                    }
+
+                    <small class="text-muted">
+                        By
+                        <a>
+                            @if (owner.IsAdmin)
+                            {
+                                <i class="bi bi-shield-fill-check" title="Admin"></i>
+                            }
+                            @owner.Email
                         </a>
-                    }
-                }
-                else
-                {
-                    <span class="text-muted">No Categories</span>
-                }
-            </div>
-        </div>
+                    </small>
 
-        <div class="author d-flex justify-content-center align-items-center gap-2 mt-2">
-            @{
-                var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model?.AuthorId!];
-            }
+                    @* Privacy badge reflects Model.Private. *@
+                    <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
+                        @(Model.Private ? "Private" : "Public")
+                    </span>
 
-            <small class="text-muted">
-                By 
-                <a>
-                    @if (owner.IsAdmin)
-                    {
-                        <i class="bi bi-shield-fill-check" title="Admin"></i>
-                    }
-                    @owner.Email
-                </a>
-            </small>
+                    @* --- NEW: Like / Dislike controls next to privacy badge --- *@
+                    <div class="d-flex align-items-center gap-1 ms-1">
+                        @if (User?.Identity is { IsAuthenticated: true })
+                        {
+                            <form asp-controller="Votes"
+                                  asp-action="ToggleLike"
+                                  method="post"
+                                  class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="recipeId" value="@Model.Id" />
+                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                <button type="submit"
+                                        class="btn btn-sm @(userLiked ? "btn-success" : "btn-outline-success") rounded-pill d-flex align-items-center px-2"
+                                        title="Like this recipe">
+                                    <i class="bi bi-hand-thumbs-up@(userLiked ? "-fill" : "")"></i>
+                                    <span class="ms-1">@likeCount</span>
+                                </button>
+                            </form>
 
-            @* Privacy badge reflects Model.Private. *@
-            <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
-                @(Model.Private ? "Private" : "Public")
-            </span>
-            <span>
-                @if (User?.Identity is { IsAuthenticated: true })
-                {
-                    @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
-                    <form asp-controller="Favorites"
-                          asp-action="Toggle"
-                          method="post"
-                          class="d-inline js-fav-toggle"
-                          title="Toggle favorite"
-                          aria-label="Toggle favorite"
-                          data-recipe-name="@Model.Title">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="recipeId" value="@Model.Id" />
-                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                            <form asp-controller="Votes"
+                                  asp-action="ToggleDislike"
+                                  method="post"
+                                  class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="recipeId" value="@Model.Id" />
+                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                <button type="submit"
+                                        class="btn btn-sm @(userDisliked ? "btn-danger" : "btn-outline-danger") rounded-pill d-flex align-items-center px-2"
+                                        title="Dislike this recipe">
+                                    <i class="bi bi-hand-thumbs-down@(userDisliked ? "-fill" : "")"></i>
+                                    <span class="ms-1">@dislikeCount</span>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="badge bg-dark rounded-pill d-flex align-items-center">
+                                <i class="bi bi-hand-thumbs-up"></i>
+                                <span class="ms-1">@likeCount</span>
+                            </span>
+                            <span class="badge bg-secondary rounded-pill d-flex align-items-center">
+                                <i class="bi bi-hand-thumbs-down"></i>
+                                <span class="ms-1">@dislikeCount</span>
+                            </span>
+                        }
+                    </div>
+                    @* --- END NEW --- *@
+
+                    <span>
+                        @if (User?.Identity is { IsAuthenticated: true })
+                        {
+                            @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
+                            <form asp-controller="Favorites"
+                                  asp-action="Toggle"
+                                  method="post"
+                                  class="d-inline js-fav-toggle"
+                                  title="Toggle favorite"
+                                  aria-label="Toggle favorite"
+                                  data-recipe-name="@Model.Title">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="recipeId" value="@Model.Id" />
+                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
                                 <button type="submit" class="btn btn-link p-0 star-btn">
                                     <i class="bi @(isFav ? "bi-star-fill star" : "bi-star star unchecked")"></i>

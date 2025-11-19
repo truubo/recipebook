@@ -106,6 +106,9 @@ namespace Recipebook.Models
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
         public ICollection<Direction> DirectionsList { get; set; } = new List<Direction>();
+
+        public virtual ICollection<RecipeVote> RecipeVotes { get; set; } = new List<RecipeVote>();
+
     }
 
 }

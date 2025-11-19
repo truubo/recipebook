@@ -21,6 +21,7 @@ namespace Recipebook.Data
         public DbSet<CategoryRecipe> CategoryRecipes { get; set; }
         public DbSet<IngredientRecipe> IngredientRecipes { get; set; }
         public DbSet<Favorite> Favorites { get; set; } = default!;
+        public DbSet<RecipeVote> RecipeVotes { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

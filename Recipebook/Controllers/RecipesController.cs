@@ -47,6 +47,7 @@ namespace Recipebook.Controllers
                 .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes).ThenInclude(cr => cr.Category)
                 .Include(r => r.Favorites) // needed for star state
+                .Include(r => r.RecipeVotes)
                 .Include(r => r.IngredientRecipes).ThenInclude(ir => ir.Ingredient) // <-- added
                 .AsQueryable();
 
@@ -110,6 +111,8 @@ namespace Recipebook.Controllers
 
         // -------------------------------- DETAILS --------------------------------
         // GET: Recipes/Details/5
+        // -------------------------------- DETAILS --------------------------------
+        // GET: Recipes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -122,10 +125,11 @@ namespace Recipebook.Controllers
                 .Where(r => !r.IsArchived)
                 .Include(r => r.CategoryRecipes)
                     .ThenInclude(cr => cr.Category)
-                .Include(r => r.IngredientRecipes)       // <-- Include ingredients
-                    .ThenInclude(ir => ir.Ingredient)   // <-- Include ingredient details
-                .Include(r => r.Favorites)               // ? ADDED (favorites) - for star state
+                .Include(r => r.IngredientRecipes)
+                    .ThenInclude(ir => ir.Ingredient)
+                .Include(r => r.Favorites)
                 .Include(r => r.DirectionsList)
+                .Include(r => r.RecipeVotes)   // keep this; still useful for other stuff
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (recipe == null)
@@ -145,6 +149,26 @@ namespace Recipebook.Controllers
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             string who = User.Identity?.Name ?? "anonymous";
 
+            // ?? NEW: compute like/dislike counts + user vote directly from DB
+            var likeCount = await _context.RecipeVotes
+                .CountAsync(v => v.RecipeId == recipe.Id && v.IsLike);
+
+            var dislikeCount = await _context.RecipeVotes
+                .CountAsync(v => v.RecipeId == recipe.Id && !v.IsLike);
+
+            RecipeVote? userVote = null;
+            if (User?.Identity is { IsAuthenticated: true } && !string.IsNullOrEmpty(uid))
+            {
+                userVote = await _context.RecipeVotes
+                    .FirstOrDefaultAsync(v => v.RecipeId == recipe.Id && v.UserId == uid);
+            }
+
+            ViewBag.LikeCount = likeCount;
+            ViewBag.DislikeCount = dislikeCount;
+            ViewBag.UserLiked = userVote?.IsLike == true;
+            ViewBag.UserDisliked = userVote?.IsLike == false;
+            // ?? END NEW
+
             // List category names for a readable log line
             var catNames = recipe.CategoryRecipes
                 .Select(cr => cr.Category?.Name)
@@ -152,15 +176,13 @@ namespace Recipebook.Controllers
                 .Cast<string>()
                 .ToList();
 
-            // ?? NEW: Provide the lists for the "Add to List" modal
-            // Expects your List entity to have an OwnerId (string) and Name (string)
-            // Adjust property names if yours differ.
+            // Provide the lists for the "Add to List" modal
             IEnumerable<SelectListItem> userLists = Enumerable.Empty<SelectListItem>();
             if (User?.Identity is { IsAuthenticated: true } && !string.IsNullOrEmpty(uid))
             {
                 userLists = await _context.Lists
                     .AsNoTracking()
-                    .Where(l => l.OwnerId == uid && !l.IsArchived)   // <- added !IsArchived filter
+                    .Where(l => l.OwnerId == uid && !l.IsArchived)
                     .OrderBy(l => l.Name)
                     .Select(l => new SelectListItem
                     {
@@ -181,6 +203,7 @@ namespace Recipebook.Controllers
 
             return View(recipe);
         }
+
 
         // GET: Recipes/PrintFriendly/id
         public async Task<IActionResult> PrintFriendly(int? id)
