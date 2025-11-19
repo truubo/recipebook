@@ -215,10 +215,10 @@
                         <!-- ===================== Card Body ===================== -->
                         <div class="card-body position-relative">
                             <div class="categories mb-2 d-flex align-items-center flex-wrap">
-                                @* Private badge FIRST *@
+                                @* Private badge FIRST — same pill sizing but custom color *@
                                 @if (item.Private)
                                 {
-                                    <span class="badge bg-info text-dark me-1">Private</span>
+                                    <span class="badge pill private-pill me-1">Private</span>
                                 }
 
                                 @* Categories *@
@@ -233,14 +233,14 @@
                                         <a asp-controller="Categories"
                                            asp-action="Details"
                                            asp-route-id="@cr.Category?.Id"
-                                           class="badge bg-info text-dark me-1 text-decoration-none">
+                                           class="badge pill category-pill me-1 text-decoration-none">
                                             @cr.Category?.Name
                                         </a>
                                     }
 
                                     if (total > maxVisible)
                                     {
-                                        <span class="badge bg-info text-dark me-1">
+                                        <span class="badge pill category-pill me-1">
                                             +@(total - maxVisible) more
                                         </span>
                                     }
@@ -250,6 +250,10 @@
                                     <span class="text-muted">No Categories</span>
                                 }
                             </div>
+
+
+
+
 
 
 

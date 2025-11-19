@@ -21,21 +21,20 @@ body {
   margin-bottom: 60px;
 }
 
-/* LIKE outline button (thicker brown outline) */
 .btn-outline-success {
     border-width: 1.5px !important;
     border-color: #3d241f !important; /* dark brown for visibility */
     color: #3d241f !important;
 }
-
 /* DISLIKE outline button (thicker red outline) */
+
 .btn-outline-danger {
     border-width: 1.5px !important;
     border-color: #b52a2a !important;
     color: #b52a2a !important;
 }
-
 /* Hover stays the same—but now pops more */
+
 .btn-outline-success:hover {
     background-color: #3d241f !important;
     color: #fff !important;
@@ -46,3 +45,25 @@ body {
     color: #fff !important;
 }
 
+/* Universal pill size (applies to both Private + category chips) */
+.categories .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.65rem !important;
+    border-radius: 999px !important;
+    line-height: 1 !important;
+    font-size: 0.85rem !important;
+    font-weight: 500;
+}
+
+/* Private chip color */
+.categories .private-pill {
+    background-color: #8b0000 !important; /* dark red */
+    color: #ffffff !important;
+}
+
+/* Category chip color */
+.categories .category-pill {
+    background-color: #3b2e2e !important; /* your brown tone */
+    color: #ffffff !important;
+}

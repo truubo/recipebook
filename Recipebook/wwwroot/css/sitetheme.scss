@@ -1327,3 +1327,55 @@ main {
     background-color: $red !important;
     color: #fff;
 }
+
+// Theme variables
+$like-brown: #3d241f;
+$dislike-red: #b52a2a;
+
+// Like button (outline)
+.btn-outline-success {
+    border-width: 1.5px !important;
+    border-color: $like-brown !important;
+    color: $like-brown !important;
+
+    &:hover {
+        background-color: $like-brown !important;
+        color: #fff !important;
+    }
+}
+
+// Dislike button (outline)
+.btn-outline-danger {
+    border-width: 1.5px !important;
+    border-color: $dislike-red !important;
+    color: $dislike-red !important;
+
+    &:hover {
+        background-color: $dislike-red !important;
+        color: #fff !important;
+    }
+}
+
+.btn-outline-success {
+    border-width: 1.5px !important;
+    border-color: #3d241f !important; /* dark brown for visibility */
+    color: #3d241f !important;
+}
+/* DISLIKE outline button (thicker red outline) */
+
+.btn-outline-danger {
+    border-width: 1.5px !important;
+    border-color: #b52a2a !important;
+    color: #b52a2a !important;
+}
+/* Hover stays the same—but now pops more */
+
+.btn-outline-success:hover {
+    background-color: #3d241f !important;
+    color: #fff !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: #b52a2a !important;
+    color: #fff !important;
+}

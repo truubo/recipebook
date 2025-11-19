@@ -13009,3 +13009,47 @@ main {
   background-color: #8c1c13 !important;
   color: #fff;
 }
+
+.btn-outline-success {
+  border-width: 1.5px !important;
+  border-color: #3d241f !important;
+  color: #3d241f !important;
+}
+.btn-outline-success:hover {
+  background-color: #3d241f !important;
+  color: #fff !important;
+}
+
+.btn-outline-danger {
+  border-width: 1.5px !important;
+  border-color: #b52a2a !important;
+  color: #b52a2a !important;
+}
+.btn-outline-danger:hover {
+  background-color: #b52a2a !important;
+  color: #fff !important;
+}
+
+.btn-outline-success {
+  border-width: 1.5px !important;
+  border-color: #3d241f !important; /* dark brown for visibility */
+  color: #3d241f !important;
+}
+
+/* DISLIKE outline button (thicker red outline) */
+.btn-outline-danger {
+  border-width: 1.5px !important;
+  border-color: #b52a2a !important;
+  color: #b52a2a !important;
+}
+
+/* Hover stays the same—but now pops more */
+.btn-outline-success:hover {
+  background-color: #3d241f !important;
+  color: #fff !important;
+}
+
+.btn-outline-danger:hover {
+  background-color: #b52a2a !important;
+  color: #fff !important;
+}
