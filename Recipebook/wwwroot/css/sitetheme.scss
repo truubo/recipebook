@@ -1215,6 +1215,45 @@ main {
     }
 }
 
+.desc-toggle {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.desc-toggle:focus,
+.desc-toggle:active {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.toggle-arrow {
+    transition: transform 300ms ease;
+    transform-origin: center;
+    font-size: 1.1rem;
+    line-height: 1;
+    position: relative;
+    top: 1px;
+    transform: rotate(0deg);
+}
+
+.desc-content {
+    overflow: hidden;
+    transition: opacity 200ms ease;
+    opacity: 1;
+}
+
+.desc-content.closing,
+.desc-content.closed {
+    opacity: 0;
+}
+
 // ------------------------
 // Dropdown and modals
 // ------------------------
@@ -1231,10 +1270,6 @@ main {
 .dropdown-item:hover {
     background-color: rgba(0,0,0,0.2);
 }
-
-//.modal-content {
-//    background: $beige;
-//}
 
 // ------------------------------
 // Add to List Modal Styling

@@ -233,15 +233,23 @@
     BODY: Description, (ADDED Timing), Ingredients, Directions
     =============================================================== *@
     <div class="details-body mt-4">
-        <h4 class="section-title mt-4">Description</h4>
-        @if (!string.IsNullOrEmpty(Model.Description))
-        {
-            <p>@Html.DisplayFor(model => model.Description)</p>
-        }
-        else
-        {
-            <p class="text-muted">No description available.</p>
-        }
+        <div class="description-wrapper mt-4">
+            <button type="button" class="desc-toggle d-flex align-items-center p-0" aria-expanded="true">
+                <i class="bi bi-chevron-down toggle-arrow me-2" aria-hidden="true"></i>
+                <h4 class="section-title mb-0">Description</h4>
+            </button>
+
+            <div class="desc-content" id="descContent" aria-hidden="false">
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <p>@Html.DisplayFor(model => model.Description)</p>
+                }
+                else
+                {
+                    <p class="text-muted">No description available.</p>
+                }
+            </div>
+        </div>
 
         <h4 class="section-title mt-4">Ingredients</h4>
         @{
@@ -403,6 +411,88 @@
                 icon.classList.toggle('unchecked');
                 showAlert(`Something went wrong with '${recipeName}'. Please try again.`, "danger");
             }
+        });
+
+
+        /* ============================================================
+           DESCRIPTION COLLAPSE / EXPAND WITH SMOOTH HEIGHT ANIMATION
+           ============================================================ */
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.querySelector('.desc-toggle');
+            const content = document.querySelector('.desc-content');
+            const arrow = toggle?.querySelector('.toggle-arrow');
+
+            if (!toggle || !content) return;
+
+            // initial: expanded
+            content.style.height = 'auto';
+            content.style.opacity = '1';
+            content.classList.remove('closed');
+
+            function openContent() {
+                content.classList.remove('closed', 'closing');
+                content.style.height = '0px';
+                void content.offsetHeight; // reflow
+                const full = content.scrollHeight + 'px';
+                content.style.transition = 'height 350ms ease, opacity 200ms ease';
+                content.style.height = full;
+                content.style.opacity = '1';
+
+                content.addEventListener('transitionend', function handler(e) {
+                    if (e.propertyName === 'height') {
+                        content.style.height = 'auto';
+                        content.removeEventListener('transitionend', handler);
+                    }
+                });
+
+                toggle.setAttribute('aria-expanded', 'true');
+                content.setAttribute('aria-hidden', 'false');
+                if (arrow) arrow.style.transform = 'rotate(0deg)';
+            }
+
+            function closeContent() {
+                const fullHeight = content.scrollHeight + 'px';
+                content.style.height = fullHeight;
+                void content.offsetHeight;
+                requestAnimationFrame(() => {
+                    content.style.transition = 'height 350ms ease, opacity 200ms ease';
+                    content.style.height = '0px';
+                    content.style.opacity = '0';
+                    content.classList.add('closing');
+                });
+
+                content.addEventListener('transitionend', function handler(e) {
+                    if (e.propertyName === 'height') {
+                        content.classList.add('closed');
+                        content.classList.remove('closing');
+                        content.style.height = '0px';
+                        content.removeEventListener('transitionend', handler);
+                    }
+                });
+
+                toggle.setAttribute('aria-expanded', 'false');
+                content.setAttribute('aria-hidden', 'true');
+                if (arrow) arrow.style.transform = 'rotate(180deg)';
+            }
+
+            let isOpen = true;
+
+            toggle.addEventListener('click', () => {
+                if (isOpen) {
+                    closeContent();
+                } else {
+                    openContent();
+                }
+                isOpen = !isOpen;
+            });
+
+            // Keyboard accessibility
+            toggle.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle.click();
+                }
+            });
         });
 
         document.addEventListener('submit', async (e) => {
