@@ -13065,23 +13065,27 @@ main {
   background: radial-gradient(circle at top left, rgb(245.2325581395, 238.7209302326, 229.7674418605) 0, #e7d7c1 40%, rgb(187.7777777778, 165.625, 157.2222222222) 100%);
 }
 
-/* Frame */
+/* ===================== FIXED CARD / SLIDE SIZE ===================== */
 .home-hero-frame {
   position: relative;
   padding: 2.4rem 3rem 3rem;
-  min-height: 430px;
+  /* FIXED HEIGHT FOR EACH CAROUSEL CARD */
+  min-height: 480px;
+  max-height: 480px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 @media (max-width: 992px) {
   .home-hero-frame {
     padding: 2rem 1.5rem 2.6rem;
     min-height: 360px;
+    max-height: none;
   }
 }
 
-/* Two-column layout */
+/* Two-column layout (also fixed height inside) */
 .home-hero-content {
   display: flex;
   align-items: center;
@@ -13090,13 +13094,15 @@ main {
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;
-  min-height: 380px;
+  min-height: 420px;
+  max-height: 420px;
 }
 @media (max-width: 992px) {
   .home-hero-content {
     flex-direction: column;
     gap: 1.6rem;
     min-height: 0;
+    max-height: none;
   }
 }
 
@@ -13197,25 +13203,27 @@ main {
   font-weight: 500;
 }
 
-/* Image Column */
+/* ===================== FIXED IMAGE AREA ===================== */
 .home-hero-media {
   flex: 1 1 62%;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 360px;
+  /* consistent image column size */
+  min-height: 350px;
+  max-height: 350px;
 }
 @media (max-width: 992px) {
   .home-hero-media {
     width: 100%;
     min-height: 260px;
+    max-height: none;
   }
 }
 
-/* Actual Image */
 .home-hero-img {
   max-width: 95%;
-  max-height: 96%;
+  max-height: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
