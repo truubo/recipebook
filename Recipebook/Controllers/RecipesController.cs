@@ -95,7 +95,9 @@ namespace Recipebook.Controllers
 
             // Dropdown + preserve selection
             ViewBag.TagList = new SelectList(
-                await _context.Category.OrderBy(c => c.Name).ToListAsync(),
+                await _context.Category
+                .Where(c => !c.IsArchived)
+                .OrderBy(c => c.Name).ToListAsync(),
                 "Id", "Name", tagId
             );
 
