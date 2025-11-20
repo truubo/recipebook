@@ -13210,8 +13210,7 @@ main {
   justify-content: center;
   align-items: center;
   /* consistent image column size */
-  min-height: 350px;
-  max-height: 350px;
+  height: 350px;
 }
 @media (max-width: 992px) {
   .home-hero-media {
@@ -13224,9 +13223,9 @@ main {
 .home-hero-img {
   max-width: 95%;
   max-height: 100%;
-  width: auto;
+  width: 100%;
   height: auto;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
   border-radius: 1.25rem;
   box-shadow: 0 8px 20px rgba(63, 45, 39, 0.35);
