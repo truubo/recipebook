@@ -1654,3 +1654,8 @@ main {
     max-width: 900px;
     margin: 0 auto;
 }
+
+.recipe-title {
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+}

@@ -76,14 +76,23 @@
                                         </span>
                                     </div>
 
-                                    <h2 class="home-hero-title">
+                                    <h2 class="recipe-title">
                                         @recipe.Title
                                     </h2>
 
                                     @if (!string.IsNullOrWhiteSpace(recipe.Description))
                                     {
                                         <p class="home-hero-subtitle">
-                                            @recipe.Description
+                                            @{
+                                                var desc = recipe.Description.Trim();
+
+                                                if (desc.Length > 200)
+                                                {
+                                                    desc = desc.Substring(0, 200) + "...";
+                                                }
+
+                                                @desc
+                                            }
                                         </p>
                                     }
 

@@ -114,7 +114,7 @@
                             var likeCount = item.RecipeVotes?.Count(v => v.IsLike) ?? 0;
                             var dislikeCount = item.RecipeVotes?.Count(v => !v.IsLike) ?? 0;
 
-                            Recipebook.Models.RecipeVote? userVote = null;
+                            RecipeVote? userVote = null;
                             if (User?.Identity is { IsAuthenticated: true } && item.RecipeVotes != null)
                             {
                                 userVote = item.RecipeVotes.FirstOrDefault(v => v.UserId == uid);
@@ -131,7 +131,7 @@
                             <h5 class="card-title mb-0">
                                 <a asp-action="Details"
                                    asp-route-id="@item.Id"
-                                   class="text-decoration-none">
+                                   class="recipe-title">
                                     @item.Title
                                 </a>
                             </h5>
@@ -149,7 +149,7 @@
                                             <input type="hidden" name="recipeId" value="@item.Id" />
                                             <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                                             <button type="submit"
-                                                    class="btn btn-sm @(userLiked ? "btn-success" : "btn-outline-success") rounded-pill d-flex align-items-center px-2"
+                                                    class="btn btn-sm @(userLiked ? "btn-success" : "btn-outline-success") rounded-pill d-flex align-items-center px-2 ms-2"
                                                     title="Like this recipe">
                                                 <i class="bi bi-hand-thumbs-up@(userLiked ? "-fill" : "")"></i>
                                                 <span class="ms-1">@likeCount</span>
