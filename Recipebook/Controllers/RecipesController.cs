@@ -485,6 +485,8 @@ namespace Recipebook.Controllers
                     .ToList()
             };
 
+            vm.Recipe.ImageFileName = recipe.ImageFileName;
+
             ViewBag.AllCategories = new MultiSelectList(_context.Category.Where(c => !c.IsArchived).OrderBy(c => c.Name), "Id", "Name", vm.SelectedCategories);
             ViewBag.AllIngredients = new SelectList(_context.Ingredient.Where(i => !i.IsArchived).OrderBy(i => i.Name), "Id", "Name");
 

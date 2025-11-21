@@ -1271,6 +1271,14 @@ main {
     background-color: rgba(0,0,0,0.2);
 }
 
+#categoriesDropdown .dropdown-item.active,
+#categoriesDropdown .dropdown-item:active,
+#listsRecipesDropdown .dropdown-item.active,
+#listsRecipesDropdown .dropdown-item:active {
+    background-color: #6b3b3b !important;
+    color: #f2e5cf !important;
+}
+
 // ------------------------------
 // Add to List Modal Styling
 // ------------------------------

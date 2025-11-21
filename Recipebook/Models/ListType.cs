@@ -4,10 +4,10 @@ namespace Recipebook.Models
 {
     public enum ListType
     {
-        [Description("Meal plan containing selected recipes")]
+        [Description("Used for meal plans, favorites, etc.")]
         Recipes = 0,
 
-        [Description("Grocery list of ingredients to shop for")]
+        [Description("Used for shopping Lists, collections, etc.")]
         Ingredients = 1
     }
 }
