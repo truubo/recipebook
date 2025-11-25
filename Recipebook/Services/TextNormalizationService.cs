@@ -28,7 +28,7 @@ namespace Recipebook.Services
             string[] smallWords = { "a", "an", "the", "and", "but", "or", "for", "nor",
                                     "on", "at", "to", "from", "by", "of", "in", "with", "is" };
 
-            var words = input.ToLower().Split(' ');
+            var words = input.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             // Loop through each word, capitalizing when appropriate
             for (int i = 0; i < words.Length; i++)
