@@ -6,18 +6,59 @@ namespace Recipebook.Models
 {
     public enum Unit
     {
+        // Basic units
         Piece,
+        Unit,
+
+        // Weight
         Gram,
         Kilogram,
+        Ounce,
+        Pound,
+        Milligram,
+
+        // Volume (metric)
         Milliliter,
         Liter,
-        Cup,
-        Tablespoon,
+
+        // Volume (US cooking)
         Teaspoon,
-        Unit,
-        Ounce,
-        Pound
+        Tablespoon,
+        Cup,
+        Pint,
+        Quart,
+        Gallon,
+        FluidOunce,
+
+        // Cooking-specific units
+        Slice,
+        Clove,
+        Bunch,
+        Pinch,
+        Dash,
+        Handful,
+        Stalk,
+        Head,
+        Leaf,
+        Stick,      // e.g., a stick of butter
+        Cube,       // e.g., bouillon cube
+
+        // Package-based units
+        Can,
+        Jar,
+        Bottle,
+        Package,
+        Bag,
+        Box,
+
+        // Misc
+        Sprig,
+        Fillet,
+        Strip,
+        PieceSmall,   // e.g., "small piece of ginger"
+        PieceLarge    // e.g., "large piece of onion"
     }
+
 
     public class IngredientRecipe
     {
