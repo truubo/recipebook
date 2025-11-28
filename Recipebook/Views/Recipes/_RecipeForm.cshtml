@@ -187,6 +187,10 @@
                 <label asp-for="ImageFile">Recipe Image</label>
                 <input asp-for="ImageFile" type="file" class="form-control" />
                 <span asp-validation-for="ImageFile" class="text-danger"></span>
+                @if (Model.Recipe.ImageFileName != null && Model.Recipe.ImageFileName != "")
+                {
+                    <span>An image already exists. Upload a new one to replace it.</span>
+                }
             </div>
 
             <div class="d-flex justify-content-center gap-2">
