@@ -150,9 +150,18 @@
 
                                 <!-- Image column -->
                                 <div class="home-hero-media">
-                                    <img src="/img/recipes/@recipe.ImageFileName"
-                                         class="home-hero-img"
-                                         alt="@recipe.Title" />
+                                    @if (recipe.ImageFileName != null && recipe.ImageFileName != "")
+                                    {
+                                        <img src="/img/recipes/@recipe.ImageFileName"
+                                             class="home-hero-img"
+                                             alt="@recipe.Title" />
+                                    }
+                                    else
+                                    {
+                                        <img src="/img/recipebook_placeholder.jpg"
+                                             class="home-hero-img"
+                                             alt="@recipe.Title" />
+                                    }
                                 </div>
                             </div>
                         </div>
