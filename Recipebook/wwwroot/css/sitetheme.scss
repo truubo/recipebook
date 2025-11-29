@@ -54,6 +54,43 @@
     }
 }
 
+// ------------------------------
+// Animations
+// ------------------------------
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 // Global
 
 .form-control:disabled,
@@ -533,6 +570,8 @@ main {
     .delete-header {
         text-align: center;
         margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
 
         h1 {
             margin-bottom: 1rem;
@@ -547,6 +586,10 @@ main {
         max-width: 700px;
         margin: 0 auto; // horizontally center
         box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUp 0.4s ease forwards;
+        animation-delay: 0.15s; // slight stagger after header
     }
 
     .delete-actions {
@@ -557,6 +600,17 @@ main {
 
         .btn {
             min-width: 120px; // consistent button width
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            &:active {
+                transform: translateY(0);
+                box-shadow: none;
+            }
         }
     }
 }
@@ -698,17 +752,29 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
 
     .category-card-grid {
         display: grid;
         gap: 0.75rem;
-        // mobile
         grid-template-columns: repeat(2, 1fr);
-        // tablet
+
+        > .category-pill-card {
+            opacity: 0;
+            animation: scaleFadeUp 0.45s ease forwards;
+        }
+
+        @for $i from 1 through 20 {
+            > .category-pill-card:nth-child(#{$i}) {
+                animation-delay: #{0.05s * $i};
+            }
+        }
+
         @media (min-width: 768px) {
             grid-template-columns: repeat(4, 1fr);
         }
-        // desktop
+
         @media (min-width: 1200px) {
             grid-template-columns: repeat(6, 1fr);
         }
@@ -718,39 +784,32 @@ main {
         position: relative;
         background-color: $light-brown;
         border: 2px solid $dark-brown;
-        border-radius: 50px; // pill shape
-        padding: 0.2rem 0.6rem; // skinnier height
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 50px;
+        padding: 0.2rem 0.6rem;
         cursor: pointer;
+        overflow: hidden;
+        transform: translateY(0) scale(1);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
 
         &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.15);
         }
 
-        .card-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .card-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             height: 100%;
-            z-index: 1;
-            text-indent: -9999px;
-            background: transparent;
-            border-radius: inherit;
+            text-align: center;
+            pointer-events: none;
         }
 
         .card-body {
             position: relative;
             z-index: 2;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
 
             .category-name {
@@ -765,6 +824,14 @@ main {
                 color: $dark-brown;
             }
         }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background: transparent;
+            text-indent: -9999px;
+        }
     }
 }
 
@@ -777,16 +844,17 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
-
+    // mobile
     .ingredient-card-grid {
         display: grid;
         gap: 0.75rem;
         grid-template-columns: repeat(2, 1fr);
-
+        animation: scaleFadeUp 0.45s ease forwards;
+        // tablet
         @media (min-width: 768px) {
             grid-template-columns: repeat(4, 1fr);
         }
-
+        // desktop
         @media (min-width: 1200px) {
             grid-template-columns: repeat(6, 1fr);
         }
@@ -806,6 +874,7 @@ main {
         position: relative;
         overflow: hidden;
         transition: transform 0.2s, box-shadow 0.2s;
+        animation: scaleFadeUp 0.65s ease-out both;
 
         &:hover {
             transform: translateY(-2px);
@@ -876,16 +945,18 @@ main {
     .card-grid {
         display: grid;
         gap: 1.5rem;
-        // mobile
-        grid-template-columns: 1fr;
-        // tablet
+        grid-template-columns: 1fr; // mobile
+
         @media (min-width: 768px) {
             grid-template-columns: repeat(2, 1fr);
         }
-        // desktop
+        // tablet
         @media (min-width: 992px) {
             grid-template-columns: repeat(3, 1fr);
         }
+        // desktop
+
+        animation: fadeIn 0.45s ease forwards; // soft fade-in for the grid
 
         .list-card {
             position: relative;
@@ -896,19 +967,18 @@ main {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            animation: scaleFadeUp 0.55s ease-out both;
+            animation-delay: calc(var(--i, 0) * 0.07s);
 
             &:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transform: translateY(-5px) scale(1.02);
+                box-shadow: 0 6px 16px rgba(0,0,0,0.12);
             }
 
             .card-overlay {
                 position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+                inset: 0;
                 z-index: 1;
                 text-indent: -9999px;
                 background: transparent;
@@ -920,13 +990,13 @@ main {
             .card-footer {
                 position: relative;
                 z-index: 2;
-                pointer-events: none; // overlay catches clicks
+                pointer-events: none;
             }
 
-            .card-header a,
-            .card-footer .btn-group a {
-                pointer-events: auto;
-            }
+                .card-header a,
+                .card-footer .btn-group a {
+                    pointer-events: auto;
+                }
 
             .card-header {
                 display: flex;
@@ -962,6 +1032,17 @@ main {
                 .btn-group .btn {
                     font-size: 1rem;
                     padding: 0.5rem 0.6rem;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:hover {
+                        transform: translateY(-2px) scale(1.03);
+                        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+                    }
+
+                    &:active {
+                        transform: translateY(0) scale(1);
+                        box-shadow: none;
+                    }
                 }
 
                 small a {
@@ -976,10 +1057,16 @@ main {
         .nav-link {
             color: white;
             background-color: $light-brown;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 
             &.active {
                 background-color: $light-red;
                 color: white;
+                transform: scale(1.02);
+            }
+
+            &:not(.active):hover {
+                transform: scale(1.01);
             }
         }
     }
@@ -1054,6 +1141,8 @@ main {
     h1 {
         margin-bottom: 1.5rem;
         text-align: center;
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
     }
 
     .card {
@@ -1061,7 +1150,10 @@ main {
         width: 100%;
         padding: 1.5rem;
         box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-        transition: transform 0.2s, box-shadow 0.2s;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUp 0.4s ease forwards;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
 
         &:hover {
             transform: translateY(-2px);
@@ -1078,6 +1170,17 @@ main {
 
                 .btn {
                     min-width: 120px;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    }
+
+                    &:active {
+                        transform: translateY(0);
+                        box-shadow: none;
+                    }
                 }
             }
         }
@@ -1114,20 +1217,20 @@ main {
             align-items: center;
 
             .col {
-                flex: 1; // equal width for all inputs
+                flex: 1;
             }
         }
 
         .remove-ingredient-btn {
             display: block;
-            margin: 0.5rem auto 0; // center horizontally
+            margin: 0.5rem auto 0;
             width: 25%;
         }
 
         hr {
             margin-top: 0.5rem;
             margin-bottom: 0.5rem;
-            border-color: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0,0,0,0.1);
         }
     }
 }
@@ -1143,6 +1246,9 @@ main {
     border: 2px solid $dark-brown;
     border-radius: 0.75rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeUp 0.45s ease forwards;
 
     .star-btn i.star,
     .star-btn i.star.unchecked {
@@ -1154,6 +1260,9 @@ main {
     }
 
     .details-header {
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
+
         .recipe-title {
             font-size: 2.2rem;
             font-weight: 700;
@@ -1186,6 +1295,8 @@ main {
             font-weight: 600;
             color: black;
             margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
         }
 
         p {
@@ -1196,12 +1307,26 @@ main {
     }
 
     .details-actions {
+        display: flex;
         justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
 
         .btn {
             min-width: 130px;
             font-weight: 500;
             border-radius: 0.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+
+            &:active {
+                transform: translateY(0);
+                box-shadow: none;
+            }
         }
 
         .btn-brown {
@@ -1225,13 +1350,13 @@ main {
     width: fit-content;
 }
 
-.desc-toggle:focus,
-.desc-toggle:active {
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
+    .desc-toggle:focus,
+    .desc-toggle:active {
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
 
 .toggle-arrow {
     transition: transform 300ms ease;

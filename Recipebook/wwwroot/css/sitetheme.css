@@ -11859,6 +11859,34 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scaleFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 .form-control:disabled,
 .form-control[readonly] {
   background-color: #a78a7f !important;
@@ -12344,6 +12372,8 @@ main {
 .delete-page .delete-header {
   text-align: center;
   margin-bottom: 2rem;
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards;
 }
 .delete-page .delete-header h1, .delete-page .delete-header .h1 {
   margin-bottom: 1rem;
@@ -12355,6 +12385,10 @@ main {
   max-width: 700px;
   margin: 0 auto;
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.4s ease forwards;
+  animation-delay: 0.15s;
 }
 .delete-page .delete-actions {
   display: flex;
@@ -12364,6 +12398,15 @@ main {
 }
 .delete-page .delete-actions .btn {
   min-width: 120px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.delete-page .delete-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.delete-page .delete-actions .btn:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .recipe-index-page {
@@ -12482,11 +12525,77 @@ main {
   justify-content: start;
   min-height: 80vh;
   padding: 2rem;
+  opacity: 0;
+  animation: fadeIn 0.45s ease forwards;
 }
 .category-index-page .category-card-grid {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(2, 1fr);
+}
+.category-index-page .category-card-grid > .category-pill-card {
+  opacity: 0;
+  animation: scaleFadeUp 0.45s ease forwards;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(7) {
+  animation-delay: 0.35s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(8) {
+  animation-delay: 0.4s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(9) {
+  animation-delay: 0.45s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(10) {
+  animation-delay: 0.5s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(11) {
+  animation-delay: 0.55s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(12) {
+  animation-delay: 0.6s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(13) {
+  animation-delay: 0.65s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(14) {
+  animation-delay: 0.7s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(15) {
+  animation-delay: 0.75s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(16) {
+  animation-delay: 0.8s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(17) {
+  animation-delay: 0.85s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(18) {
+  animation-delay: 0.9s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(19) {
+  animation-delay: 0.95s;
+}
+.category-index-page .category-card-grid > .category-pill-card:nth-child(20) {
+  animation-delay: 1s;
 }
 @media (min-width: 768px) {
   .category-index-page .category-card-grid {
@@ -12504,35 +12613,28 @@ main {
   border: 2px solid #3f2d27;
   border-radius: 50px;
   padding: 0.2rem 0.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
+  overflow: hidden;
+  transform: translateY(0) scale(1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .category-index-page .category-pill-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
 }
-.category-index-page .category-pill-card .card-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
+.category-index-page .category-pill-card .card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  z-index: 1;
-  text-indent: -9999px;
-  background: transparent;
-  border-radius: inherit;
+  text-align: center;
+  pointer-events: none;
 }
 .category-index-page .category-pill-card .card-body {
   position: relative;
   z-index: 2;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   text-align: center;
 }
 .category-index-page .category-pill-card .card-body .category-name {
@@ -12544,6 +12646,13 @@ main {
 .category-index-page .category-pill-card .card-body small, .category-index-page .category-pill-card .card-body .small {
   font-size: 0.85rem;
   color: #3f2d27;
+}
+.category-index-page .category-pill-card .card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: transparent;
+  text-indent: -9999px;
 }
 
 .ingredient-index-page {
@@ -12557,6 +12666,7 @@ main {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(2, 1fr);
+  animation: scaleFadeUp 0.45s ease forwards;
 }
 @media (min-width: 768px) {
   .ingredient-index-page .ingredient-card-grid {
@@ -12582,6 +12692,7 @@ main {
   position: relative;
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
+  animation: scaleFadeUp 0.65s ease-out both;
 }
 .ingredient-index-page .ingredient-pill-card:hover {
   transform: translateY(-2px);
@@ -12642,6 +12753,7 @@ main {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr;
+  animation: fadeIn 0.45s ease forwards;
 }
 @media (min-width: 768px) {
   .list-index-page .card-grid {
@@ -12662,18 +12774,17 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: scaleFadeUp 0.55s ease-out both;
+  animation-delay: calc(var(--i, 0) * 0.07s);
 }
 .list-index-page .card-grid .list-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 .list-index-page .card-grid .list-card .card-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   z-index: 1;
   text-indent: -9999px;
   background: transparent;
@@ -12720,6 +12831,15 @@ main {
 .list-index-page .card-grid .list-card .card-footer .btn-group .btn {
   font-size: 1rem;
   padding: 0.5rem 0.6rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.list-index-page .card-grid .list-card .card-footer .btn-group .btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+.list-index-page .card-grid .list-card .card-footer .btn-group .btn:active {
+  transform: translateY(0) scale(1);
+  box-shadow: none;
 }
 .list-index-page .card-grid .list-card .card-footer small a, .list-index-page .card-grid .list-card .card-footer .small a {
   text-decoration: none;
@@ -12728,10 +12848,15 @@ main {
 .list-index-page .nav-tabs .nav-link {
   color: white;
   background-color: #a78a7f;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 .list-index-page .nav-tabs .nav-link.active {
   background-color: #bf4342;
   color: white;
+  transform: scale(1.02);
+}
+.list-index-page .nav-tabs .nav-link:not(.active):hover {
+  transform: scale(1.01);
 }
 
 .home-page {
@@ -12790,13 +12915,18 @@ main {
 .recipe-form-page h1, .recipe-form-page .h1 {
   margin-bottom: 1.5rem;
   text-align: center;
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards;
 }
 .recipe-form-page .card {
   max-width: 1200px;
   width: 100%;
   padding: 1.5rem;
   box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.4s ease forwards;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .recipe-form-page .card:hover {
   transform: translateY(-2px);
@@ -12812,6 +12942,15 @@ main {
 }
 .recipe-form-page .card form .d-flex .btn {
   min-width: 120px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.recipe-form-page .card form .d-flex .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.recipe-form-page .card form .d-flex .btn:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 .recipe-form-page .form-label {
   font-weight: 600;
@@ -12860,6 +12999,9 @@ main {
   border: 2px solid #3f2d27;
   border-radius: 0.75rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.45s ease forwards;
 }
 .details-page .star-btn i.star,
 .details-page .star-btn i.star.unchecked {
@@ -12868,6 +13010,10 @@ main {
   font-size: 1.2rem;
   position: relative;
   top: -1px;
+}
+.details-page .details-header {
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards;
 }
 .details-page .details-header .recipe-title {
   font-size: 2.2rem;
@@ -12895,6 +13041,8 @@ main {
   font-weight: 600;
   color: black;
   margin-bottom: 0.5rem;
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
 }
 .details-page .details-body p {
   line-height: 1.6;
@@ -12902,12 +13050,24 @@ main {
   color: black;
 }
 .details-page .details-actions {
+  display: flex;
   justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 .details-page .details-actions .btn {
   min-width: 130px;
   font-weight: 500;
   border-radius: 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.details-page .details-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.details-page .details-actions .btn:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 .details-page .details-actions .btn-brown {
   background-color: #3f2d27;
