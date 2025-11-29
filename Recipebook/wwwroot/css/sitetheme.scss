@@ -631,13 +631,14 @@ main {
         .card-grid {
             display: grid;
             gap: 1.5rem;
-            grid-template-columns: 1fr; // mobile
+            grid-template-columns: 1fr;
+
             @media (min-width: 768px) {
-                grid-template-columns: repeat(2, 1fr); // tablet
+                grid-template-columns: repeat(2, 1fr);
             }
 
             @media (min-width: 992px) {
-                grid-template-columns: repeat(3, 1fr); // desktop
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
@@ -650,17 +651,26 @@ main {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.3s ease, box-shadow 0.2s ease, opacity 0.5s ease;
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            animation: scaleFadeUp 0.45s ease forwards;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
             will-change: transform, opacity;
-            // Apply hover only when not fading out
-            &:hover:not(.fading-out) {
-                transform: translateY(-5px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+            @for $i from 1 through 100 {
+                &:nth-child(#{$i}) {
+                    animation-delay: #{0.05s * $i};
+                }
             }
-            // Fade-out state for removal
+
+            &:hover:not(.fading-out) {
+                transform: translateY(-3px) scale(1.02);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
             &.fading-out {
                 opacity: 0;
-                transform: none; // prevent hover shift
+                transform: none;
                 pointer-events: none;
             }
 
@@ -685,11 +695,11 @@ main {
                 pointer-events: none;
             }
 
-            .card-header a,
-            .categories a,
-            .card-footer .btn-group a {
-                pointer-events: auto;
-            }
+                .card-header a,
+                .categories a,
+                .card-footer .btn-group a {
+                    pointer-events: auto;
+                }
 
             .card-header {
                 display: flex;
@@ -732,6 +742,17 @@ main {
                 .btn-group .btn {
                     font-size: 1rem;
                     padding: 0.5rem 0.6rem;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    }
+
+                    &:active {
+                        transform: translateY(0);
+                        box-shadow: none;
+                    }
                 }
 
                 small a {
@@ -765,7 +786,7 @@ main {
             animation: scaleFadeUp 0.45s ease forwards;
         }
 
-        @for $i from 1 through 20 {
+        @for $i from 1 through 100 {
             > .category-pill-card:nth-child(#{$i}) {
                 animation-delay: #{0.05s * $i};
             }
@@ -844,19 +865,30 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
-    // mobile
+
     .ingredient-card-grid {
         display: grid;
         gap: 0.75rem;
         grid-template-columns: repeat(2, 1fr);
-        animation: scaleFadeUp 0.45s ease forwards;
-        // tablet
+
         @media (min-width: 768px) {
             grid-template-columns: repeat(4, 1fr);
         }
-        // desktop
+
         @media (min-width: 1200px) {
             grid-template-columns: repeat(6, 1fr);
+        }
+
+        > .ingredient-pill-card {
+            opacity: 0;
+            transform: translateY(8px) scale(0.96);
+            animation: scaleFadeUp 0.45s ease forwards;
+        }
+
+        @for $i from 1 through 100 {
+            > .ingredient-pill-card:nth-child(#{$i}) {
+                animation-delay: #{0.05s * $i};
+            }
         }
     }
 
@@ -873,8 +905,7 @@ main {
         padding: 0.2rem 0.5rem;
         position: relative;
         overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
-        animation: scaleFadeUp 0.65s ease-out both;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
 
         &:hover {
             transform: translateY(-2px);
@@ -1073,64 +1104,10 @@ main {
 }
 
 // ------------------------------
-// Home Page Styling
-// ------------------------------
-.home-page {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    min-height: 70vh;
-    padding: 2rem;
-
-    h1 {
-        margin-bottom: 1.5rem;
-    }
-
-    p.lead {
-        margin-bottom: 3rem;
-        font-size: 1.2rem;
-        color: $dark-brown;
-    }
-
-    .home-cards {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        justify-content: center;
-
-        .col-md-4 {
-            display: flex;
-            flex: 1 1 300px; // responsive width
-        }
-
-        .card {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 1.5rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
-
-            &:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
-            }
-
-            .btn {
-                align-self: center;
-            }
-        }
-    }
-}
-
-// ------------------------------
 // Create/Edit Page Styling
 // ------------------------------
-.recipe-form-page {
+.recipe-form-page,
+.list-form-page{
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1551,239 +1528,220 @@ main {
 }
 
 /* ===================== Home Hero Carousel ===================== */
-
 .home-hero-wrapper {
     padding: 1.75rem 0 0;
     background-color: $beige;
-}
 
-.home-hero-carousel {
-    max-width: 1200px;
-    margin: 0 auto;
-    border-radius: 1.5rem;
-    overflow: hidden;
-    border: 2px solid $dark-brown;
-    box-shadow: 0 10px 25px rgba($dark-brown, 0.25);
-    position: relative;
-    background: radial-gradient( circle at top left, lighten($beige, 10%) 0, $beige 40%, lighten($light-brown, 10%) 100% );
-}
-
-/* ===================== FIXED CARD / SLIDE SIZE ===================== */
-
-.home-hero-frame {
-    position: relative;
-    padding: 2.4rem 3rem 3rem;
-    /* FIXED HEIGHT FOR EACH CAROUSEL CARD */
-    min-height: 480px;
-    max-height: 480px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-
-    @media (max-width: 992px) {
-        padding: 2rem 1.5rem 2.6rem;
-        min-height: 360px;
-        max-height: none;
+    .home-hero-carousel {
+        max-width: 1200px;
+        margin: 0 auto;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        border: 2px solid $dark-brown;
+        box-shadow: 0 10px 25px rgba($dark-brown, 0.25);
+        position: relative;
+        background: radial-gradient(circle at top left, lighten($beige, 10%) 0, $beige 40%, lighten($light-brown, 10%) 100%);
     }
-}
 
-/* Two-column layout (also fixed height inside) */
-.home-hero-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.6rem;
-    max-width: 1100px;
-    width: 100%;
-    margin: 0 auto;
-    min-height: 420px;
-    max-height: 420px;
+    .home-hero-frame {
+        position: relative;
+        padding: 2.4rem 3rem 3rem;
+        min-height: 480px;
+        max-height: 480px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
 
-    @media (max-width: 992px) {
-        flex-direction: column;
+        @media (max-width: 992px) {
+            padding: 2rem 1.5rem 2.6rem;
+            min-height: 360px;
+            max-height: none;
+        }
+    }
+
+    .home-hero-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         gap: 1.6rem;
-        min-height: 0;
-        max-height: none;
-    }
-}
-
-/* Caption */
-.home-hero-caption {
-    flex: 0 0 38%;
-    max-width: 400px;
-    color: $dark-brown;
-    text-shadow: none;
-
-    @media (max-width: 992px) {
-        flex: 1 1 auto;
-        max-width: 100%;
-        text-align: left;
-    }
-}
-
-/* Pills */
-.home-hero-pill {
-    background: rgba($dark-brown, 0.12);
-    color: $dark-brown;
-    font-weight: 600;
-    font-size: 0.82rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px;
-    backdrop-filter: blur(2px);
-}
-
-/* Titles */
-.home-hero-title {
-    font-size: 2.7rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    margin-bottom: 0.4rem;
-
-    @media (max-width: 768px) {
-        font-size: 2rem;
-    }
-}
-
-.home-hero-subtitle {
-    font-size: 1.05rem;
-    margin-bottom: 1rem;
-    max-width: 30rem;
-    color: darken($light-brown, 20%);
-}
-
-/* Stats */
-.home-hero-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-bottom: 1rem;
-}
-
-.home-hero-like-pill {
-    background-color: rgba($beige, 0.95);
-    border: 1px solid $dark-brown;
-    color: $dark-brown;
-}
-
-.home-hero-dislike-pill {
-    background-color: rgba($beige, 0.95);
-    border: 1px solid $danger;
-    color: $danger;
-}
-
-.home-hero-vote-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-/* Action Buttons */
-.home-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.home-hero-primary-btn {
-    background-color: $danger;
-    border-color: $danger;
-    font-weight: 600;
-    padding-inline: 1.6rem;
-    border-radius: 999px;
-
-    &:hover {
-        background-color: darken($danger, 12%);
-        border-color: darken($danger, 12%);
-    }
-}
-
-.home-hero-secondary-btn {
-    border-radius: 999px;
-    padding-inline: 1.5rem;
-    font-weight: 500;
-}
-
-/* ===================== FIXED IMAGE AREA ===================== */
-.home-hero-media {
-    flex: 1 1 62%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* consistent image column size */
-    height: 350px;
-
-    @media (max-width: 992px) {
+        max-width: 1100px;
         width: 100%;
-        min-height: 260px;
-        max-height: none;
+        margin: 0 auto;
+        min-height: 420px;
+        max-height: 420px;
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+        animation: scaleFadeUp 0.5s ease forwards;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+        @media (max-width: 992px) {
+            flex-direction: column;
+            gap: 1.6rem;
+            min-height: 0;
+            max-height: none;
+        }
     }
-}
 
-.home-hero-img {
-    max-width: 95%;
-    max-height: 100%;
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    display: block;
-    border-radius: 1.25rem;
-    box-shadow: 0 8px 20px rgba($dark-brown, 0.35);
-    background-color: $beige;
-    filter: contrast(1.03);
-}
+    .home-hero-caption {
+        flex: 0 0 38%;
+        max-width: 400px;
+        color: $dark-brown;
+        text-shadow: none;
 
-/* Indicators */
-.home-hero-indicators {
-    bottom: 0.9rem;
+        @media (max-width: 992px) {
+            flex: 1 1 auto;
+            max-width: 100%;
+            text-align: left;
+        }
+    }
 
-    [data-bs-target] {
-        width: 26px;
-        height: 4px;
+    .home-hero-pill {
+        background: rgba($dark-brown, 0.12);
+        color: $dark-brown;
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 0.35rem 0.85rem;
         border-radius: 999px;
-        background-color: rgba($beige, 0.7);
-        border: none;
+        backdrop-filter: blur(2px);
     }
 
-    .active {
-        background-color: $dark-brown;
-    }
-}
+    .home-hero-title {
+        font-size: 2.7rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.4rem;
 
-/* Controls */
-.home-hero-carousel {
-    .carousel-control-prev,
-    .carousel-control-next {
-        width: auto;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 10;
+        @media (max-width: 768px) {
+            font-size: 2rem;
+        }
     }
 
-    .carousel-control-prev {
-        left: 0.75rem;
+    .home-hero-subtitle {
+        font-size: 1.05rem;
+        margin-bottom: 1rem;
+        max-width: 30rem;
+        color: darken($light-brown, 20%);
     }
 
-    .carousel-control-next {
-        right: 0.75rem;
+    .home-hero-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-bottom: 1rem;
     }
 
-    .carousel-control-prev-icon,
-    .carousel-control-next-icon {
-        background-color: rgba($dark-brown, 0.55);
+    .home-hero-like-pill,
+    .home-hero-dislike-pill {
+        background-color: rgba($beige, 0.95);
+        border: 1px solid $dark-brown;
+        color: $dark-brown;
+
+        &.dislike {
+            border-color: $danger;
+            color: $danger;
+        }
+    }
+
+    .home-hero-vote-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .home-hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .home-hero-primary-btn {
+        background-color: $danger;
+        border-color: $danger;
+        font-weight: 600;
+        padding-inline: 1.6rem;
         border-radius: 999px;
-        padding: 0.9rem;
-        box-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+        &:hover {
+            background-color: darken($danger, 12%);
+            border-color: darken($danger, 12%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
     }
-}
 
-/* Fallback Hero */
-.home-hero-empty {
-    background-color: $beige;
-    padding: 3rem 1rem 1.5rem;
-}
+    .home-hero-secondary-btn {
+        border-radius: 999px;
+        padding-inline: 1.5rem;
+        font-weight: 500;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
 
-.home-hero-empty-inner {
-    max-width: 900px;
-    margin: 0 auto;
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    }
+
+    .home-hero-media {
+        flex: 1 1 62%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 350px;
+
+        @media (max-width: 992px) {
+            width: 100%;
+            min-height: 260px;
+            max-height: none;
+        }
+
+        .home-hero-img {
+            max-width: 95%;
+            max-height: 100%;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            display: block;
+            border-radius: 1.25rem;
+            box-shadow: 0 8px 20px rgba($dark-brown, 0.35);
+            background-color: $beige;
+            filter: contrast(1.03);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+            &:hover {
+                transform: translateY(-2px) scale(1.02);
+                box-shadow: 0 12px 28px rgba($dark-brown, 0.35);
+            }
+        }
+    }
+
+    .home-hero-indicators {
+        bottom: 0.9rem;
+
+        [data-bs-target] {
+            width: 26px;
+            height: 4px;
+            border-radius: 999px;
+            background-color: rgba($beige, 0.7);
+            border: none;
+        }
+
+        .active {
+            background-color: $dark-brown;
+        }
+    }
+
+    .home-hero-empty {
+        background-color: $beige;
+        padding: 3rem 1rem 1.5rem;
+
+        .home-hero-empty-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            animation: scaleFadeUp 0.45s ease forwards;
+        }
+    }
 }

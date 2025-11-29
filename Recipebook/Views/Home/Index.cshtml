@@ -71,7 +71,7 @@
                                 <!-- Caption column -->
                                 <div class="home-hero-caption">
                                     <div class="mb-2">
-                                        <span class="badge rounded-pill home-hero-pill">
+                                        <span class="badge rounded-pill home-hero-pill bg-brown">
                                             Top Recipe
                                         </span>
                                     </div>
@@ -142,7 +142,7 @@
                                         </a>
                                         <a asp-controller="Recipes"
                                            asp-action="Index"
-                                           class="btn btn-outline-secondary home-hero-secondary-btn">
+                                           class="btn btn-brown home-hero-secondary-btn">
                                             Browse All Recipes
                                         </a>
                                     </div>
@@ -192,7 +192,7 @@
             <div class="home-hero-empty-inner">
                 <h1 class="display-6 mb-3">Welcome to Recipebook</h1>
                 <p class="lead mb-4">
-                    Once you add some non-archived, non-private recipes with images and likes, they’ll appear here as top picks.
+                    Once public recipes with images and likes are available, they’ll appear here.
                 </p>
                 <a asp-controller="Recipes" asp-action="Create" class="btn btn-primary me-2">
                     Add a Recipe
@@ -212,11 +212,11 @@
         <div class="col-md-8 mb-3 mb-md-0">
             <h3 class="h5 fw-bold mb-2">Discover and vote on recipes</h3>
             <p class="mb-0">
-                Use the like and dislike buttons on each recipe to influence what shows up in the hero carousel.
+                Like and dislike recipes to influence what appears here!
             </p>
         </div>
         <div class="col-md-4 text-md-end">
-            <a asp-controller="Recipes" asp-action="Index" class="btn btn-outline-secondary me-2">
+            <a asp-controller="Recipes" asp-action="Index" class="btn btn-brown me-2">
                 Browse All Recipes
             </a>
             <a asp-controller="Recipes" asp-action="Create" class="btn btn-primary">
