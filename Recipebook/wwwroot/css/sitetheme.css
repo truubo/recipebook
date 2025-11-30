@@ -11887,6 +11887,18 @@ textarea.form-control-lg {
     transform: translateY(0) scale(1);
   }
 }
+@keyframes navShadowBloom {
+  0% {
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(0);
+  }
+}
 .form-control:disabled,
 .form-control[readonly] {
   background-color: #a78a7f !important;
@@ -11904,34 +11916,48 @@ body {
   background-color: #8c1c13 !important;
   color: white !important;
   padding: 0.75rem 1.5rem;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 .navbar a.nav-link,
 .navbar .navbar-brand {
   color: white !important;
   text-decoration: none;
+  transition: color 0.25s ease, transform 0.25s ease;
 }
 .navbar a.nav-link:hover, .navbar a.nav-link:focus,
 .navbar .navbar-brand:hover,
 .navbar .navbar-brand:focus {
   color: #bf4342;
   text-decoration: underline;
+  transform: translateY(-1px);
 }
 .navbar .navbar-toggler {
   border-color: #e7d7c1;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
 }
 .navbar .navbar-toggler:hover, .navbar .navbar-toggler:focus {
   background-color: #e7d7c1;
   color: #8c1c13;
+  transform: scale(1.06);
 }
 .navbar .dropdown-menu {
   background-color: #a78a7f;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.navbar .dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 .navbar .dropdown-menu a.dropdown-item {
   color: black;
+  transition: background-color 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
 }
 .navbar .dropdown-menu a.dropdown-item:hover, .navbar .dropdown-menu a.dropdown-item:focus {
   background-color: rgb(156.6111111111, 124.1875, 111.8888888889);
   color: white;
+  padding-left: 0.75rem;
 }
 .navbar .btn {
   background-color: #bf4342;
@@ -11940,6 +11966,7 @@ body {
   transition: all 0.2s ease-in-out;
   margin-left: 0.5rem;
   color: white !important;
+  transition: background-color 0.25s ease, transform 0.25s ease;
 }
 .navbar .btn:hover, .navbar .btn:focus, .navbar .btn:active, .navbar .btn.active, .navbar .btn:not(:disabled):not(.disabled):hover {
   background-color: rgb(153.8893280632, 52.9249011858, 52.1106719368);
@@ -11952,15 +11979,17 @@ body {
 }
 .navbar .btn:hover, .navbar .btn:focus, .navbar .btn:active {
   color: white !important;
+  transform: translateY(-1px);
 }
 
 .manage-nav .nav-link {
   color: inherit;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 .manage-nav .nav-link:hover {
   background-color: #bf4342;
   color: white;
+  transform: translateX(4px);
 }
 .manage-nav .nav-link.active {
   background-color: #8c1c13;
@@ -12402,7 +12431,7 @@ main {
 }
 .delete-page .delete-actions .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 .delete-page .delete-actions .btn:active {
   transform: translateY(0);
@@ -12415,6 +12444,8 @@ main {
   justify-content: start;
   min-height: 80vh;
   padding: 2rem;
+  opacity: 0;
+  animation: fadeIn 0.45s ease forwards;
 }
 .recipe-index-page .index-card {
   padding: 0;
@@ -12437,7 +12468,7 @@ main {
 .recipe-index-page .index-card .recipe-card {
   position: relative;
   background-color: #a78a7f;
-  border: 2px solid #3f2d27;
+  border: 1.2px solid #3f2d27;
   border-radius: 0.75rem;
   padding: 1rem;
   display: flex;
@@ -12751,7 +12782,7 @@ main {
 }
 .recipe-index-page .index-card .recipe-card:hover:not(.fading-out) {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 6px 12px rgba(0, 0, 0, 0.18);
 }
 .recipe-index-page .index-card .recipe-card.fading-out {
   opacity: 0;
@@ -12820,7 +12851,7 @@ main {
 }
 .recipe-index-page .index-card .recipe-card .card-footer .btn-group .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 .recipe-index-page .index-card .recipe-card .card-footer .btn-group .btn:active {
   transform: translateY(0);
@@ -13162,7 +13193,7 @@ main {
 .category-index-page .category-pill-card {
   position: relative;
   background-color: #a78a7f;
-  border: 2px solid #3f2d27;
+  border: 1.2px solid #3f2d27;
   border-radius: 50px;
   padding: 0.2rem 0.6rem;
   cursor: pointer;
@@ -13172,7 +13203,7 @@ main {
 }
 .category-index-page .category-pill-card:hover {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 .category-index-page .category-pill-card .card-inner {
   display: flex;
@@ -13213,6 +13244,8 @@ main {
   justify-content: start;
   min-height: 80vh;
   padding: 2rem;
+  opacity: 0;
+  animation: fadeIn 0.45s ease forwards;
 }
 .ingredient-index-page .ingredient-card-grid {
   display: grid;
@@ -13536,7 +13569,7 @@ main {
 }
 .ingredient-index-page .ingredient-pill-card {
   background-color: #a78a7f;
-  border: 2px solid #3f2d27;
+  border: 1.2px solid #3f2d27;
   border-radius: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -13551,7 +13584,7 @@ main {
 }
 .ingredient-index-page .ingredient-pill-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 .ingredient-index-page .ingredient-pill-card .card-body {
   display: flex;
@@ -13603,6 +13636,8 @@ main {
   justify-content: start;
   min-height: 80vh;
   padding: 2rem;
+  opacity: 0;
+  animation: fadeIn 0.45s ease forwards;
 }
 .list-index-page .card-grid {
   display: grid;
@@ -13623,7 +13658,7 @@ main {
 .list-index-page .card-grid .list-card {
   position: relative;
   background-color: #a78a7f;
-  border: 2px solid #3f2d27;
+  border: 1.2px solid #3f2d27;
   border-radius: 0.75rem;
   padding: 1rem;
   display: flex;
@@ -13635,7 +13670,7 @@ main {
 }
 .list-index-page .card-grid .list-card:hover {
   transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 6px 12px rgba(0, 0, 0, 0.18);
 }
 .list-index-page .card-grid .list-card .card-overlay {
   position: absolute;
@@ -13690,7 +13725,7 @@ main {
 }
 .list-index-page .card-grid .list-card .card-footer .btn-group .btn:hover {
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 .list-index-page .card-grid .list-card .card-footer .btn-group .btn:active {
   transform: translateY(0) scale(1);
@@ -13745,7 +13780,7 @@ main {
 .recipe-form-page .card:hover,
 .list-form-page .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 .recipe-form-page .card form,
 .list-form-page .card form {
@@ -13828,7 +13863,7 @@ main {
   margin: 2rem auto;
   padding: 2rem;
   background-color: #a78a7f;
-  border: 2px solid #3f2d27;
+  border: 1.2px solid #3f2d27;
   border-radius: 0.75rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
   opacity: 0;
@@ -13972,7 +14007,7 @@ main {
 
 .modal-content {
   background-color: #a78a7f;
-  border: 2px solid #3f2d27;
+  border: 1.2px solid #3f2d27;
   border-radius: 0.75rem;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
@@ -14097,7 +14132,7 @@ main {
   margin: 0 auto;
   border-radius: 1.5rem;
   overflow: hidden;
-  border: 2px solid #3f2d27;
+  border: 1.2px solid #3f2d27;
   box-shadow: 0 10px 25px rgba(63, 45, 39, 0.25);
   position: relative;
   background: radial-gradient(circle at top left, rgb(245.2325581395, 238.7209302326, 229.7674418605) 0, #e7d7c1 40%, rgb(187.7777777778, 165.625, 157.2222222222) 100%);

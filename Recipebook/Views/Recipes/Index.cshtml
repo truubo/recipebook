@@ -97,11 +97,11 @@
                         <div style="width:100%;max-height:200px;overflow:hidden;" class="mb-2">
                             @if (item.ImageFileName != null && item.ImageFileName != "")
                             {
-                                <img src="/img/recipes/@item.ImageFileName" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:2px solid #000;">
+                                <img src="/img/recipes/@item.ImageFileName" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:1.2px solid #000;">
                             } 
                             else
                             {
-                                <img src="/img/recipebook_placeholder.jpg" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:2px solid #000;">
+                                <img src="/img/recipebook_placeholder.jpg" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:1.2px solid #000;">
                             }
                         </div>
                         @{
@@ -114,18 +114,16 @@
                             // Owner check (for Edit/Delete visibility in footer)
                             var isOwner = User?.Identity is { IsAuthenticated: true } && item.AuthorEmail == User.Identity.Name;
 
-                            // --- NEW: like / dislike counts + current user vote for this card ---
                             var likeCount = item.RecipeVotes?.Count(v => v.IsLike) ?? 0;
                             var dislikeCount = item.RecipeVotes?.Count(v => !v.IsLike) ?? 0;
 
-                            Recipebook.Models.RecipeVote? userVote = null;
+                            RecipeVote? userVote = null;
                             if (User?.Identity is { IsAuthenticated: true } && item.RecipeVotes != null)
                             {
                                 userVote = item.RecipeVotes.FirstOrDefault(v => v.UserId == uid);
                             }
                             var userLiked = userVote?.IsLike == true;
                             var userDisliked = userVote?.IsLike == false;
-                            // --- END NEW ---
                         }
 
                         <!-- ===================== Card Header ===================== -->
@@ -187,13 +185,7 @@
                                         </span>
                                     }
                                 </div>
-                                @* END NEW *@
 
-                                @* ===================== Favorite Star (KEEP HERE) =====================
-                        - Visible to ANY authenticated user
-                        - POST to Favorites/Toggle with antiforgery & returnUrl
-                        - AJAX handler (below) prevents full-page reload
-                        =================================================================== *@
                                 @if (User?.Identity is { IsAuthenticated: true })
                                 {
                                     <form asp-controller="Favorites"
@@ -255,19 +247,10 @@
                                 }
                             </div>
 
-
-
-
-
-
-
-
-
                             <div class="small text-muted mt-2 mb-2">
                                 <span class="fw-semibold">Time:</span> @item.FormattedTotalTime
                             </div>
 
-                            @* Clamp long descriptions to ~100 chars for tidy cards *@
                             @if (!string.IsNullOrEmpty(item.Description))
                             {
                                 <p class="card-text">
@@ -281,7 +264,6 @@
                                 <p class="card-text text-muted">No description available.</p>
                             }
 
-                            @* Body is clickable to Details; header/footer remain interactive *@
                             <a asp-action="Details" asp-route-id="@item.Id" class="stretched-link"></a>
                         </div>
 

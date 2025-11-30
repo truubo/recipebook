@@ -91,6 +91,20 @@
     }
 }
 
+@keyframes navShadowBloom {
+    0% {
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+        transform: translateY(-2px);
+    }
+
+    100% {
+        opacity: 1;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        transform: translateY(0);
+    }
+}
+
 // Global
 
 .form-control:disabled,
@@ -116,38 +130,54 @@ body {
     background-color: $red !important;
     color: white !important;
     padding: 0.75rem 1.5rem;
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
 
     a.nav-link,
     .navbar-brand {
         color: white !important;
         text-decoration: none;
+        transition: color 0.25s ease, transform 0.25s ease;
 
         &:hover,
         &:focus {
             color: $light-red;
             text-decoration: underline;
+            transform: translateY(-1px);
         }
     }
 
     .navbar-toggler {
         border-color: $beige;
+        transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
 
         &:hover,
         &:focus {
             background-color: $beige;
             color: $red;
+            transform: scale(1.06);
         }
     }
 
     .dropdown-menu {
         background-color: $light-brown;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+
+        &.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         a.dropdown-item {
             color: black;
+            transition: background-color 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
 
-            &:hover, &:focus {
+            &:hover,
+            &:focus {
                 background-color: darken($light-brown, 5%);
                 color: white;
+                padding-left: 0.75rem;
             }
         }
     }
@@ -156,11 +186,13 @@ body {
         @include button-states($light-red);
         margin-left: 0.5rem;
         color: white !important;
+        transition: background-color 0.25s ease, transform 0.25s ease;
 
         &:hover,
         &:focus,
         &:active {
             color: white !important;
+            transform: translateY(-1px);
         }
     }
 }
@@ -168,11 +200,12 @@ body {
 .manage-nav {
     .nav-link {
         color: inherit;
-        transition: background-color 0.2s ease, color 0.2s ease;
+        transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
         &:hover {
             background-color: $light-red;
             color: white;
+            transform: translateX(4px);
         }
 
         &.active {
@@ -604,7 +637,7 @@ main {
 
             &:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
             }
 
             &:active {
@@ -624,6 +657,8 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
 
     .index-card {
         padding: 0;
@@ -645,7 +680,7 @@ main {
         .recipe-card {
             position: relative;
             background-color: $light-brown;
-            border: 2px solid $dark-brown;
+            border: 1.2px solid $dark-brown;
             border-radius: 0.75rem;
             padding: 1rem;
             display: flex;
@@ -665,7 +700,7 @@ main {
 
             &:hover:not(.fading-out) {
                 transform: translateY(-3px) scale(1.02);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30), 0 6px 12px rgba(0, 0, 0, 0.18);
             }
 
             &.fading-out {
@@ -695,11 +730,11 @@ main {
                 pointer-events: none;
             }
 
-                .card-header a,
-                .categories a,
-                .card-footer .btn-group a {
-                    pointer-events: auto;
-                }
+            .card-header a,
+            .categories a,
+            .card-footer .btn-group a {
+                pointer-events: auto;
+            }
 
             .card-header {
                 display: flex;
@@ -746,7 +781,7 @@ main {
 
                     &:hover {
                         transform: translateY(-2px);
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
                     }
 
                     &:active {
@@ -804,7 +839,7 @@ main {
     .category-pill-card {
         position: relative;
         background-color: $light-brown;
-        border: 2px solid $dark-brown;
+        border: 1.2px solid $dark-brown;
         border-radius: 50px;
         padding: 0.2rem 0.6rem;
         cursor: pointer;
@@ -814,7 +849,7 @@ main {
 
         &:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
 
         .card-inner {
@@ -865,6 +900,8 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
 
     .ingredient-card-grid {
         display: grid;
@@ -894,7 +931,7 @@ main {
 
     .ingredient-pill-card {
         background-color: $light-brown;
-        border: 2px solid $dark-brown;
+        border: 1.2px solid $dark-brown;
         border-radius: 0.75rem;
         display: flex;
         flex-direction: column;
@@ -909,7 +946,7 @@ main {
 
         &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
 
         .card-body {
@@ -972,6 +1009,8 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
 
     .card-grid {
         display: grid;
@@ -992,7 +1031,7 @@ main {
         .list-card {
             position: relative;
             background-color: $light-brown;
-            border: 2px solid $dark-brown;
+            border: 1.2px solid $dark-brown;
             border-radius: 0.75rem;
             padding: 1rem;
             display: flex;
@@ -1004,7 +1043,7 @@ main {
 
             &:hover {
                 transform: translateY(-5px) scale(1.02);
-                box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30), 0 6px 12px rgba(0, 0, 0, 0.18);
             }
 
             .card-overlay {
@@ -1067,7 +1106,7 @@ main {
 
                     &:hover {
                         transform: translateY(-2px) scale(1.03);
-                        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
                     }
 
                     &:active {
@@ -1107,7 +1146,7 @@ main {
 // Create/Edit Page Styling
 // ------------------------------
 .recipe-form-page,
-.list-form-page{
+.list-form-page {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1134,7 +1173,7 @@ main {
 
         &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
 
         form {
@@ -1220,7 +1259,7 @@ main {
     margin: 2rem auto;
     padding: 2rem;
     background-color: $light-brown;
-    border: 2px solid $dark-brown;
+    border: 1.2px solid $dark-brown;
     border-radius: 0.75rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
     opacity: 0;
@@ -1386,7 +1425,7 @@ main {
 // ------------------------------
     .modal-content {
         background-color: $light-brown;
-        border: 2px solid $dark-brown;
+        border: 1.2px solid $dark-brown;
         border-radius: 0.75rem;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
     }
@@ -1537,7 +1576,7 @@ main {
         margin: 0 auto;
         border-radius: 1.5rem;
         overflow: hidden;
-        border: 2px solid $dark-brown;
+        border: 1.2px solid $dark-brown;
         box-shadow: 0 10px 25px rgba($dark-brown, 0.25);
         position: relative;
         background: radial-gradient(circle at top left, lighten($beige, 10%) 0, $beige 40%, lighten($light-brown, 10%) 100%);
