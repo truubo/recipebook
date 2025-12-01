@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Recipebook.Data;
+using Recipebook.Models;
 using Recipebook.Services;
 using Recipebook.Services.Interfaces;
 
@@ -36,7 +38,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultUI()
@@ -47,6 +49,9 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<ITextNormalizationService, TextNormalizationService>();
+
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddTransient<IEmailSender, EmailHelper>();
 
 var app = builder.Build();
 
