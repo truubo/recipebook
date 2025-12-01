@@ -5,9 +5,11 @@
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
 }
 
-<div class="d-flex flex-column align-items-center justify-content-center text-center mt-2">
-    <div class="w-100" style="max-width: 500px;">
-        <div class="alert alert-brown" role="alert" data-persist="true">
+<div class="identity-page manage-page">
+    <div class="identity-container">
+        <h1>@ViewData["Title"]</h1>
+
+        <div class="alert alert-brown text-center" role="alert" data-persist="true">
             <p class="mb-0">
                 <strong>Deleting this data will permanently remove your account.</strong><br />
                 This action cannot be undone.
@@ -30,7 +32,7 @@
                 </div>
             }
 
-            <button class="w-100 btn btn-lg btn-danger" type="submit">
+            <button type="submit" class="w-100 btn btn-lg btn-danger mt-3">
                 Delete data and close my account
             </button>
         </form>

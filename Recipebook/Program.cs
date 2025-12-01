@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(o => { o.IncludeScopes = true; }); // show scope props (UserId, etc.)
 builder.Logging.AddDebug();
+builder.Logging.AddAzureWebAppDiagnostics();
 
 // Keep our app logs at Information; quiet framework noise
 builder.Logging.AddFilter("Recipebook", LogLevel.Information);

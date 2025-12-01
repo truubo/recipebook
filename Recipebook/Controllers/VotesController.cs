@@ -45,29 +45,30 @@ namespace Recipebook.Controllers
             var vote = await _context.RecipeVotes
                 .SingleOrDefaultAsync(v => v.RecipeId == recipeId && v.UserId == userId);
 
+            string userVoteResult;
+
             if (vote == null)
             {
-                // First time → create like
-                _context.RecipeVotes.Add(new RecipeVote
-                {
-                    RecipeId = recipeId,
-                    UserId = userId,
-                    IsLike = true
-                });
+                _context.RecipeVotes.Add(new RecipeVote { RecipeId = recipeId, UserId = userId, IsLike = true });
+                userVoteResult = "like";
             }
             else if (vote.IsLike)
             {
-                // Already liked → remove (unlike)
                 _context.RecipeVotes.Remove(vote);
+                userVoteResult = "";
             }
             else
             {
-                // Was a dislike → switch to like
                 vote.IsLike = true;
                 _context.RecipeVotes.Update(vote);
+                userVoteResult = "like";
             }
 
             await _context.SaveChangesAsync();
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return await ReturnVoteJson(recipeId, userVoteResult);
+
             return RedirectToLocal(returnUrl, recipeId);
         }
 
@@ -81,30 +82,45 @@ namespace Recipebook.Controllers
             var vote = await _context.RecipeVotes
                 .SingleOrDefaultAsync(v => v.RecipeId == recipeId && v.UserId == userId);
 
+            string userVoteResult;
+
             if (vote == null)
             {
-                // First time → create dislike
-                _context.RecipeVotes.Add(new RecipeVote
-                {
-                    RecipeId = recipeId,
-                    UserId = userId,
-                    IsLike = false
-                });
+                _context.RecipeVotes.Add(new RecipeVote { RecipeId = recipeId, UserId = userId, IsLike = false });
+                userVoteResult = "dislike";
             }
             else if (!vote.IsLike)
             {
-                // Already disliked → remove (undo)
                 _context.RecipeVotes.Remove(vote);
+                userVoteResult = "";
             }
             else
             {
-                // Was a like → switch to dislike
                 vote.IsLike = false;
                 _context.RecipeVotes.Update(vote);
+                userVoteResult = "dislike";
             }
 
             await _context.SaveChangesAsync();
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return await ReturnVoteJson(recipeId, userVoteResult);
+
             return RedirectToLocal(returnUrl, recipeId);
         }
+
+        private async Task<IActionResult> ReturnVoteJson(int recipeId, string userVote)
+        {
+            var likes = await _context.RecipeVotes.CountAsync(v => v.RecipeId == recipeId && v.IsLike);
+            var dislikes = await _context.RecipeVotes.CountAsync(v => v.RecipeId == recipeId && !v.IsLike);
+
+            return Json(new
+            {
+                likes,
+                dislikes,
+                userVote   // "like", "dislike", or ""
+            });
+        }
+
     }
 }

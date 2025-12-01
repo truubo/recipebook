@@ -5,11 +5,6 @@
     ViewData["Title"] = "Create List";
 }
 
-@* 3rd-party UI helpers for searchable multi-select (Select2). Loaded here for page-local scope. *@
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <div class="list-form-page">
     <h1>Create New List</h1>
 
@@ -29,12 +24,12 @@
                 @* Privacy toggle: owner-visible only when checked *@
                 <div class="form-check mb-3">
                     <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
-                    <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck"></label>
+                    <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck">Private List?</label>
                 </div>
 
                 @* ? List type: Recipes vs Ingredients (enum with name + description) *@
                 <div class="mb-3">
-                    <label asp-for="List.ListType" class="form-label fw-bold">Type</label>
+                    <label asp-for="List.ListType" class="form-label fw-bold">List Type</label>
 
                     @{
                         var listTypeItems = Enum.GetValues(typeof(Recipebook.Models.ListType))
@@ -46,7 +41,7 @@
                                             .GetCustomAttribute(field!, typeof(System.ComponentModel.DescriptionAttribute));
                             var text = string.IsNullOrWhiteSpace(attr?.Description)
                                             ? e.ToString()
-                                            : $"{e} — {attr.Description}";
+                                            : $"{e} - {attr.Description}";
                             return new SelectListItem { Value = ((int)e).ToString(), Text = text, Selected = (Model.List.ListType == e) };
                         }).ToList();
                     }
@@ -56,16 +51,53 @@
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
 
-                @* Recipe selector: used for both list types (copy recipes directly OR aggregate ingredients) *@
                 <div class="mb-3" id="recipeSelectSection">
                     <label class="form-label fw-bold" id="recipeSelectLabel">Add Recipes</label>
 
-                    @* Multi-select of recipes (searchable via Select2) *@
-                    <select asp-for="SelectedRecipeIds"
-                            asp-items="Model.RecipeChoices"
-                            class="form-select recipe-multiselect"
-                            multiple="multiple">
-                    </select>
+                    <div class="dropdown" id="listsRecipesDropdown" data-bs-auto-close="outside">
+                        <!-- Hidden multi-select that MVC binds -->
+                        <select id="SelectedRecipeIds"
+                                name="SelectedRecipeIds"
+                                asp-items="Model.RecipeChoices"
+                                multiple="multiple"
+                                class="d-none">
+                        </select>
+
+                        <!-- The clickable dropdown button -->
+                        <button class="form-control dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <span id="listsRecipesDropdownText">Select recipes...</span>
+                        </button>
+
+                        <!-- Dropdown menu -->
+                        <ul class="dropdown-menu p-2">
+                            <li>
+                                <input type="text"
+                                       class="form-control my-2"
+                                       placeholder="Search..."
+                                       oninput="searchListRecipes(this)" />
+                            </li>
+
+                            <li>
+                                <ul id="listsRecipesList" class="list-unstyled mb-0">
+                                    @foreach (var recipe in Model.RecipeChoices)
+                                    {
+                                        <li>
+                                            <a href="#"
+                                               class="dropdown-item list-recipe-option @(recipe.Selected ? "active" : "")"
+                                               data-id="@recipe.Value"
+                                               data-name="@recipe.Text"
+                                               onclick="toggleListRecipe(event, this)">
+                                                @recipe.Text
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
 
                     <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
                     <small id="recipeSelectHelp" class="text-muted"></small>
@@ -84,40 +116,6 @@
 </div>
 
 @section Scripts {
-    @* Client-side validation scripts *@
     <partial name="_ValidationScriptsPartial" />
-
-    <script>
-        // Updates label/help text based on selected ListType.
-        // NOTE: This relies on enum numeric values. If ListType changes, update the comparison below.
-        // Expected mapping in this app:
-        //   0 = Recipes list (directly stores recipes)
-        //   1 = Ingredients list (combines ingredients from selected recipes)
-        function updateRecipeSection() {
-            const typeSelect = document.getElementById("listTypeSelect");
-            const label = document.getElementById("recipeSelectLabel");
-            const help = document.getElementById("recipeSelectHelp");
-            const selectedType = parseInt(typeSelect.value);
-
-            if (selectedType === 1) { // Ingredients list
-                label.innerText = "Include Recipes";
-                help.innerText = "Select one or more recipes — their ingredients will be combined into your grocery list.";
-            } else { // Recipes list
-                label.innerText = "Add Recipes";
-                help.innerText = "Add recipes directly to your meal plan.";
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            // Enhance UX: searchable, tag-like multi-select for recipes
-            $('.recipe-multiselect').select2({
-                placeholder: "Search and select recipes...",
-                width: '100%'
-            });
-
-            // Initialize label/help based on default selection, then react to changes
-            updateRecipeSection();
-            document.getElementById("listTypeSelect").addEventListener("change", updateRecipeSection);
-        });
-    </script>
+    <script src="~/js/listsHandler.js"></script>
 }

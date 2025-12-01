@@ -90,12 +90,19 @@
 
         <h4 class="section-title mt-4">Directions</h4>
         <link rel="stylesheet" href="/css/directions.css" />
-        @foreach (Direction d in Model.DirectionsList)
+        @if (Model.DirectionsList.Count > 0)
         {
-            <div class="direction p-3 bg-brown border-brown rounded-2">
-                <div class="step-number">@d.StepNumber</div>
-                <div class="text">@d.StepDescription</div>
-            </div>
+            @foreach (Direction d in Model.DirectionsList)
+            {
+                <div class="direction p-3 bg-brown border-brown rounded-2">
+                    <div class="step-number">@d.StepNumber</div>
+                    <div class="text">@d.StepDescription</div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">No directions added.</p>
         }
     </div>
 </div>

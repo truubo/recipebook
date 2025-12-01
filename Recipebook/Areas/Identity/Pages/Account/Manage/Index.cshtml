@@ -5,32 +5,38 @@
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
-<div class="alert alert-brown text-center" role="alert" data-persist="true">
-    <p>
-        <strong>Manage your profile information.</strong>
-        You can view your username and add/update your phone number below.
-    </p>
-</div>
+<div class="identity-page manage-page">
+    <div class="identity-container">
+        <h1>@ViewData["Title"]</h1>
 
-<partial name="_StatusMessage" for="StatusMessage" />
-
-<div>
-    <form id="profile-form" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-
-        <div class="form-floating mb-3">
-            <input asp-for="Username" class="form-control" placeholder="Your username" disabled />
-            <label asp-for="Username" class="form-label" style="color: white"></label>
+        <div class="alert alert-brown text-center" role="alert" data-persist="true">
+            <p>
+                <strong>Manage your profile information.</strong>
+                You can view your username and add/update your phone number below.
+            </p>
         </div>
 
-        <div class="form-floating mb-3">
-            <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
-            <label asp-for="Input.PhoneNumber" class="form-label"></label>
-            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-        </div>
+        <partial name="_StatusMessage" for="StatusMessage" />
 
-        <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save Changes</button>
-    </form>
+        <form id="profile-form" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Username" class="form-control" placeholder="Your username" disabled />
+                <label asp-for="Username" class="form-label" style="color: white"></label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
+                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">
+                Save Changes
+            </button>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

@@ -9,63 +9,102 @@
 
     <div class="card shadow-sm recipe-form-card">
         <div class="card-body">
-            @* Posts to ListsController.Edit (HttpPost). Server-side validation surfaced via summary. *@
             <form asp-action="Edit" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                @* Hidden key ensures correct entity is updated on submit *@
+                <!-- Hidden ID -->
                 <input type="hidden" asp-for="List.Id" />
 
-                @* List name (required) *@
+                <!-- List Name -->
                 <div class="mb-3">
                     <label asp-for="List.Name" class="form-label fw-bold"></label>
                     <input asp-for="List.Name" class="form-control" />
                     <span asp-validation-for="List.Name" class="text-danger"></span>
                 </div>
 
-                @* ? List type: Recipes vs Ingredients (enum with name + description) *@
+                <!-- Privacy Toggle -->
+                <div class="form-check mb-3">
+                    <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
+                    <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck">Private List?</label>
+                </div>
+
+                <!-- List Type -->
                 <div class="mb-3">
-                    <label asp-for="List.ListType" class="form-label fw-bold"></label>
-                    <select asp-for="List.ListType" class="form-control">
-                        @foreach (var value in Enum.GetValues(typeof(Recipebook.Models.ListType)).Cast<Recipebook.Models.ListType>())
+                    <label asp-for="List.ListType" class="form-label fw-bold">List Type</label>
+
+                    @{
+                        var listTypeItems = Enum.GetValues(typeof(Recipebook.Models.ListType))
+                        .Cast<Recipebook.Models.ListType>()
+                        .Select(e =>
                         {
-                            var field = value.GetType().GetField(value.ToString());
+                            var field = e.GetType().GetField(e.ToString());
                             var attr = (System.ComponentModel.DescriptionAttribute?)Attribute
-                            .GetCustomAttribute(field!, typeof(System.ComponentModel.DescriptionAttribute));
+                                            .GetCustomAttribute(field!, typeof(System.ComponentModel.DescriptionAttribute));
+                            var text = string.IsNullOrWhiteSpace(attr?.Description)
+                                            ? e.ToString()
+                                            : $"{e} - {attr.Description}";
+                            return new SelectListItem { Value = ((int)e).ToString(), Text = text, Selected = (Model.List.ListType == e) };
+                        }).ToList();
+                    }
 
-                            var name = value.ToString();
-                            var desc = attr?.Description;
-                            var text = string.IsNullOrWhiteSpace(desc) ? name : $"{name} — {desc}";
+                    <select asp-for="List.ListType" asp-items="listTypeItems" class="form-select"></select>
 
-                            <select asp-for="List.ListType"
-                                    asp-items="Html.GetEnumSelectList<Recipebook.Models.ListType>()"
-                                    class="form-control">
-                            </select>
-                        }
-                    </select>
                     <span asp-validation-for="List.ListType" class="text-danger"></span>
                 </div>
 
-                @* Privacy toggle: only owner can view when checked *@
-                <div class="form-check mb-3">
-                    <input asp-for="List.Private" class="form-check-input" id="PrivateCheck" />
-                    <label asp-for="List.Private" class="form-check-label fw-bold" for="PrivateCheck"></label>
-                </div>
-
-                @* Recipe membership editor (multi-select). Tip: hold Ctrl/Cmd for multiple. *@
-                <div class="mb-3">
+                <!-- Recipes Multi-Select Dropdown -->
+                <div class="mb-3" id="recipeSelectSection">
                     <label class="form-label fw-bold">Recipes</label>
-                    <select asp-for="SelectedRecipeIds"
-                            class="form-control"
-                            multiple
-                            size="10"
-                            asp-items="Model.RecipeChoices">
-                    </select>
+
+                    <div class="dropdown" id="listsRecipesDropdown" data-bs-auto-close="outside">
+                        <!-- Hidden Select -->
+                        <select id="SelectedRecipeIds"
+                                name="SelectedRecipeIds"
+                                asp-items="Model.RecipeChoices"
+                                multiple="multiple"
+                                class="d-none">
+                        </select>
+
+                        <!-- Button -->
+                        <button class="form-control dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <span id="listsRecipesDropdownText">Select recipes...</span>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <ul class="dropdown-menu p-2">
+                            <li>
+                                <input type="text"
+                                       class="form-control my-2"
+                                       placeholder="Search..."
+                                       oninput="searchListRecipes(this)" />
+                            </li>
+
+                            <li>
+                                <ul id="listsRecipesList" class="list-unstyled mb-0">
+                                    @foreach (var recipe in Model.RecipeChoices)
+                                    {
+                                        <li>
+                                            <a href="#"
+                                               class="dropdown-item list-recipe-option @(recipe.Selected ? "active" : "")"
+                                               data-id="@recipe.Value"
+                                               data-name="@recipe.Text"
+                                               onclick="toggleListRecipe(event, this)">
+                                                @recipe.Text
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
                     <span asp-validation-for="SelectedRecipeIds" class="text-danger"></span>
-                    <small class="text-muted">Hold Ctrl/Cmd to select multiple.</small>
                 </div>
 
-                @* Primary actions *@
+                <!-- Actions -->
                 <div class="d-flex justify-content-center gap-2 mt-3">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-save"></i> Update
@@ -78,6 +117,6 @@
 </div>
 
 @section Scripts {
-    @* Client-side validation *@
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/listsHandler.js"></script>
 }

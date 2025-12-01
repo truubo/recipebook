@@ -6,10 +6,6 @@
 }
 
 <div class="recipe-form-page">
-    <!-- ===========================
-         PAGE HEADER
-         Displays the main heading for the Create Category form
-         =========================== -->
     <h1>Create New Category</h1>
 
     <!-- Card container for the form -->
@@ -21,21 +17,12 @@
                 <!-- Displays validation summary for model errors -->
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <!-- ===========================
-                     CATEGORY NAME FIELD
-                     Collects the new category name from the user
-                     =========================== -->
                 <div class="mb-3">
                     <label asp-for="Name" class="form-label fw-bold"></label>
                     <input asp-for="Name" class="form-control" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
-                <!-- ===========================
-                     ACTION BUTTONS
-                     Submit -> Creates category
-                     Back -> Returns user to previous page
-                     =========================== -->
                 <div class="d-flex justify-content-center gap-2 mt-3">
                     <button type="submit" class="btn btn-success btn-lg">
                         <i class="bi bi-plus-circle"></i> Create
