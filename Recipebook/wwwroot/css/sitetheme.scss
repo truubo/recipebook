@@ -689,7 +689,7 @@ main {
             opacity: 0;
             transform: translateY(8px) scale(0.98);
             animation: scaleFadeUp 0.45s ease forwards;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            transition: opacity 0.35s ease, transform 0.35s ease, box-shadow 0.25s ease;
             will-change: transform, opacity;
 
             @for $i from 1 through 100 {
@@ -700,12 +700,16 @@ main {
 
             &:hover:not(.fading-out) {
                 transform: translateY(-3px) scale(1.02);
-                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30), 0 6px 12px rgba(0, 0, 0, 0.18);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
             }
 
             &.fading-out {
-                opacity: 0;
-                transform: none;
+                animation: none !important;
+                animation-delay: 0s !important;
+                animation-fill-mode: none !important;
+                transition: opacity 0.35s ease, transform 0.35s ease !important;
+                opacity: 0 !important;
+                transform: translateY(12px) scale(0.95) !important;
                 pointer-events: none;
             }
 
@@ -730,11 +734,11 @@ main {
                 pointer-events: none;
             }
 
-            .card-header a,
-            .categories a,
-            .card-footer .btn-group a {
-                pointer-events: auto;
-            }
+                .card-header a,
+                .categories a,
+                .card-footer .btn-group a {
+                    pointer-events: auto;
+                }
 
             .card-header {
                 display: flex;
@@ -809,7 +813,7 @@ main {
     min-height: 80vh;
     padding: 2rem;
     opacity: 0;
-    animation: fadeIn 0.45s ease forwards;
+    animation: fadeIn 0.2s ease forwards;
 
     .category-card-grid {
         display: grid;
@@ -818,12 +822,12 @@ main {
 
         > .category-pill-card {
             opacity: 0;
-            animation: scaleFadeUp 0.45s ease forwards;
+            animation: scaleFadeUp 0.2s ease forwards;
         }
 
         @for $i from 1 through 100 {
             > .category-pill-card:nth-child(#{$i}) {
-                animation-delay: #{0.05s * $i};
+                animation-delay: #{0.02s * $i};
             }
         }
 
@@ -901,7 +905,7 @@ main {
     min-height: 80vh;
     padding: 2rem;
     opacity: 0;
-    animation: fadeIn 0.45s ease forwards;
+    animation: fadeIn 0.2s ease forwards;
 
     .ingredient-card-grid {
         display: grid;
@@ -919,12 +923,12 @@ main {
         > .ingredient-pill-card {
             opacity: 0;
             transform: translateY(8px) scale(0.96);
-            animation: scaleFadeUp 0.45s ease forwards;
+            animation: scaleFadeUp 0.2s ease forwards;
         }
 
         @for $i from 1 through 100 {
             > .ingredient-pill-card:nth-child(#{$i}) {
-                animation-delay: #{0.05s * $i};
+                animation-delay: #{0.02s * $i};
             }
         }
     }
@@ -1043,7 +1047,7 @@ main {
 
             &:hover {
                 transform: translateY(-5px) scale(1.02);
-                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.30), 0 6px 12px rgba(0, 0, 0, 0.18);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
             }
 
             .card-overlay {
@@ -1781,6 +1785,188 @@ main {
             opacity: 0;
             transform: translateY(8px) scale(0.98);
             animation: scaleFadeUp 0.45s ease forwards;
+        }
+    }
+}
+
+/* ===================== Identity Pages ===================== */
+.identity-page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 70vh;
+    padding: 2rem 0;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
+
+    .identity-container {
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+        animation: scaleFadeUp 0.45s ease forwards;
+        animation-delay: 0.1s;
+
+        h1 {
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        form {
+            .alert {
+                margin-bottom: 1rem;
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+                animation-delay: 0.15s;
+
+                p {
+                    margin-bottom: 0;
+                }
+            }
+
+            .form-floating {
+                margin-bottom: 1rem;
+                position: relative;
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+
+                @for $i from 1 through 10 {
+                    &:nth-child(#{$i}) {
+                        animation-delay: #{0.05s * $i + 0.2s};
+                    }
+                }
+
+                input {
+                    height: 3rem;
+                    padding: 1rem 0.75rem 0.25rem;
+                    line-height: 1.25rem;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:focus {
+                        transform: scale(1.02);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                    }
+
+                    &:not(:placeholder-shown) + label {
+                        transform: translateY(-0.6rem) scale(0.85);
+                        opacity: 1;
+                    }
+                }
+
+                label {
+                    position: absolute;
+                    left: 0.75rem;
+                    top: 1rem;
+                    transition: transform 0.2s ease, opacity 0.2s ease;
+                    pointer-events: none;
+                    background: transparent;
+                    padding: 0 0.25rem;
+                    transform-origin: left top;
+                }
+            }
+
+            button {
+                margin-top: 1rem;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                &:hover {
+                    transform: translateY(-2px) scale(1.02);
+                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+                }
+
+                &:active {
+                    transform: translateY(0) scale(1);
+                    box-shadow: none;
+                }
+            }
+
+            .checkbox {
+                margin-bottom: 1rem;
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+                animation-delay: 0.2s;
+
+                input {
+                    margin-right: 0.5rem;
+                }
+            }
+
+            .mt-3 {
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+                animation-delay: 0.25s;
+
+                a {
+                    display: block;
+                    margin: 0.25rem 0;
+                }
+            }
+        }
+    }
+}
+
+.identity-page.manage-page {
+    align-items: flex-start;
+    padding-top: 0rem;
+    min-height: auto;
+
+    .identity-container {
+        max-width: 580px;
+        width: 100%;
+        text-align: left;
+        margin-top: 0.25rem;
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .alert {
+            text-align: left;
+        }
+
+        form {
+            .form-floating {
+                input {
+                    width: 100%;
+                }
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        .delete-account-wrapper,
+        .personal-data-delete-button {
+            text-align: center;
+
+            a,
+            button {
+                margin-left: auto;
+                margin-right: auto;
+                display: inline-block;
+            }
+        }
+
+        form#delete-user {
+            text-align: left;
+            width: 100%;
+
+            .form-floating {
+                text-align: left;
+            }
+
+            button {
+                width: 100%;
+                display: block;
+                margin: 0 auto;
+            }
         }
     }
 }

@@ -25,7 +25,6 @@
 
     <!-- ===================== Create + Search/Filter ===================== -->
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        @* Create button shown only to authenticated users *@
         @if (User?.Identity is { IsAuthenticated: true })
         {
             <a asp-action="Create" class="btn btn-success">
@@ -33,7 +32,6 @@
             </a>
         }
 
-        <!-- Search + Tag Filter (GET keeps results shareable) -->
         <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
             <input type="text"
                    name="searchString"
@@ -90,7 +88,6 @@
         <div class="card-grid">
             @foreach (var item in Model ?? Enumerable.Empty<Recipe>())
             {
-                // Show if recipe is public or owned by current user
                 if (!item.Private || item.AuthorEmail == User?.Identity?.Name)
                 {
                     <div class="recipe-card" style="position:relative;">
@@ -111,9 +108,7 @@
                             // Is this item a favorite for the current user?
                             var isFav = User?.Identity is { IsAuthenticated: true } && (item.Favorites.Any(f => f.UserId == uid));
 
-                            // Owner check (for Edit/Delete visibility in footer)
                             var isOwner = User?.Identity is { IsAuthenticated: true } && item.AuthorEmail == User.Identity.Name;
-
                             var likeCount = item.RecipeVotes?.Count(v => v.IsLike) ?? 0;
                             var dislikeCount = item.RecipeVotes?.Count(v => !v.IsLike) ?? 0;
 
@@ -126,8 +121,7 @@
                             var userDisliked = userVote?.IsLike == false;
                         }
 
-                        <!-- ===================== Card Header ===================== -->
-                        @* Keep header on top so body stretched-link won't cover it *@
+                        <!-- ===================== Card Header (Title, Votes (like/dislike), Favorites) ===================== -->
                         <div class="card-header d-flex justify-content-between align-items-start"
                              style="position:relative; z-index:2; pointer-events:auto;">
                             <h5 class="card-title mb-0">
@@ -139,7 +133,6 @@
                             </h5>
 
                             <div class="d-flex align-items-center gap-2" style="pointer-events:auto;">
-                                @* NEW: like / dislike for each card (matches Details styling) *@
                                 <div class="d-flex align-items-center gap-1">
                                     @if (User?.Identity is { IsAuthenticated: true })
                                     {
@@ -208,16 +201,14 @@
                             </div>
                         </div>
 
-                        <!-- ===================== Card Body ===================== -->
+                        <!-- ===================== Card Body (Privacy, Categories, Time, Description) ===================== -->
                         <div class="card-body position-relative">
                             <div class="categories mb-2 d-flex align-items-center flex-wrap">
-                                @* Private badge FIRST — same pill sizing but custom color *@
                                 @if (item.Private)
                                 {
                                     <span class="badge pill private-pill me-1">Private</span>
                                 }
 
-                                @* Categories *@
                                 @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
                                 {
                                     var categories = item.CategoryRecipes.ToList();
@@ -267,7 +258,7 @@
                             <a asp-action="Details" asp-route-id="@item.Id" class="stretched-link"></a>
                         </div>
 
-                        <!-- ===================== Card Footer ===================== -->
+                        <!-- ===================== Card Footer (Author, Edit/Delete buttons) ===================== -->
                         <div class="card-footer d-flex justify-content-between align-items-center">
                             @{
                                 var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[item.AuthorId];
@@ -284,7 +275,6 @@
                                 </a>
                             </small>
 
-                            @* Owner-only controls (unchanged) *@
                             @if (isOwner || User.IsInRole("Admin"))
                             {
                                 <div class="btn-group">
