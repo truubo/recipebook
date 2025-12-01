@@ -1,22 +1,31 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Net.Mail;
 using System.Net;
+using Recipebook.Models;
+using Microsoft.Extensions.Options;
 
 namespace Recipebook.Services
 {
     public class EmailHelper : IEmailSender
     {
+        private readonly SmtpOptions _options;
+
+        public EmailHelper(IOptions<SmtpOptions> options)
+        {
+            _options = options.Value;
+        }
+
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            using var client = new SmtpClient("mail.lotta.red", 587)
+            using SmtpClient client = new SmtpClient(_options.Host, 587)
             {
-                Credentials = new NetworkCredential("recipebook@lotta.red", "insert_password_here"), // todo: use secret store
-                EnableSsl = true
+                Credentials = new NetworkCredential(_options.Username, _options.Password),
+                EnableSsl = _options.EnableSsl
             };
 
-            var mail = new MailMessage
+            MailMessage mail = new MailMessage
             {
-                From = new MailAddress("recipebook@lotta.red"),
+                From = new MailAddress(_options.Username),
                 Subject = subject,
                 Body = htmlMessage,
                 IsBodyHtml = true
