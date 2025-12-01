@@ -54,6 +54,57 @@
     }
 }
 
+// ------------------------------
+// Animations
+// ------------------------------
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes navShadowBloom {
+    0% {
+        opacity: 0;
+        box-shadow: 0 0 0 rgba(0,0,0,0);
+        transform: translateY(-2px);
+    }
+
+    100% {
+        opacity: 1;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        transform: translateY(0);
+    }
+}
+
 // Global
 
 .form-control:disabled,
@@ -79,38 +130,54 @@ body {
     background-color: $red !important;
     color: white !important;
     padding: 0.75rem 1.5rem;
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
 
     a.nav-link,
     .navbar-brand {
         color: white !important;
         text-decoration: none;
+        transition: color 0.25s ease, transform 0.25s ease;
 
         &:hover,
         &:focus {
             color: $light-red;
             text-decoration: underline;
+            transform: translateY(-1px);
         }
     }
 
     .navbar-toggler {
         border-color: $beige;
+        transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
 
         &:hover,
         &:focus {
             background-color: $beige;
             color: $red;
+            transform: scale(1.06);
         }
     }
 
     .dropdown-menu {
         background-color: $light-brown;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+
+        &.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         a.dropdown-item {
             color: black;
+            transition: background-color 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
 
-            &:hover, &:focus {
+            &:hover,
+            &:focus {
                 background-color: darken($light-brown, 5%);
                 color: white;
+                padding-left: 0.75rem;
             }
         }
     }
@@ -119,11 +186,13 @@ body {
         @include button-states($light-red);
         margin-left: 0.5rem;
         color: white !important;
+        transition: background-color 0.25s ease, transform 0.25s ease;
 
         &:hover,
         &:focus,
         &:active {
             color: white !important;
+            transform: translateY(-1px);
         }
     }
 }
@@ -131,11 +200,12 @@ body {
 .manage-nav {
     .nav-link {
         color: inherit;
-        transition: background-color 0.2s ease, color 0.2s ease;
+        transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
         &:hover {
             background-color: $light-red;
             color: white;
+            transform: translateX(4px);
         }
 
         &.active {
@@ -533,6 +603,8 @@ main {
     .delete-header {
         text-align: center;
         margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
 
         h1 {
             margin-bottom: 1rem;
@@ -547,6 +619,10 @@ main {
         max-width: 700px;
         margin: 0 auto; // horizontally center
         box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUp 0.4s ease forwards;
+        animation-delay: 0.15s; // slight stagger after header
     }
 
     .delete-actions {
@@ -557,6 +633,17 @@ main {
 
         .btn {
             min-width: 120px; // consistent button width
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+            }
+
+            &:active {
+                transform: translateY(0);
+                box-shadow: none;
+            }
         }
     }
 }
@@ -570,6 +657,8 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
 
     .index-card {
         padding: 0;
@@ -577,36 +666,50 @@ main {
         .card-grid {
             display: grid;
             gap: 1.5rem;
-            grid-template-columns: 1fr; // mobile
+            grid-template-columns: 1fr;
+
             @media (min-width: 768px) {
-                grid-template-columns: repeat(2, 1fr); // tablet
+                grid-template-columns: repeat(2, 1fr);
             }
 
             @media (min-width: 992px) {
-                grid-template-columns: repeat(3, 1fr); // desktop
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
         .recipe-card {
             position: relative;
             background-color: $light-brown;
-            border: 2px solid $dark-brown;
+            border: 1.2px solid $dark-brown;
             border-radius: 0.75rem;
             padding: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.3s ease, box-shadow 0.2s ease, opacity 0.5s ease;
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            animation: scaleFadeUp 0.45s ease forwards;
+            transition: opacity 0.35s ease, transform 0.35s ease, box-shadow 0.25s ease;
             will-change: transform, opacity;
-            // Apply hover only when not fading out
-            &:hover:not(.fading-out) {
-                transform: translateY(-5px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+            @for $i from 1 through 100 {
+                &:nth-child(#{$i}) {
+                    animation-delay: #{0.05s * $i};
+                }
             }
-            // Fade-out state for removal
+
+            &:hover:not(.fading-out) {
+                transform: translateY(-3px) scale(1.02);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+            }
+
             &.fading-out {
-                opacity: 0;
-                transform: none; // prevent hover shift
+                animation: none !important;
+                animation-delay: 0s !important;
+                animation-fill-mode: none !important;
+                transition: opacity 0.35s ease, transform 0.35s ease !important;
+                opacity: 0 !important;
+                transform: translateY(12px) scale(0.95) !important;
                 pointer-events: none;
             }
 
@@ -631,11 +734,11 @@ main {
                 pointer-events: none;
             }
 
-            .card-header a,
-            .categories a,
-            .card-footer .btn-group a {
-                pointer-events: auto;
-            }
+                .card-header a,
+                .categories a,
+                .card-footer .btn-group a {
+                    pointer-events: auto;
+                }
 
             .card-header {
                 display: flex;
@@ -678,6 +781,17 @@ main {
                 .btn-group .btn {
                     font-size: 1rem;
                     padding: 0.5rem 0.6rem;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+                    }
+
+                    &:active {
+                        transform: translateY(0);
+                        box-shadow: none;
+                    }
                 }
 
                 small a {
@@ -698,17 +812,29 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.2s ease forwards;
 
     .category-card-grid {
         display: grid;
         gap: 0.75rem;
-        // mobile
         grid-template-columns: repeat(2, 1fr);
-        // tablet
+
+        > .category-pill-card {
+            opacity: 0;
+            animation: scaleFadeUp 0.2s ease forwards;
+        }
+
+        @for $i from 1 through 100 {
+            > .category-pill-card:nth-child(#{$i}) {
+                animation-delay: #{0.02s * $i};
+            }
+        }
+
         @media (min-width: 768px) {
             grid-template-columns: repeat(4, 1fr);
         }
-        // desktop
+
         @media (min-width: 1200px) {
             grid-template-columns: repeat(6, 1fr);
         }
@@ -717,40 +843,33 @@ main {
     .category-pill-card {
         position: relative;
         background-color: $light-brown;
-        border: 2px solid $dark-brown;
-        border-radius: 50px; // pill shape
-        padding: 0.2rem 0.6rem; // skinnier height
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1.2px solid $dark-brown;
+        border-radius: 50px;
+        padding: 0.2rem 0.6rem;
         cursor: pointer;
+        overflow: hidden;
+        transform: translateY(0) scale(1);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
 
         &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
 
-        .card-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .card-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             height: 100%;
-            z-index: 1;
-            text-indent: -9999px;
-            background: transparent;
-            border-radius: inherit;
+            text-align: center;
+            pointer-events: none;
         }
 
         .card-body {
             position: relative;
             z-index: 2;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
 
             .category-name {
@@ -765,6 +884,14 @@ main {
                 color: $dark-brown;
             }
         }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background: transparent;
+            text-indent: -9999px;
+        }
     }
 }
 
@@ -777,6 +904,8 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.2s ease forwards;
 
     .ingredient-card-grid {
         display: grid;
@@ -790,11 +919,23 @@ main {
         @media (min-width: 1200px) {
             grid-template-columns: repeat(6, 1fr);
         }
+
+        > .ingredient-pill-card {
+            opacity: 0;
+            transform: translateY(8px) scale(0.96);
+            animation: scaleFadeUp 0.2s ease forwards;
+        }
+
+        @for $i from 1 through 100 {
+            > .ingredient-pill-card:nth-child(#{$i}) {
+                animation-delay: #{0.02s * $i};
+            }
+        }
     }
 
     .ingredient-pill-card {
         background-color: $light-brown;
-        border: 2px solid $dark-brown;
+        border: 1.2px solid $dark-brown;
         border-radius: 0.75rem;
         display: flex;
         flex-direction: column;
@@ -805,11 +946,11 @@ main {
         padding: 0.2rem 0.5rem;
         position: relative;
         overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
 
         &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
 
         .card-body {
@@ -872,43 +1013,46 @@ main {
     justify-content: start;
     min-height: 80vh;
     padding: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
 
     .card-grid {
         display: grid;
         gap: 1.5rem;
-        // mobile
-        grid-template-columns: 1fr;
-        // tablet
+        grid-template-columns: 1fr; // mobile
+
         @media (min-width: 768px) {
             grid-template-columns: repeat(2, 1fr);
         }
-        // desktop
+        // tablet
         @media (min-width: 992px) {
             grid-template-columns: repeat(3, 1fr);
         }
+        // desktop
+
+        animation: fadeIn 0.45s ease forwards; // soft fade-in for the grid
 
         .list-card {
             position: relative;
             background-color: $light-brown;
-            border: 2px solid $dark-brown;
+            border: 1.2px solid $dark-brown;
             border-radius: 0.75rem;
             padding: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            animation: scaleFadeUp 0.55s ease-out both;
+            animation-delay: calc(var(--i, 0) * 0.07s);
 
             &:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transform: translateY(-5px) scale(1.02);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
             }
 
             .card-overlay {
                 position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
+                inset: 0;
                 z-index: 1;
                 text-indent: -9999px;
                 background: transparent;
@@ -920,13 +1064,13 @@ main {
             .card-footer {
                 position: relative;
                 z-index: 2;
-                pointer-events: none; // overlay catches clicks
+                pointer-events: none;
             }
 
-            .card-header a,
-            .card-footer .btn-group a {
-                pointer-events: auto;
-            }
+                .card-header a,
+                .card-footer .btn-group a {
+                    pointer-events: auto;
+                }
 
             .card-header {
                 display: flex;
@@ -962,6 +1106,17 @@ main {
                 .btn-group .btn {
                     font-size: 1rem;
                     padding: 0.5rem 0.6rem;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:hover {
+                        transform: translateY(-2px) scale(1.03);
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+                    }
+
+                    &:active {
+                        transform: translateY(0) scale(1);
+                        box-shadow: none;
+                    }
                 }
 
                 small a {
@@ -976,65 +1131,16 @@ main {
         .nav-link {
             color: white;
             background-color: $light-brown;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 
             &.active {
                 background-color: $light-red;
                 color: white;
-            }
-        }
-    }
-}
-
-// ------------------------------
-// Home Page Styling
-// ------------------------------
-.home-page {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    min-height: 70vh;
-    padding: 2rem;
-
-    h1 {
-        margin-bottom: 1.5rem;
-    }
-
-    p.lead {
-        margin-bottom: 3rem;
-        font-size: 1.2rem;
-        color: $dark-brown;
-    }
-
-    .home-cards {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        justify-content: center;
-
-        .col-md-4 {
-            display: flex;
-            flex: 1 1 300px; // responsive width
-        }
-
-        .card {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 1.5rem;
-            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
-
-            &:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+                transform: scale(1.02);
             }
 
-            .btn {
-                align-self: center;
+            &:not(.active):hover {
+                transform: scale(1.01);
             }
         }
     }
@@ -1043,7 +1149,8 @@ main {
 // ------------------------------
 // Create/Edit Page Styling
 // ------------------------------
-.recipe-form-page {
+.recipe-form-page,
+.list-form-page {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1054,6 +1161,8 @@ main {
     h1 {
         margin-bottom: 1.5rem;
         text-align: center;
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
     }
 
     .card {
@@ -1061,11 +1170,14 @@ main {
         width: 100%;
         padding: 1.5rem;
         box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.08);
-        transition: transform 0.2s, box-shadow 0.2s;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUp 0.4s ease forwards;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
 
         &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
         }
 
         form {
@@ -1078,6 +1190,17 @@ main {
 
                 .btn {
                     min-width: 120px;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    }
+
+                    &:active {
+                        transform: translateY(0);
+                        box-shadow: none;
+                    }
                 }
             }
         }
@@ -1114,20 +1237,20 @@ main {
             align-items: center;
 
             .col {
-                flex: 1; // equal width for all inputs
+                flex: 1;
             }
         }
 
         .remove-ingredient-btn {
             display: block;
-            margin: 0.5rem auto 0; // center horizontally
+            margin: 0.5rem auto 0;
             width: 25%;
         }
 
         hr {
             margin-top: 0.5rem;
             margin-bottom: 0.5rem;
-            border-color: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0,0,0,0.1);
         }
     }
 }
@@ -1140,9 +1263,12 @@ main {
     margin: 2rem auto;
     padding: 2rem;
     background-color: $light-brown;
-    border: 2px solid $dark-brown;
+    border: 1.2px solid $dark-brown;
     border-radius: 0.75rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeUp 0.45s ease forwards;
 
     .star-btn i.star,
     .star-btn i.star.unchecked {
@@ -1154,6 +1280,9 @@ main {
     }
 
     .details-header {
+        opacity: 0;
+        animation: fadeIn 0.6s ease forwards;
+
         .recipe-title {
             font-size: 2.2rem;
             font-weight: 700;
@@ -1186,6 +1315,8 @@ main {
             font-weight: 600;
             color: black;
             margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
         }
 
         p {
@@ -1196,12 +1327,26 @@ main {
     }
 
     .details-actions {
+        display: flex;
         justify-content: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
 
         .btn {
             min-width: 130px;
             font-weight: 500;
             border-radius: 0.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+
+            &:active {
+                transform: translateY(0);
+                box-shadow: none;
+            }
         }
 
         .btn-brown {
@@ -1225,13 +1370,13 @@ main {
     width: fit-content;
 }
 
-.desc-toggle:focus,
-.desc-toggle:active {
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
+    .desc-toggle:focus,
+    .desc-toggle:active {
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
 
 .toggle-arrow {
     transition: transform 300ms ease;
@@ -1284,7 +1429,7 @@ main {
 // ------------------------------
     .modal-content {
         background-color: $light-brown;
-        border: 2px solid $dark-brown;
+        border: 1.2px solid $dark-brown;
         border-radius: 0.75rem;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
     }
@@ -1426,239 +1571,402 @@ main {
 }
 
 /* ===================== Home Hero Carousel ===================== */
-
 .home-hero-wrapper {
     padding: 1.75rem 0 0;
     background-color: $beige;
-}
 
-.home-hero-carousel {
-    max-width: 1200px;
-    margin: 0 auto;
-    border-radius: 1.5rem;
-    overflow: hidden;
-    border: 2px solid $dark-brown;
-    box-shadow: 0 10px 25px rgba($dark-brown, 0.25);
-    position: relative;
-    background: radial-gradient( circle at top left, lighten($beige, 10%) 0, $beige 40%, lighten($light-brown, 10%) 100% );
-}
-
-/* ===================== FIXED CARD / SLIDE SIZE ===================== */
-
-.home-hero-frame {
-    position: relative;
-    padding: 2.4rem 3rem 3rem;
-    /* FIXED HEIGHT FOR EACH CAROUSEL CARD */
-    min-height: 480px;
-    max-height: 480px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-
-    @media (max-width: 992px) {
-        padding: 2rem 1.5rem 2.6rem;
-        min-height: 360px;
-        max-height: none;
+    .home-hero-carousel {
+        max-width: 1200px;
+        margin: 0 auto;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        border: 1.2px solid $dark-brown;
+        box-shadow: 0 10px 25px rgba($dark-brown, 0.25);
+        position: relative;
+        background: radial-gradient(circle at top left, lighten($beige, 10%) 0, $beige 40%, lighten($light-brown, 10%) 100%);
     }
-}
 
-/* Two-column layout (also fixed height inside) */
-.home-hero-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.6rem;
-    max-width: 1100px;
-    width: 100%;
-    margin: 0 auto;
-    min-height: 420px;
-    max-height: 420px;
+    .home-hero-frame {
+        position: relative;
+        padding: 2.4rem 3rem 3rem;
+        min-height: 480px;
+        max-height: 480px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
 
-    @media (max-width: 992px) {
-        flex-direction: column;
+        @media (max-width: 992px) {
+            padding: 2rem 1.5rem 2.6rem;
+            min-height: 360px;
+            max-height: none;
+        }
+    }
+
+    .home-hero-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         gap: 1.6rem;
-        min-height: 0;
-        max-height: none;
+        max-width: 1100px;
+        width: 100%;
+        margin: 0 auto;
+        min-height: 420px;
+        max-height: 420px;
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+        animation: scaleFadeUp 0.5s ease forwards;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+        @media (max-width: 992px) {
+            flex-direction: column;
+            gap: 1.6rem;
+            min-height: 0;
+            max-height: none;
+        }
+    }
+
+    .home-hero-caption {
+        flex: 0 0 38%;
+        max-width: 400px;
+        color: $dark-brown;
+        text-shadow: none;
+
+        @media (max-width: 992px) {
+            flex: 1 1 auto;
+            max-width: 100%;
+            text-align: left;
+        }
+    }
+
+    .home-hero-pill {
+        background: rgba($dark-brown, 0.12);
+        color: $dark-brown;
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 999px;
+        backdrop-filter: blur(2px);
+    }
+
+    .home-hero-title {
+        font-size: 2.7rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.4rem;
+
+        @media (max-width: 768px) {
+            font-size: 2rem;
+        }
+    }
+
+    .home-hero-subtitle {
+        font-size: 1.05rem;
+        margin-bottom: 1rem;
+        max-width: 30rem;
+        color: darken($light-brown, 20%);
+    }
+
+    .home-hero-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-bottom: 1rem;
+    }
+
+    .home-hero-like-pill,
+    .home-hero-dislike-pill {
+        background-color: rgba($beige, 0.95);
+        border: 1px solid $dark-brown;
+        color: $dark-brown;
+
+        &.dislike {
+            border-color: $danger;
+            color: $danger;
+        }
+    }
+
+    .home-hero-vote-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .home-hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .home-hero-primary-btn {
+        background-color: $danger;
+        border-color: $danger;
+        font-weight: 600;
+        padding-inline: 1.6rem;
+        border-radius: 999px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+        &:hover {
+            background-color: darken($danger, 12%);
+            border-color: darken($danger, 12%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    }
+
+    .home-hero-secondary-btn {
+        border-radius: 999px;
+        padding-inline: 1.5rem;
+        font-weight: 500;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+    }
+
+    .home-hero-media {
+        flex: 1 1 62%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 350px;
+
+        @media (max-width: 992px) {
+            width: 100%;
+            min-height: 260px;
+            max-height: none;
+        }
+
+        .home-hero-img {
+            max-width: 95%;
+            max-height: 100%;
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            display: block;
+            border-radius: 1.25rem;
+            box-shadow: 0 8px 20px rgba($dark-brown, 0.35);
+            background-color: $beige;
+            filter: contrast(1.03);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+            &:hover {
+                transform: translateY(-2px) scale(1.02);
+                box-shadow: 0 12px 28px rgba($dark-brown, 0.35);
+            }
+        }
+    }
+
+    .home-hero-indicators {
+        bottom: 0.9rem;
+
+        [data-bs-target] {
+            width: 26px;
+            height: 4px;
+            border-radius: 999px;
+            background-color: rgba($beige, 0.7);
+            border: none;
+        }
+
+        .active {
+            background-color: $dark-brown;
+        }
+    }
+
+    .home-hero-empty {
+        background-color: $beige;
+        padding: 3rem 1rem 1.5rem;
+
+        .home-hero-empty-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            animation: scaleFadeUp 0.45s ease forwards;
+        }
     }
 }
 
-/* Caption */
-.home-hero-caption {
-    flex: 0 0 38%;
-    max-width: 400px;
-    color: $dark-brown;
-    text-shadow: none;
-
-    @media (max-width: 992px) {
-        flex: 1 1 auto;
-        max-width: 100%;
-        text-align: left;
-    }
-}
-
-/* Pills */
-.home-hero-pill {
-    background: rgba($dark-brown, 0.12);
-    color: $dark-brown;
-    font-weight: 600;
-    font-size: 0.82rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px;
-    backdrop-filter: blur(2px);
-}
-
-/* Titles */
-.home-hero-title {
-    font-size: 2.7rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    margin-bottom: 0.4rem;
-
-    @media (max-width: 768px) {
-        font-size: 2rem;
-    }
-}
-
-.home-hero-subtitle {
-    font-size: 1.05rem;
-    margin-bottom: 1rem;
-    max-width: 30rem;
-    color: darken($light-brown, 20%);
-}
-
-/* Stats */
-.home-hero-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-bottom: 1rem;
-}
-
-.home-hero-like-pill {
-    background-color: rgba($beige, 0.95);
-    border: 1px solid $dark-brown;
-    color: $dark-brown;
-}
-
-.home-hero-dislike-pill {
-    background-color: rgba($beige, 0.95);
-    border: 1px solid $danger;
-    color: $danger;
-}
-
-.home-hero-vote-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-/* Action Buttons */
-.home-hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.home-hero-primary-btn {
-    background-color: $danger;
-    border-color: $danger;
-    font-weight: 600;
-    padding-inline: 1.6rem;
-    border-radius: 999px;
-
-    &:hover {
-        background-color: darken($danger, 12%);
-        border-color: darken($danger, 12%);
-    }
-}
-
-.home-hero-secondary-btn {
-    border-radius: 999px;
-    padding-inline: 1.5rem;
-    font-weight: 500;
-}
-
-/* ===================== FIXED IMAGE AREA ===================== */
-.home-hero-media {
-    flex: 1 1 62%;
+/* ===================== Identity Pages ===================== */
+.identity-page {
     display: flex;
     justify-content: center;
-    align-items: center;
-    /* consistent image column size */
-    height: 350px;
+    align-items: flex-start;
+    min-height: 70vh;
+    padding: 2rem 0;
+    opacity: 0;
+    animation: fadeIn 0.45s ease forwards;
 
-    @media (max-width: 992px) {
+    .identity-container {
         width: 100%;
-        min-height: 260px;
-        max-height: none;
+        max-width: 400px;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+        animation: scaleFadeUp 0.45s ease forwards;
+        animation-delay: 0.1s;
+
+        h1 {
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        form {
+            .alert {
+                margin-bottom: 1rem;
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+                animation-delay: 0.15s;
+
+                p {
+                    margin-bottom: 0;
+                }
+            }
+
+            .form-floating {
+                margin-bottom: 1rem;
+                position: relative;
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+
+                @for $i from 1 through 10 {
+                    &:nth-child(#{$i}) {
+                        animation-delay: #{0.05s * $i + 0.2s};
+                    }
+                }
+
+                input {
+                    height: 3rem;
+                    padding: 1rem 0.75rem 0.25rem;
+                    line-height: 1.25rem;
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                    &:focus {
+                        transform: scale(1.02);
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                    }
+
+                    &:not(:placeholder-shown) + label {
+                        transform: translateY(-0.6rem) scale(0.85);
+                        opacity: 1;
+                    }
+                }
+
+                label {
+                    position: absolute;
+                    left: 0.75rem;
+                    top: 1rem;
+                    transition: transform 0.2s ease, opacity 0.2s ease;
+                    pointer-events: none;
+                    background: transparent;
+                    padding: 0 0.25rem;
+                    transform-origin: left top;
+                }
+            }
+
+            button {
+                margin-top: 1rem;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+                &:hover {
+                    transform: translateY(-2px) scale(1.02);
+                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+                }
+
+                &:active {
+                    transform: translateY(0) scale(1);
+                    box-shadow: none;
+                }
+            }
+
+            .checkbox {
+                margin-bottom: 1rem;
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+                animation-delay: 0.2s;
+
+                input {
+                    margin-right: 0.5rem;
+                }
+            }
+
+            .mt-3 {
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeUp 0.45s ease forwards;
+                animation-delay: 0.25s;
+
+                a {
+                    display: block;
+                    margin: 0.25rem 0;
+                }
+            }
+        }
     }
 }
 
-.home-hero-img {
-    max-width: 95%;
-    max-height: 100%;
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    display: block;
-    border-radius: 1.25rem;
-    box-shadow: 0 8px 20px rgba($dark-brown, 0.35);
-    background-color: $beige;
-    filter: contrast(1.03);
-}
+.identity-page.manage-page {
+    align-items: flex-start;
+    padding-top: 0rem;
+    min-height: auto;
 
-/* Indicators */
-.home-hero-indicators {
-    bottom: 0.9rem;
+    .identity-container {
+        max-width: 580px;
+        width: 100%;
+        text-align: left;
+        margin-top: 0.25rem;
 
-    [data-bs-target] {
-        width: 26px;
-        height: 4px;
-        border-radius: 999px;
-        background-color: rgba($beige, 0.7);
-        border: none;
+        h1 {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .alert {
+            text-align: left;
+        }
+
+        form {
+            .form-floating {
+                input {
+                    width: 100%;
+                }
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        .delete-account-wrapper,
+        .personal-data-delete-button {
+            text-align: center;
+
+            a,
+            button {
+                margin-left: auto;
+                margin-right: auto;
+                display: inline-block;
+            }
+        }
+
+        form#delete-user {
+            text-align: left;
+            width: 100%;
+
+            .form-floating {
+                text-align: left;
+            }
+
+            button {
+                width: 100%;
+                display: block;
+                margin: 0 auto;
+            }
+        }
     }
-
-    .active {
-        background-color: $dark-brown;
-    }
-}
-
-/* Controls */
-.home-hero-carousel {
-    .carousel-control-prev,
-    .carousel-control-next {
-        width: auto;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 10;
-    }
-
-    .carousel-control-prev {
-        left: 0.75rem;
-    }
-
-    .carousel-control-next {
-        right: 0.75rem;
-    }
-
-    .carousel-control-prev-icon,
-    .carousel-control-next-icon {
-        background-color: rgba($dark-brown, 0.55);
-        border-radius: 999px;
-        padding: 0.9rem;
-        box-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
-    }
-}
-
-/* Fallback Hero */
-.home-hero-empty {
-    background-color: $beige;
-    padding: 3rem 1rem 1.5rem;
-}
-
-.home-hero-empty-inner {
-    max-width: 900px;
-    margin: 0 auto;
 }

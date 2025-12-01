@@ -25,7 +25,6 @@
 
     <!-- ===================== Create + Search/Filter ===================== -->
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        @* Create button shown only to authenticated users *@
         @if (User?.Identity is { IsAuthenticated: true })
         {
             <a asp-action="Create" class="btn btn-success">
@@ -33,7 +32,6 @@
             </a>
         }
 
-        <!-- Search + Tag Filter (GET keeps results shareable) -->
         <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
             <input type="text"
                    name="searchString"
@@ -51,7 +49,7 @@
             <input type="hidden" name="scope" value="@scope" />
 
             <button type="submit" class="btn btn-primary">Search</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+            <a asp-action="Index" class="btn btn-brown">Clear</a>
         </form>
     </div>
 
@@ -90,18 +88,17 @@
         <div class="card-grid">
             @foreach (var item in Model ?? Enumerable.Empty<Recipe>())
             {
-                // Show if recipe is public or owned by current user
                 if (!item.Private || item.AuthorEmail == User?.Identity?.Name)
                 {
                     <div class="recipe-card" style="position:relative;">
                         <div style="width:100%;max-height:200px;overflow:hidden;" class="mb-2">
                             @if (item.ImageFileName != null && item.ImageFileName != "")
                             {
-                                <img src="/img/recipes/@item.ImageFileName" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:2px solid #000;">
+                                <img src="/img/recipes/@item.ImageFileName" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:1.2px solid #000;">
                             } 
                             else
                             {
-                                <img src="/img/recipebook_placeholder.jpg" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:2px solid #000;">
+                                <img src="/img/recipebook_placeholder.jpg" class="card-img-top mb-2" style="width:100%;height:100%;object-fit:cover;border-radius:0.75em;border:1.2px solid #000;">
                             }
                         </div>
                         @{
@@ -111,25 +108,20 @@
                             // Is this item a favorite for the current user?
                             var isFav = User?.Identity is { IsAuthenticated: true } && (item.Favorites.Any(f => f.UserId == uid));
 
-                            // Owner check (for Edit/Delete visibility in footer)
                             var isOwner = User?.Identity is { IsAuthenticated: true } && item.AuthorEmail == User.Identity.Name;
-
-                            // --- NEW: like / dislike counts + current user vote for this card ---
                             var likeCount = item.RecipeVotes?.Count(v => v.IsLike) ?? 0;
                             var dislikeCount = item.RecipeVotes?.Count(v => !v.IsLike) ?? 0;
 
-                            Recipebook.Models.RecipeVote? userVote = null;
+                            RecipeVote? userVote = null;
                             if (User?.Identity is { IsAuthenticated: true } && item.RecipeVotes != null)
                             {
                                 userVote = item.RecipeVotes.FirstOrDefault(v => v.UserId == uid);
                             }
                             var userLiked = userVote?.IsLike == true;
                             var userDisliked = userVote?.IsLike == false;
-                            // --- END NEW ---
                         }
 
-                        <!-- ===================== Card Header ===================== -->
-                        @* Keep header on top so body stretched-link won't cover it *@
+                        <!-- ===================== Card Header (Title, Votes (like/dislike), Favorites) ===================== -->
                         <div class="card-header d-flex justify-content-between align-items-start"
                              style="position:relative; z-index:2; pointer-events:auto;">
                             <h5 class="card-title mb-0">
@@ -141,7 +133,6 @@
                             </h5>
 
                             <div class="d-flex align-items-center gap-2" style="pointer-events:auto;">
-                                @* NEW: like / dislike for each card (matches Details styling) *@
                                 <div class="d-flex align-items-center gap-1">
                                     @if (User?.Identity is { IsAuthenticated: true })
                                     {
@@ -187,13 +178,7 @@
                                         </span>
                                     }
                                 </div>
-                                @* END NEW *@
 
-                                @* ===================== Favorite Star (KEEP HERE) =====================
-                        - Visible to ANY authenticated user
-                        - POST to Favorites/Toggle with antiforgery & returnUrl
-                        - AJAX handler (below) prevents full-page reload
-                        =================================================================== *@
                                 @if (User?.Identity is { IsAuthenticated: true })
                                 {
                                     <form asp-controller="Favorites"
@@ -216,16 +201,14 @@
                             </div>
                         </div>
 
-                        <!-- ===================== Card Body ===================== -->
+                        <!-- ===================== Card Body (Privacy, Categories, Time, Description) ===================== -->
                         <div class="card-body position-relative">
                             <div class="categories mb-2 d-flex align-items-center flex-wrap">
-                                @* Private badge FIRST — same pill sizing but custom color *@
                                 @if (item.Private)
                                 {
                                     <span class="badge pill private-pill me-1">Private</span>
                                 }
 
-                                @* Categories *@
                                 @if (item.CategoryRecipes != null && item.CategoryRecipes.Any())
                                 {
                                     var categories = item.CategoryRecipes.ToList();
@@ -255,19 +238,10 @@
                                 }
                             </div>
 
-
-
-
-
-
-
-
-
                             <div class="small text-muted mt-2 mb-2">
                                 <span class="fw-semibold">Time:</span> @item.FormattedTotalTime
                             </div>
 
-                            @* Clamp long descriptions to ~100 chars for tidy cards *@
                             @if (!string.IsNullOrEmpty(item.Description))
                             {
                                 <p class="card-text">
@@ -281,11 +255,10 @@
                                 <p class="card-text text-muted">No description available.</p>
                             }
 
-                            @* Body is clickable to Details; header/footer remain interactive *@
                             <a asp-action="Details" asp-route-id="@item.Id" class="stretched-link"></a>
                         </div>
 
-                        <!-- ===================== Card Footer ===================== -->
+                        <!-- ===================== Card Footer (Author, Edit/Delete buttons) ===================== -->
                         <div class="card-footer d-flex justify-content-between align-items-center">
                             @{
                                 var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[item.AuthorId];
@@ -302,7 +275,6 @@
                                 </a>
                             </small>
 
-                            @* Owner-only controls (unchanged) *@
                             @if (isOwner || User.IsInRole("Admin"))
                             {
                                 <div class="btn-group">

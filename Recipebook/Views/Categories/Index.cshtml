@@ -1,10 +1,7 @@
 ﻿@model IEnumerable<Category>
 
 @{
-    // Page title for the browser/tab
     ViewData["Title"] = "Categories";
-
-    // Preserve search text to repopulate input after a search
     var currentSearch = ViewBag.SearchString as string;
 }
 
@@ -15,7 +12,6 @@
     </div>
 
     <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        @* Show create button only to logged-in users *@
         @if (User?.Identity is { IsAuthenticated: true })
         {
             <a asp-action="Create" class="btn btn-success btn-create">
@@ -23,7 +19,6 @@
             </a>
         }
 
-        <!-- Simple search form for filtering categories by name -->
         <form asp-action="Index" method="get" class="d-flex gap-2 ms-auto">
             <input type="text"
                    name="searchString"
@@ -31,35 +26,31 @@
                    class="form-control"
                    placeholder="Search by category name..." />
             <button type="submit" class="btn btn-primary">Search</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+            <a asp-action="Index" class="btn btn-brown">Clear</a>
         </form>
     </div>
 
-    @* Show feedback if no results are found *@
     @if (!Model.Any())
     {
         <div class="alert alert-brown" data-persist="true">No results found.</div>
     }
 
-    <!-- Display all categories in a grid of cards -->
     <div class="category-card-grid">
         @foreach (var item in Model)
         {
             <div class="category-pill-card">
-                <!-- Overlay link navigates to the details page for this category -->
-                <a asp-action="Details" asp-route-id="@item.Id" class="card-overlay">View Details</a>
+                <a asp-action="Details" asp-route-id="@item.Id" class="card-overlay"></a>
 
-                <div class="card-body">
-                    <h5 class="category-name">@item.Name</h5>
-                    <small class="text-muted">
-                        @{
-                            // Safely count how many recipes are associated with this category
-                            var count = item.CategoryRecipes?.Count() ?? 0;
-                        }
+                <div class="card-inner">
+                    <div class="card-body">
+                        <h5 class="category-name">@item.Name</h5>
                         <small class="text-muted">
+                            @{
+                                var count = item.CategoryRecipes?.Count() ?? 0;
+                            }
                             @count @((count == 1) ? "recipe" : "recipes")
                         </small>
-                    </small>
+                    </div>
                 </div>
             </div>
         }

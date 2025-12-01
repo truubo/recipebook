@@ -25,10 +25,11 @@ function showAlert(message, type = "brown") {
     }, 2500);
 }
 
-// Determine if we're on the Recipes index page
+// FAVORITE TOGGLE HANDLER
 const isRecipeIndex = window.location.pathname.toLowerCase().includes("/recipes");
+// Keep track of the currently visible alert
+let currentAlert = null;
 
-// FAVORITES TOGGLE HANDLER
 document.addEventListener('submit', async (e) => {
     const form = e.target;
     if (!form.matches('form[action*="Favorites/Toggle"]')) return;
@@ -40,7 +41,7 @@ document.addEventListener('submit', async (e) => {
     const recipeName = form.dataset.recipeName || "Recipe";
     const wasFav = icon.classList.contains('bi-star-fill');
 
-    // Optimistic UI feedback
+    // Optimistic UI update
     icon.classList.toggle('bi-star');
     icon.classList.toggle('bi-star-fill');
     icon.classList.toggle('unchecked');
@@ -54,25 +55,49 @@ document.addEventListener('submit', async (e) => {
 
         if (!res.ok) throw new Error();
 
-        showAlert(wasFav
-            ? `Removed '${recipeName}' from favorites.`
-            : `Added '${recipeName}' to favorites!`);
+        // Remove previous alert if exists
+        if (currentAlert) {
+            currentAlert.remove();
+            currentAlert = null;
+        }
 
-        // Fade out card if removing from favorites tab
-        if (isRecipeIndex && window.location.search.includes("scope=favorites") && wasFav) {
+        // Show new alert
+        currentAlert = showAlert(
+            wasFav
+                ? `Removed '${recipeName}' from favorites.`
+                : `Added '${recipeName}' to favorites!`
+        );
+
+        // Fade out card if on favorites page and unfavoriting
+        const onFavoritesPage = window.location.search.includes("scope=favorites");
+
+        if (isRecipeIndex && onFavoritesPage && wasFav) {
             const card = form.closest('.recipe-card');
             if (card) {
-                card.style.transition = "opacity 0.5s ease";
-                card.style.opacity = "0";
-                setTimeout(() => card.remove(), 500);
+                // Trigger fade-out
+                card.classList.add('fading-out');
+
+                card.addEventListener('transitionend', () => {
+                    card.remove();
+                }, { once: true });
             }
         }
 
     } catch {
+        // Revert icon on failure
         icon.classList.toggle('bi-star');
         icon.classList.toggle('bi-star-fill');
         icon.classList.toggle('unchecked');
-        showAlert(`Something went wrong with '${recipeName}'. Please try again.`, "danger");
+
+        if (currentAlert) {
+            currentAlert.remove();
+            currentAlert = null;
+        }
+
+        currentAlert = showAlert(
+            `Something went wrong with '${recipeName}'. Please try again.`,
+            "danger"
+        );
     }
 });
 

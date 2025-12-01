@@ -2,6 +2,7 @@
     background-color: #fff;
     color: #000 !important;
     margin: 20px;
+    animation: none !important;
 }
 
 header,
