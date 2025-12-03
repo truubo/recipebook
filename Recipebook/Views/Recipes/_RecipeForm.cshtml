@@ -14,6 +14,11 @@
                 <input type="hidden" asp-for="Recipe.Id" />
             }
 
+            @if (Model.Recipe.ImageFileName != null)
+            {
+                <input type="hidden" asp-for="Recipe.ImageFileName" />
+            }
+
             <div class="mb-3">
                 <label asp-for="Recipe.Title" class="form-label fw-bold"></label>
                 <input asp-for="Recipe.Title" class="form-control" />
