@@ -845,7 +845,8 @@ namespace Recipebook.Controllers
                             StepNumber = d.StepNumber,
                             StepDescription = d.StepDescription
                         })
-                        .ToList()
+                        .ToList(),
+                    ImageFileName = recipe.ImageFileName
                 },
 
                 SelectedCategories = recipe.CategoryRecipes
