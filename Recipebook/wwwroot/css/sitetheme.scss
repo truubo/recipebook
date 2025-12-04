@@ -1675,9 +1675,7 @@ main {
         @media (max-width: 992px) {
             flex-direction: column;
             gap: 1rem;
-            min-height: 560px;
             max-height: 560px;
-            height: 560px;
             overflow: hidden;
             justify-content: center;
             align-items: stretch;
@@ -1689,7 +1687,7 @@ main {
         max-width: 400px;
         color: $dark-brown;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1732,7 +1730,7 @@ main {
         }
         /* Truncate long titles */
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1746,7 +1744,7 @@ main {
         color: darken($light-brown, 20%);
         /* Truncate long subtitles */
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1825,7 +1823,6 @@ main {
             min-height: 260px;
             max-height: 260px;
             overflow: hidden;
-            /* FIX 1: Apply the border radius to the clipping container */
             border-radius: 1.25rem;
         }
 
@@ -1849,7 +1846,6 @@ main {
             @media (max-width: 992px) {
                 height: 100%;
                 object-fit: cover;
-                /* Keep the border radius on mobile image */
                 border-radius: 1.25rem;
             }
         }

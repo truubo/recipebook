@@ -14225,9 +14225,7 @@ main {
   .home-hero-wrapper .home-hero-content {
     flex-direction: column;
     gap: 1rem;
-    min-height: 560px;
     max-height: 560px;
-    height: 560px;
     overflow: hidden;
     justify-content: center;
     align-items: stretch;
@@ -14238,7 +14236,7 @@ main {
   max-width: 400px;
   color: #3f2d27;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -14275,7 +14273,7 @@ main {
   margin-bottom: 0.4rem;
   /* Truncate long titles */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -14293,7 +14291,7 @@ main {
   color: rgb(113.7777777778, 88, 78.2222222222);
   /* Truncate long subtitles */
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -14364,7 +14362,6 @@ main {
     min-height: 260px;
     max-height: 260px;
     overflow: hidden;
-    /* FIX 1: Apply the border radius to the clipping container */
     border-radius: 1.25rem;
   }
 }
@@ -14388,7 +14385,6 @@ main {
   .home-hero-wrapper .home-hero-media .home-hero-img {
     height: 100%;
     object-fit: cover;
-    /* Keep the border radius on mobile image */
     border-radius: 1.25rem;
   }
 }
