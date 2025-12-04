@@ -74,17 +74,14 @@
         </div>
     </div>
 
-    @* ===============================================================
-    HEADER: Title, categories, author, privacy badge
-    =============================================================== *@
+    @* details header *@
     <div class="details-header text-center mt-5">
-        <div class="row">
-            <div class="col">
+        <div class="row recipe-header-row">
+            <div class="col text-col order-1 order-md-1">
                 <h1 class="recipe-title">@Html.DisplayFor(model => model.Title)</h1>
 
                 <div class="meta-info d-flex justify-content-center flex-wrap gap-3 mt-2">
                     <div>
-                        @* Show linked category badges or a muted fallback. *@
                         @if (Model?.CategoryRecipes != null && Model.CategoryRecipes.Any())
                         {
                             foreach (var cr in Model.CategoryRecipes)
@@ -104,6 +101,7 @@
                     </div>
                 </div>
 
+                @* author *@
                 <div class="author d-flex justify-content-center align-items-center gap-2 mt-4">
                     @{
                         var owner = ((Dictionary<string, (string Email, bool IsAdmin)>)ViewBag.OwnerInfo)[Model?.AuthorId!];
@@ -120,13 +118,12 @@
                         </a>
                     </small>
 
-                    @* Privacy badge reflects Model.Private. *@
                     <span class="badge @(Model!.Private ? "bg-danger" : "bg-success")">
                         @(Model.Private ? "Private" : "Public")
                     </span>
 
-                    @* --- NEW: Like / Dislike controls next to privacy badge --- *@
-                    <div class="d-flex align-items-center gap-1 ms-1">
+                    @* like/dislike *@    
+                <div class="d-flex align-items-center gap-1 ms-1">
                         @if (User?.Identity is { IsAuthenticated: true })
                         {
                             <form asp-controller="Votes"
@@ -171,12 +168,10 @@
                             </span>
                         }
                     </div>
-                    @* --- END NEW --- *@
 
                     <span>
                         @if (User?.Identity is { IsAuthenticated: true })
                         {
-                            @* Favorite toggle posts back; returnUrl enables graceful fallback if JS disabled. *@
                             <form asp-controller="Favorites"
                                   asp-action="Toggle"
                                   method="post"
@@ -195,10 +190,22 @@
                         }
                     </span>
                 </div>
-                @* Timing bar only if any timing values present; formatted strings come from the model. *@
+
+                @* image *@
+                @if (!string.IsNullOrEmpty(Model.ImageFileName))
+                {
+                    <div class="recipe-image-col order-2 order-md-2 d-md-none mt-4">
+                        <div style="aspect-ratio:16/9;overflow:hidden;">
+                            <img src="/img/recipes/@Model.ImageFileName"
+                                 style="width:100%;height:100%;object-fit:cover;border-radius:0.75rem;border:2px solid #000;" />
+                        </div>
+                    </div>
+                }
+
+                @* timing bar *@
                 @if (Model.PrepTimeMinutes.HasValue || Model.CookTimeMinutes.HasValue)
                 {
-                    <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown">
+                    <div class="timing-bar text-center py-3 px-2 mt-4 border-top border-bottom border-brown order-3 order-md-3">
                         <div class="d-flex justify-content-evenly">
                             <div>
                                 <strong>Prep Time:</strong><br /> <span>@Model.FormattedPrepTime</span>
@@ -216,13 +223,15 @@
                 {
                     <p class="text-muted mt-4 text-center">No timing information available.</p>
                 }
-                @* ==== END UPDATED ==== *@
             </div>
-            @if (Model.ImageFileName != null && Model.ImageFileName != "")
+
+            @* right column for desktop *@
+            @if (!string.IsNullOrEmpty(Model.ImageFileName))
             {
-                <div class="col d-flex justify-content-center">
+                <div class="col image-col order-0 order-md-2 d-none d-md-flex justify-content-center">
                     <div style="aspect-ratio:16/9;overflow:hidden;">
-                        <img src="/img/recipes/@Model.ImageFileName" style="width:100%;height:100%;object-fit:cover;border-radius:0.75rem;border:2px solid #000;" />
+                        <img src="/img/recipes/@Model.ImageFileName"
+                             style="width:100%;height:100%;object-fit:cover;border-radius:0.75rem;border:1px solid #000;" />
                     </div>
                 </div>
             }
@@ -230,7 +239,7 @@
     </div>
 
     @* ===============================================================
-    BODY: Description, (ADDED Timing), Ingredients, Directions
+    BODY: Description, Ingredients, Directions
     =============================================================== *@
     <div class="details-body mt-4">
         <div class="description-wrapper mt-4">

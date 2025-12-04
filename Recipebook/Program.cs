@@ -34,7 +34,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.EnableSensitiveDataLogging(); // show EF parameter values in Dev (OK for local dev)
     }
 });
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {

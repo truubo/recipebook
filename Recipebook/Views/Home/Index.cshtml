@@ -9,10 +9,7 @@
     var recipes = Model ?? Enumerable.Empty<Recipe>();
     var currentUserEmail = User?.Identity?.Name;
 
-    // Only show recipes that:
-    // 1. Are not archived
-    // 2. Have an image filename
-    // 3. Are public OR owned by the current user
+    // Only shows recipes that are un-archived, have an image, and are either public or owned by the current user
     var topRecipes = recipes
         .Where(r =>
             !r.IsArchived &&
@@ -70,69 +67,75 @@
                             <div class="home-hero-content">
                                 <!-- Caption column -->
                                 <div class="home-hero-caption">
-                                    <div class="mb-2">
-                                        <span class="badge rounded-pill home-hero-pill bg-brown">
-                                            Top Recipe
-                                        </span>
-                                    </div>
 
-                                    <h2 class="home-hero-title">
-                                        @recipe.Title
-                                    </h2>
-
-                                    @if (!string.IsNullOrWhiteSpace(recipe.Description))
-                                    {
-                                        <p class="home-hero-subtitle">
-                                            @recipe.Description
-                                        </p>
-                                    }
-
-                                    <div class="home-hero-stats">
-                                        @if (User?.Identity is { IsAuthenticated: true })
-                                        {
-                                            <!-- Like -->
-                                            <form asp-controller="Votes"
-                                                  asp-action="ToggleLike"
-                                                  method="post"
-                                                  class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="recipeId" value="@recipe.Id" />
-                                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                                <button type="submit"
-                                                        class="btn btn-sm @(userLiked ? "btn-success" : "btn-outline-success") rounded-pill px-3 home-hero-vote-btn"
-                                                        title="Like this recipe">
-                                                    <span class="me-1">👍</span>
-                                                    <span>@likes</span>
-                                                </button>
-                                            </form>
-
-                                            <!-- Dislike -->
-                                            <form asp-controller="Votes"
-                                                  asp-action="ToggleDislike"
-                                                  method="post"
-                                                  class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="recipeId" value="@recipe.Id" />
-                                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                                <button type="submit"
-                                                        class="btn btn-sm @(userDisliked ? "btn-danger" : "btn-outline-danger") rounded-pill px-3 home-hero-vote-btn"
-                                                        title="Dislike this recipe">
-                                                    <span class="me-1">👎</span>
-                                                    <span>@dislikes</span>
-                                                </button>
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge rounded-pill home-hero-like-pill">
-                                                👍 @likes
+                                    <div class="home-hero-caption-content">
+                                        <div class="mb-2">
+                                            <span class="badge rounded-pill home-hero-pill bg-brown">
+                                                Top Recipe
                                             </span>
-                                            <span class="badge rounded-pill home-hero-dislike-pill">
-                                                👎 @dislikes
-                                            </span>
-                                        }
-                                    </div>
+                                        </div>
 
+                                        <h2 class="home-hero-title">
+                                            @(recipe.Title.Length > 80
+                                            ? recipe.Title.Substring(0, 80) + "..."
+                                            : recipe.Title)
+                                        </h2>
+
+                                        @if (!string.IsNullOrWhiteSpace(recipe.Description))
+                                        {
+                                            <p class="home-hero-subtitle">
+                                                @(recipe.Description.Length > 100
+                                                ? recipe.Description.Substring(0, 100) + "..."
+                                                : recipe.Description)
+                                            </p>
+                                        }
+
+                                        <div class="home-hero-stats">
+                                            @if (User?.Identity is { IsAuthenticated: true })
+                                            {
+                                                <!-- Like -->
+                                                <form asp-controller="Votes"
+                                                      asp-action="ToggleLike"
+                                                      method="post"
+                                                      class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="recipeId" value="@recipe.Id" />
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                                    <button type="submit"
+                                                            class="btn btn-sm @(userLiked ? "btn-success" : "btn-outline-success") rounded-pill px-3 home-hero-vote-btn"
+                                                            title="Like this recipe">
+                                                        <span class="me-1">👍</span>
+                                                        <span>@likes</span>
+                                                    </button>
+                                                </form>
+
+                                                <!-- Dislike -->
+                                                <form asp-controller="Votes"
+                                                      asp-action="ToggleDislike"
+                                                      method="post"
+                                                      class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="recipeId" value="@recipe.Id" />
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                                    <button type="submit"
+                                                            class="btn btn-sm @(userDisliked ? "btn-danger" : "btn-outline-danger") rounded-pill px-3 home-hero-vote-btn"
+                                                            title="Dislike this recipe">
+                                                        <span class="me-1">👎</span>
+                                                        <span>@dislikes</span>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge rounded-pill home-hero-like-pill">
+                                                    👍 @likes
+                                                </span>
+                                                <span class="badge rounded-pill home-hero-dislike-pill">
+                                                    👎 @dislikes
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
                                     <div class="home-hero-actions">
                                         <a asp-controller="Recipes"
                                            asp-action="Details"
