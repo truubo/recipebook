@@ -38,20 +38,24 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedAccount = builder.Environment.IsDevelopment() ? false : true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultUI()
 .AddDefaultTokenProviders();
+
+// add email capabilities when running in production
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+    builder.Services.AddTransient<IEmailSender, EmailHelper>();
+}
 
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<ITextNormalizationService, TextNormalizationService>();
-
-builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
-builder.Services.AddTransient<IEmailSender, EmailHelper>();
 
 var app = builder.Build();
 
