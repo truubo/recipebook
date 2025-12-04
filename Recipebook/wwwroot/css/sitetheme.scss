@@ -656,7 +656,7 @@ main {
     flex-direction: column;
     justify-content: start;
     min-height: 80vh;
-    padding: 2rem;
+    padding: 1rem;
     opacity: 0;
     animation: fadeIn 0.45s ease forwards;
 
@@ -763,6 +763,13 @@ main {
                 color: black;
                 line-height: 1.5;
                 margin-bottom: 0.5rem;
+                /* ====== Truncate long descriptions ====== */
+                display: -webkit-box;
+                -webkit-line-clamp: 2; /* max 2 lines */
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-break: break-word; /* prevent long words from stretching */
             }
 
             .categories {
@@ -1306,6 +1313,22 @@ main {
             align-items: center;
             gap: 0.75rem;
         }
+
+        .recipe-image-container {
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 0.75rem;
+            border: 2px solid #000;
+            margin: 0 auto;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        }
     }
 
     .details-body {
@@ -1368,15 +1391,15 @@ main {
     padding: 0;
     cursor: pointer;
     width: fit-content;
-}
 
-    .desc-toggle:focus,
-    .desc-toggle:active {
+    &:focus,
+    &:active {
         background: none !important;
         border: none !important;
         box-shadow: none !important;
         outline: none !important;
     }
+}
 
 .toggle-arrow {
     transition: transform 300ms ease;
@@ -1392,11 +1415,43 @@ main {
     overflow: hidden;
     transition: opacity 200ms ease;
     opacity: 1;
+
+    &.closing,
+    &.closed {
+        opacity: 0;
+    }
 }
 
-.desc-content.closing,
-.desc-content.closed {
-    opacity: 0;
+@media (max-width: 768px) {
+
+    /* Stack columns vertically */
+    .details-header .row {
+        display: flex;
+        flex-direction: column;
+    }
+
+        /* First column (title, categories, author, timing) */
+        .details-header .row > .col:first-child {
+            order: 1;
+        }
+
+        /* Second column (image) */
+        .details-header .row > .col:last-child {
+            order: 2;
+            margin-top: 1rem;
+        }
+
+    /* Force the TIMING BAR to appear AFTER the image */
+    .details-header .timing-bar {
+        order: 3 !important;
+        margin-top: 1rem;
+    }
+
+    /* Ensures the image does not shrink strangely on mobile */
+    .details-header .recipe-image-container {
+        max-width: 100% !important;
+        width: 100%;
+    }
 }
 
 // ------------------------
@@ -1616,13 +1671,13 @@ main {
         opacity: 0;
         transform: translateY(8px) scale(0.98);
         animation: scaleFadeUp 0.5s ease forwards;
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
 
         @media (max-width: 992px) {
             flex-direction: column;
-            gap: 1.6rem;
-            min-height: 0;
-            max-height: none;
+            gap: 1rem;
+            min-height: 560px;
+            max-height: 560px;
+            overflow: hidden;
         }
     }
 
@@ -1630,7 +1685,13 @@ main {
         flex: 0 0 38%;
         max-width: 400px;
         color: $dark-brown;
-        text-shadow: none;
+        /* ====== Truncate long captions ====== */
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* max 3 lines for hero caption */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
 
         @media (max-width: 992px) {
             flex: 1 1 auto;
@@ -1638,7 +1699,7 @@ main {
             text-align: left;
         }
     }
-
+    /* Pills / labels */
     .home-hero-pill {
         background: rgba($dark-brown, 0.12);
         color: $dark-brown;
@@ -1648,16 +1709,22 @@ main {
         border-radius: 999px;
         backdrop-filter: blur(2px);
     }
-
+    /* Title + Subtitle */
     .home-hero-title {
         font-size: 2.7rem;
         font-weight: 800;
-        letter-spacing: 0.02em;
         margin-bottom: 0.4rem;
 
         @media (max-width: 768px) {
             font-size: 2rem;
         }
+        /* Truncate long titles */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
     }
 
     .home-hero-subtitle {
@@ -1665,8 +1732,15 @@ main {
         margin-bottom: 1rem;
         max-width: 30rem;
         color: darken($light-brown, 20%);
+        /* Truncate long subtitles */
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
     }
-
+    /* Stats */
     .home-hero-stats {
         display: flex;
         flex-wrap: wrap;
@@ -1691,7 +1765,7 @@ main {
         align-items: center;
         gap: 0.25rem;
     }
-
+    /* CTA Buttons */
     .home-hero-actions {
         display: flex;
         flex-wrap: wrap;
@@ -1710,7 +1784,7 @@ main {
             background-color: darken($danger, 12%);
             border-color: darken($danger, 12%);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
     }
 
@@ -1722,7 +1796,7 @@ main {
 
         &:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
     }
 
@@ -1732,23 +1806,22 @@ main {
         justify-content: center;
         align-items: center;
         height: 350px;
+        border-radius: 1.25rem;
+        overflow: hidden;
 
         @media (max-width: 992px) {
             width: 100%;
+            height: 260px;
             min-height: 260px;
-            max-height: none;
+            max-height: 260px;
         }
 
         .home-hero-img {
-            max-width: 95%;
-            max-height: 100%;
             width: 100%;
-            height: auto;
+            height: 100%;
             object-fit: cover;
             display: block;
-            border-radius: 1.25rem;
             box-shadow: 0 8px 20px rgba($dark-brown, 0.35);
-            background-color: $beige;
             filter: contrast(1.03);
             transition: transform 0.25s ease, box-shadow 0.25s ease;
 
@@ -1756,9 +1829,15 @@ main {
                 transform: translateY(-2px) scale(1.02);
                 box-shadow: 0 12px 28px rgba($dark-brown, 0.35);
             }
+
+            @media (max-width: 992px) {
+                height: 100%;
+                object-fit: cover;
+                border-radius: 0;
+            }
         }
     }
-
+    /* Indicators */
     .home-hero-indicators {
         bottom: 0.9rem;
 
@@ -1775,6 +1854,30 @@ main {
         }
     }
 
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+    }
+
+    .carousel-control-prev {
+        left: 0.75rem;
+    }
+
+    .carousel-control-next {
+        right: 0.75rem;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        background-color: rgba($dark-brown, 0.55);
+        border-radius: 999px;
+        padding: 0.9rem;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
+    }
+    /* Fallback hero */
     .home-hero-empty {
         background-color: $beige;
         padding: 3rem 1rem 1.5rem;

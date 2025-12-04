@@ -12443,7 +12443,7 @@ main {
   flex-direction: column;
   justify-content: start;
   min-height: 80vh;
-  padding: 2rem;
+  padding: 1rem;
   opacity: 0;
   animation: fadeIn 0.45s ease forwards;
 }
@@ -12837,6 +12837,13 @@ main {
   color: black;
   line-height: 1.5;
   margin-bottom: 0.5rem;
+  /* ====== Truncate long descriptions ====== */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* max 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word; /* prevent long words from stretching */
 }
 .recipe-index-page .index-card .recipe-card .categories .badge {
   font-size: 0.8rem;
@@ -13905,6 +13912,20 @@ main {
   align-items: center;
   gap: 0.75rem;
 }
+.details-page .details-header .recipe-image-container {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 0.75rem;
+  border: 2px solid #000;
+  margin: 0 auto;
+}
+.details-page .details-header .recipe-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .details-page .details-body {
   margin-top: 1.5rem;
 }
@@ -13957,9 +13978,7 @@ main {
   cursor: pointer;
   width: fit-content;
 }
-
-.desc-toggle:focus,
-.desc-toggle:active {
+.desc-toggle:focus, .desc-toggle:active {
   background: none !important;
   border: none !important;
   box-shadow: none !important;
@@ -13981,12 +14000,36 @@ main {
   transition: opacity 200ms ease;
   opacity: 1;
 }
-
-.desc-content.closing,
-.desc-content.closed {
+.desc-content.closing, .desc-content.closed {
   opacity: 0;
 }
 
+@media (max-width: 768px) {
+  /* Stack columns vertically */
+  .details-header .row {
+    display: flex;
+    flex-direction: column;
+  }
+  /* First column (title, categories, author, timing) */
+  .details-header .row > .col:first-child {
+    order: 1;
+  }
+  /* Second column (image) */
+  .details-header .row > .col:last-child {
+    order: 2;
+    margin-top: 1rem;
+  }
+  /* Force the TIMING BAR to appear AFTER the image */
+  .details-header .timing-bar {
+    order: 3 !important;
+    margin-top: 1rem;
+  }
+  /* Ensures the image does not shrink strangely on mobile */
+  .details-header .recipe-image-container {
+    max-width: 100% !important;
+    width: 100%;
+  }
+}
 .dropdown-item {
   cursor: pointer;
 }
@@ -14130,6 +14173,12 @@ main {
 .home-hero-wrapper {
   padding: 1.75rem 0 0;
   background-color: #e7d7c1;
+  /* Pills / labels */
+  /* Title + Subtitle */
+  /* Stats */
+  /* CTA Buttons */
+  /* Indicators */
+  /* Fallback hero */
 }
 .home-hero-wrapper .home-hero-carousel {
   max-width: 1200px;
@@ -14171,21 +14220,27 @@ main {
   opacity: 0;
   transform: translateY(8px) scale(0.98);
   animation: scaleFadeUp 0.5s ease forwards;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 @media (max-width: 992px) {
   .home-hero-wrapper .home-hero-content {
     flex-direction: column;
-    gap: 1.6rem;
-    min-height: 0;
-    max-height: none;
+    gap: 1rem;
+    min-height: 560px;
+    max-height: 560px;
+    overflow: hidden;
   }
 }
 .home-hero-wrapper .home-hero-caption {
   flex: 0 0 38%;
   max-width: 400px;
   color: #3f2d27;
-  text-shadow: none;
+  /* ====== Truncate long captions ====== */
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* max 3 lines for hero caption */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 @media (max-width: 992px) {
   .home-hero-wrapper .home-hero-caption {
@@ -14206,8 +14261,14 @@ main {
 .home-hero-wrapper .home-hero-title {
   font-size: 2.7rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
   margin-bottom: 0.4rem;
+  /* Truncate long titles */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 @media (max-width: 768px) {
   .home-hero-wrapper .home-hero-title {
@@ -14219,6 +14280,13 @@ main {
   margin-bottom: 1rem;
   max-width: 30rem;
   color: rgb(113.7777777778, 88, 78.2222222222);
+  /* Truncate long subtitles */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 .home-hero-wrapper .home-hero-stats {
   display: flex;
@@ -14277,30 +14345,36 @@ main {
   justify-content: center;
   align-items: center;
   height: 350px;
+  border-radius: 1.25rem;
+  overflow: hidden;
 }
 @media (max-width: 992px) {
   .home-hero-wrapper .home-hero-media {
     width: 100%;
+    height: 260px;
     min-height: 260px;
-    max-height: none;
+    max-height: 260px;
   }
 }
 .home-hero-wrapper .home-hero-media .home-hero-img {
-  max-width: 95%;
-  max-height: 100%;
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 1.25rem;
   box-shadow: 0 8px 20px rgba(63, 45, 39, 0.35);
-  background-color: #e7d7c1;
   filter: contrast(1.03);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .home-hero-wrapper .home-hero-media .home-hero-img:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 12px 28px rgba(63, 45, 39, 0.35);
+}
+@media (max-width: 992px) {
+  .home-hero-wrapper .home-hero-media .home-hero-img {
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+  }
 }
 .home-hero-wrapper .home-hero-indicators {
   bottom: 0.9rem;
@@ -14314,6 +14388,26 @@ main {
 }
 .home-hero-wrapper .home-hero-indicators .active {
   background-color: #3f2d27;
+}
+.home-hero-wrapper .carousel-control-prev,
+.home-hero-wrapper .carousel-control-next {
+  width: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+.home-hero-wrapper .carousel-control-prev {
+  left: 0.75rem;
+}
+.home-hero-wrapper .carousel-control-next {
+  right: 0.75rem;
+}
+.home-hero-wrapper .carousel-control-prev-icon,
+.home-hero-wrapper .carousel-control-next-icon {
+  background-color: rgba(63, 45, 39, 0.55);
+  border-radius: 999px;
+  padding: 0.9rem;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.45);
 }
 .home-hero-wrapper .home-hero-empty {
   background-color: #e7d7c1;

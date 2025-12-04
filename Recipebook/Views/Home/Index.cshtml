@@ -77,13 +77,17 @@
                                     </div>
 
                                     <h2 class="home-hero-title">
-                                        @recipe.Title
+                                        @(recipe.Title.Length > 80
+                                        ? recipe.Title.Substring(0, 80) + "..."
+                                        : recipe.Title)
                                     </h2>
 
                                     @if (!string.IsNullOrWhiteSpace(recipe.Description))
                                     {
                                         <p class="home-hero-subtitle">
-                                            @recipe.Description
+                                            @(recipe.Description.Length > 100
+                                            ? recipe.Description.Substring(0, 100) + "..."
+                                            : recipe.Description)
                                         </p>
                                     }
 
