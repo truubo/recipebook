@@ -42,8 +42,8 @@
     </div>
 
     @* Scope tabs: preserve search/tag params when switching *@
-    <div class="btn-group mb-3" role="group" aria-label="List scope">
-        <a class="btn @((scope=="all") ? "btn-primary" : "btn-secondary")"
+    <div class="d-flex mb-3 btn-group-equal" role="group" aria-label="List scope">
+        <a class="btn flex-fill rounded-0 rounded-start-3 @((scope == "all") ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="all"
            asp-route-searchString="@q"
@@ -51,7 +51,7 @@
             All Lists
         </a>
 
-        <a class="btn @((scope=="mine") ? "btn-primary" : "btn-secondary")"
+        <a class="btn flex-fill rounded-0 @((scope == "mine") ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="mine"
            asp-route-searchString="@q"
@@ -60,12 +60,12 @@
         </a>
 
         @* Ingredients-only view *@
-        <a class="btn @((scope=="ingredients") ? "btn-primary" : "btn-secondary")"
+        <a class="btn flex-fill rounded-0 rounded-end-3 @((scope == "ingredients") ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="ingredients"
            asp-route-searchString="@q"
            asp-route-tagId="@tag">
-            Ingredients Lists
+            Ingredients
         </a>
     </div>
 

@@ -11918,6 +11918,15 @@ body {
   padding: 0.75rem 1.5rem;
   transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
+.navbar .navbar-logout {
+  color: white !important;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+.navbar .navbar-logout:hover, .navbar .navbar-logout:focus {
+  color: #bf4342;
+  text-decoration: underline;
+  transform: translateY(-1px);
+}
 .navbar a.nav-link,
 .navbar .navbar-brand {
   color: white !important;
@@ -11932,11 +11941,9 @@ body {
   transform: translateY(-1px);
 }
 .navbar .navbar-toggler {
-  border-color: #e7d7c1;
   transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
 }
 .navbar .navbar-toggler:hover, .navbar .navbar-toggler:focus {
-  background-color: #e7d7c1;
   color: #8c1c13;
   transform: scale(1.06);
 }
@@ -12227,6 +12234,11 @@ body {
   background-color: #8c1c13;
   color: white;
   border-color: #8c1c13;
+}
+
+.btn-group-equal > .btn {
+  flex-basis: 0 !important;
+  min-width: 0;
 }
 
 .accent {

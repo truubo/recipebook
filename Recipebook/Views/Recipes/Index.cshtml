@@ -54,8 +54,10 @@
     </div>
 
     <!-- ===================== Tabs: All / My Recipes / Favorites ===================== -->
-    <div class="btn-group mb-3" role="group" aria-label="Recipe scope">
-        <a class="btn @(scope=="all" ? "btn-primary" : "btn-secondary")"
+    <div class="d-flex mb-3 btn-group-equal" role="group" aria-label="Recipe scope">
+        <a class="btn flex-fill rounded-0 rounded-start-3
+        @(User?.Identity is { IsAuthenticated: true } ? "" : "rounded-end-3")
+        @(scope == "all" ? "btn-primary" : "btn-secondary")"
            asp-action="Index"
            asp-route-scope="all"
            asp-route-searchString="@q"
@@ -63,13 +65,13 @@
 
         @if (User?.Identity is { IsAuthenticated: true })
         {
-            <a class="btn @(scope == "mine" ? "btn-primary" : "btn-secondary")"
+            <a class="btn flex-fill rounded-0 @(scope == "mine" ? "btn-primary" : "btn-secondary")"
                asp-action="Index"
                asp-route-scope="mine"
                asp-route-searchString="@q"
                asp-route-tagId="@tag">My Recipes</a>
 
-            <a class="btn @(scope == "favorites" ? "btn-primary" : "btn-secondary")"
+            <a class="btn flex-fill rounded-0 rounded-end-3 @(scope == "favorites" ? "btn-primary" : "btn-secondary")"
                asp-action="Index"
                asp-route-scope="favorites"
                asp-route-searchString="@q"
