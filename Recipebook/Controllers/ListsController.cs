@@ -473,7 +473,7 @@ namespace Recipebook.Controllers
 
             // TempData => Bootstrap alert via _Alerts partial (auto-dismiss in layout)
             TempData["Success"] = $"List '{vm.List.Name}' created.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Details), new { id = vm.List.Id });
         }
 
         // ---------------------------------- EDIT ---------------------------------
