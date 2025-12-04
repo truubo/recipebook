@@ -1653,7 +1653,7 @@ main {
 
         @media (max-width: 992px) {
             padding: 2rem 1.5rem 2.6rem;
-            min-height: 360px;
+            min-height: auto;
             max-height: none;
         }
     }
@@ -1677,7 +1677,10 @@ main {
             gap: 1rem;
             min-height: 560px;
             max-height: 560px;
+            height: 560px;
             overflow: hidden;
+            justify-content: center;
+            align-items: stretch;
         }
     }
 
@@ -1685,9 +1688,8 @@ main {
         flex: 0 0 38%;
         max-width: 400px;
         color: $dark-brown;
-        /* ====== Truncate long captions ====== */
         display: -webkit-box;
-        -webkit-line-clamp: 3; /* max 3 lines for hero caption */
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1695,8 +1697,18 @@ main {
 
         @media (max-width: 992px) {
             flex: 1 1 auto;
-            max-width: 100%;
             text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+    }
+
+    .home-hero-caption-content {
+        @media (max-width: 992px) {
+            flex-grow: 1;
+            margin-bottom: 1rem;
         }
     }
     /* Pills / labels */
@@ -1806,14 +1818,15 @@ main {
         justify-content: center;
         align-items: center;
         height: 350px;
-        border-radius: 1.25rem;
-        overflow: hidden;
 
         @media (max-width: 992px) {
             width: 100%;
             height: 260px;
             min-height: 260px;
             max-height: 260px;
+            overflow: hidden;
+            /* FIX 1: Apply the border radius to the clipping container */
+            border-radius: 1.25rem;
         }
 
         .home-hero-img {
@@ -1824,16 +1837,20 @@ main {
             box-shadow: 0 8px 20px rgba($dark-brown, 0.35);
             filter: contrast(1.03);
             transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border-radius: 1.25rem;
 
             &:hover {
                 transform: translateY(-2px) scale(1.02);
                 box-shadow: 0 12px 28px rgba($dark-brown, 0.35);
+                z-index: 2;
+                position: relative;
             }
 
             @media (max-width: 992px) {
                 height: 100%;
                 object-fit: cover;
-                border-radius: 0;
+                /* Keep the border radius on mobile image */
+                border-radius: 1.25rem;
             }
         }
     }
