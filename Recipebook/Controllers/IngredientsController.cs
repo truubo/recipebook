@@ -1,13 +1,7 @@
-﻿// Controllers/IngredientsController.cs
-
-using System;
-using System.Linq;
-using System.Security.Claims; // for ClaimTypes
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging; // logger
 using Microsoft.Net.Http.Headers; // for HeaderNames
 using Recipebook.Data;
 using Recipebook.Models;

@@ -1703,12 +1703,8 @@ main {
         flex: 0 0 38%;
         max-width: 400px;
         color: $dark-brown;
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-word;
+        display: block;
+        overflow: visible;
 
         @media (max-width: 992px) {
             flex: 1 1 auto;

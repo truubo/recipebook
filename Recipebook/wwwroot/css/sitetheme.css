@@ -14247,12 +14247,8 @@ main {
   flex: 0 0 38%;
   max-width: 400px;
   color: #3f2d27;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-break: break-word;
+  display: block;
+  overflow: visible;
 }
 @media (max-width: 992px) {
   .home-hero-wrapper .home-hero-caption {

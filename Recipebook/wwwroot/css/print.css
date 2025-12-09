@@ -3,6 +3,7 @@
     color: #000 !important;
     margin: 20px;
     animation: none !important;
+    transition: none !important;
 }
 
 header,
@@ -12,6 +13,12 @@ footer,
 .author,
 .details-body > div.d-flex {
     display: none !important;
+}
+
+.details-body,
+.details-header{
+    animation: none !important;
+    transition: none !important;
 }
 
 .details-page {

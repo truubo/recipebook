@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Recipebook.Models;
-using System.Reflection.Emit;
 
 namespace Recipebook.Data
 {
@@ -63,6 +62,6 @@ namespace Recipebook.Data
                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
-        public DbSet<Recipebook.Models.Direction> Direction { get; set; } = default!;
+        public DbSet<Direction> Direction { get; set; } = default!;
     }
 }

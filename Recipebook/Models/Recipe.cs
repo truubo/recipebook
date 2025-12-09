@@ -4,8 +4,6 @@ using Recipebook.Helpers;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-
-
 namespace Recipebook.Models
 {
     public class Recipe
@@ -100,15 +98,9 @@ namespace Recipebook.Models
         public ICollection<IngredientRecipe> IngredientRecipes { get; set; } = new List<IngredientRecipe>();
         public ICollection<CategoryRecipe> CategoryRecipes { get; set; } = new List<CategoryRecipe>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
-
         public ICollection<ListRecipe> ListRecipes { get; set; } = new List<ListRecipe>();
-
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
         public ICollection<Direction> DirectionsList { get; set; } = new List<Direction>();
-
         public virtual ICollection<RecipeVote> RecipeVotes { get; set; } = new List<RecipeVote>();
-
     }
-
 }

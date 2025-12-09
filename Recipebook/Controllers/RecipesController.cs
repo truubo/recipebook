@@ -1,21 +1,12 @@
-// Controllers/RecipesController.cs
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Models.ViewModels;
-using Recipebook.Services;
 using Recipebook.Services.Interfaces;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using static Recipebook.Services.CustomFormValidation;
 
 namespace Recipebook.Controllers
@@ -111,8 +102,6 @@ namespace Recipebook.Controllers
         }
 
 
-        // -------------------------------- DETAILS --------------------------------
-        // GET: Recipes/Details/5
         // -------------------------------- DETAILS --------------------------------
         // GET: Recipes/Details/5
         public async Task<IActionResult> Details(int? id)

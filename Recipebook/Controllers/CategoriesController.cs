@@ -1,12 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims; // for ClaimTypes
-using System.Threading.Tasks;
+﻿using System.Security.Claims; // for ClaimTypes
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Services.Interfaces;

@@ -1,5 +1,4 @@
-﻿// Models/ListRecipe.cs (unchanged properties)
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Recipebook.Models
