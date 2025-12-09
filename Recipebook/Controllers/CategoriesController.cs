@@ -43,35 +43,36 @@ namespace Recipebook.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? searchString)
         {
-            var query = _context.Category.Where(c => !c.IsArchived).AsQueryable();
+            IQueryable<Category> query = _context.Category
+                .Where(c => !c.IsArchived);
 
-            // Apply search filter if provided
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(c => c.Name.Contains(searchString) && !c.IsArchived);
+                query = query.Where(c =>
+                    EF.Functions.Like(c.Name, $"%{searchString}%"));
             }
 
             var categories = await query
-                .Where(c => !c.IsArchived)
                 .Include(c => c.CategoryRecipes)
                     .ThenInclude(cr => cr.Recipe)
+                .OrderBy(c => c.Name)
+                .AsNoTracking()
                 .ToListAsync();
 
-            _logger.LogInformation("{Who} -> /Categories/Index | count={Count} search='{Search}'",
+            _logger.LogInformation(
+                "{Who} -> /Categories/Index | count={Count} search='{Search}'",
                 Who(), categories.Count, searchString ?? string.Empty);
 
-            // Preload owner emails for view display
+            // Load owner names
             var ownerIds = categories.Select(c => c.OwnerId).Distinct().ToList();
             ViewBag.OwnerEmails = await _context.Users
                 .Where(u => ownerIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id, u => u.UserName);
 
-            // Preserve current search term for sticky input in the view
             ViewBag.SearchString = searchString;
 
             return View(categories);
         }
-
 
         // ------------------------------- DETAILS --------------------------------
         // GET: Categories/Details/5
