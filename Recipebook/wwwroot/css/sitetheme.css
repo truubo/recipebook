@@ -11912,6 +11912,72 @@ body {
   font-family: "Segoe UI", Roboto, sans-serif;
 }
 
+.print-page body {
+  background-color: #fff !important;
+  color: #000 !important;
+  margin: 20px;
+  animation: none !important;
+  transition: none !important;
+}
+.print-page body * {
+  animation: none !important;
+  transition: none !important;
+}
+.print-page header,
+.print-page button,
+.print-page footer,
+.print-page .details-actions-top,
+.print-page .author,
+.print-page .details-body > div.d-flex {
+  display: none !important;
+}
+.print-page .details-body {
+  animation: none !important;
+  transition: none !important;
+}
+.print-page .details-page {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  border: none;
+  box-shadow: none;
+}
+.print-page .direction,
+.print-page .list-group-item {
+  border: 1px solid #000 !important;
+  background: none !important;
+  color: #000 !important;
+}
+.print-page table.table {
+  border-radius: 0;
+  box-shadow: none;
+}
+.print-page table.table thead,
+.print-page table.table tbody,
+.print-page table.table th,
+.print-page table.table td,
+.print-page table.table tr:hover {
+  background-color: transparent !important;
+}
+.print-page table.table td {
+  border-bottom: 1px solid #000;
+}
+.print-page table a {
+  color: #000 !important;
+}
+@media print {
+  .print-page body {
+    margin: 0;
+  }
+  .print-page #back-link {
+    display: none !important;
+  }
+  .print-page .details-header {
+    color: black !important;
+  }
+}
+
 .navbar {
   background-color: #8c1c13 !important;
   color: white !important;

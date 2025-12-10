@@ -44,42 +44,54 @@
 <link rel="stylesheet" href="~/Recipebook.styles.css" asp-append-version="true" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="~/css/sitetheme.css" />
-<link rel="stylesheet" href="~/css/print.css" />
-<a asp-action="Details" asp-route-id="@Model.Id" id="back-link">Back to list</a>
-<div class="details-page position-relative">
 
-    @* ===== Title + owner info ===== *@
-    <div class="details-header text-center mt-5">
-        <h1 class="recipe-title">@Model.Name</h1>
-    </div>
+<style>
+    body {
+        background-color: white !important;
+    }
 
-    @* ===== Body ===== *@
-    <div class="details-body mt-4">
-        @if (Model.ListRecipes != null && Model.ListRecipes.Any())
-        {
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="section-title mb-0">
-                    @Model.ListType
-                    <span class="badge bg-success text-white">
-                        @(isIngredientsList ? ingredientCount : itemCount)
-                    </span>
-                </h4>
+    * {
+        background-color: white !important
+    }
+</style>
 
-                @* Sorting only applies to the recipes list view (server-side resort via querystring) *@
-                @if (!isIngredientsList)
-                {
-                    <div>
-                        <label for="sortSelect" class="form-label fw-bold me-2 mb-0">Sort by:</label>
-                        <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()" class="form-select d-inline-block w-auto"></select>
-                    </div>
-                }
-            </div>
+<div class="print-page">
+    <a asp-action="Details" asp-route-id="@Model.Id" id="back-link">Back to recipe</a>
 
-            @* ===== Ingredients list mode: aggregate ingredients across selected recipes ===== *@
-            @if (isIngredientsList)
+    <div class="details-page position-relative">
+
+        @* ===== Title + owner info ===== *@
+        <div class="details-header text-center mt-5">
+            <h1 class="recipe-title">@Model.Name</h1>
+        </div>
+
+        @* ===== Body ===== *@
+        <div class="details-body mt-4">
+            @if (Model.ListRecipes != null && Model.ListRecipes.Any())
             {
-                @* Build the aggregated ingredient view-model (code-only; keep Razor happy inside a code block) *@
-                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="section-title mb-0">
+                        @Model.ListType
+                        <span class="badge bg-success text-white">
+                            @(isIngredientsList? ingredientCount : itemCount)
+                        </span>
+                    </h4>
+
+                    @* Sorting only applies to the recipes list view (server-side resort via querystring) *@
+                    @if (!isIngredientsList)
+                    {
+                        <div>
+                            <label for="sortSelect" class="form-label fw-bold me-2 mb-0">Sort by:</label>
+                            <select id="sortSelect" asp-items="@Html.GetEnumSelectList<SortType>()" class="form-select d-inline-block w-auto"></select>
+                        </div>
+                    }
+                </div>
+
+                @* ===== Ingredients list mode: aggregate ingredients across selected recipes ===== *@
+                @if (isIngredientsList)
+                {
+                    @* Build the aggregated ingredient view-model (code-only; keep Razor happy inside a code block) *@
+
                     // 1) Flatten IngredientRecipes across ListRecipes
                     // 2) Normalize names (Trim), convert quantities to decimal, stringify units
                     // 3) Group by ingredient name (case-insensitive handled upstream in the count), then by Unit
@@ -89,199 +101,207 @@
                     if (Model.ListRecipes != null)
                     {
                         allIngredients = Model.ListRecipes
-                            .Where(lr => lr?.Recipe?.IngredientRecipes != null)
-                            .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
-                            .Where(ir => ir?.Ingredient?.Name != null)
-                            .Select(ir => new
-                            {
-                                Name = ir!.Ingredient!.Name!.Trim(),
-                                Qty  = Convert.ToDecimal(ir.Quantity),
-                                Unit = ir.Unit.ToString()
-                            })
-                            // Group by ingredient name only
-                            .GroupBy(x => x.Name)
-                            .Select(g => new IngredientRow
-                            {
-                                Name = g.Key,
-                                // Nested grouping by unit with summed quantities
-                                Units = g.GroupBy(x => x.Unit)
-                                         .Select(u => (u.Sum(x => x.Qty), u.Key))
-                                         .OrderBy(u => u.Key)
-                                         .ToList()
-                            })
-                            .OrderBy(r => r.Name)
-                            .ToList();
-                    }
-                
-
-                @* Render the aggregated grocery list *@
-                @if (allIngredients.Any())
-                {
-                    // Map: Ingredient Name -> distinct recipe titles that include it
-                    var recipesByIngredient = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var lr in Model.ListRecipes!)
-                    {
-                        if (lr?.Recipe?.IngredientRecipes == null) continue;
-
-                        var recipeTitle = string.IsNullOrWhiteSpace(lr.Recipe.Title)
-                        ? $"Recipe #{lr.Recipe.Id}"
-                        : lr.Recipe.Title.Trim();
-
-                        foreach (var ir in lr.Recipe.IngredientRecipes)
+                        .Where(lr => lr?.Recipe?.IngredientRecipes != null)
+                        .SelectMany(lr => lr!.Recipe!.IngredientRecipes!)
+                        .Where(ir => ir?.Ingredient?.Name != null)
+                        .Select(ir => new
                         {
-                            var name = ir?.Ingredient?.Name?.Trim();
-                            if (string.IsNullOrWhiteSpace(name)) continue;
-
-                            if (!recipesByIngredient.TryGetValue(name, out var set))
-                            {
-                                set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                                recipesByIngredient[name] = set;
-                            }
-                            set.Add(recipeTitle);
-                        }
+                            Name = ir!.Ingredient!.Name!.Trim(),
+                            Qty = Convert.ToDecimal(ir.Quantity),
+                            Unit = ir.Unit.ToString()
+                        })
+                        // Group by ingredient name only
+                        .GroupBy(x => x.Name)
+                        .Select(g => new IngredientRow
+                        {
+                            Name = g.Key,
+                            // Nested grouping by unit with summed quantities
+                            Units = g.GroupBy(x => x.Unit)
+                        .Select(u => (u.Sum(x => x.Qty), u.Key))
+                        .OrderBy(u => u.Key)
+                        .ToList()
+                        })
+                        .OrderBy(r => r.Name)
+                        .ToList();
                     }
 
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col">Ingredient</th>
-                                    <th scope="col" class="text-nowrap">Quantity</th>
-                                    <th scope="col">Unit</th>
-                                    <th scope="col">Related Recipe(s)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var ing in allIngredients)
+
+                    @* Render the aggregated grocery list *@
+                    @if (allIngredients.Any())
+                    {
+                        // Map: Ingredient Name -> distinct recipe titles that include it
+                        var recipesByIngredient = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+                        foreach (var lr in Model.ListRecipes!)
+                        {
+                            if (lr?.Recipe?.IngredientRecipes == null) continue;
+
+                            var recipeTitle = string.IsNullOrWhiteSpace(lr.Recipe.Title)
+                            ? $"Recipe #{lr.Recipe.Id}"
+                            : lr.Recipe.Title.Trim();
+
+                            foreach (var ir in lr.Recipe.IngredientRecipes)
+                            {
+                                var name = ir?.Ingredient?.Name?.Trim();
+                                if (string.IsNullOrWhiteSpace(name)) continue;
+
+                                if (!recipesByIngredient.TryGetValue(name, out var set))
                                 {
-                                    // Prepare recipe label + tooltip (list can be long)
-                                    var recipeList = recipesByIngredient.TryGetValue(ing.Name, out var rset)
-                                    ? rset.OrderBy(t => t).ToList()
-                                    : new List<string>();
+                                    set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                                    recipesByIngredient[name] = set;
+                                }
+                                set.Add(recipeTitle);
+                            }
+                        }
 
-                                    var recipeLabel = recipeList.Count switch
-                                    {
-                                        0 => "-",
-                                        1 => recipeList[0],
-                                        _ => $"{recipeList.Count} recipes"
-                                    };
-                                    var recipeTitleAttr = recipeList.Count <= 1 ? null : string.Join(", ", recipeList);
-
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle">
+                                <thead class="table-light">
                                     <tr>
-                                        <td class="fw-semibold">@ing.Name</td>
+                                        <th scope="col">Ingredient</th>
+                                        <th scope="col" class="text-nowrap">Quantity</th>
+                                        <th scope="col">Unit</th>
+                                        <th scope="col">Related Recipe(s)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ing in allIngredients)
+                                    {
+                                        // Prepare recipe label + tooltip (list can be long)
+                                        var recipeList = recipesByIngredient.TryGetValue(ing.Name, out var rset)
+                                        ? rset.OrderBy(t => t).ToList()
+                                        : new List<string>();
 
-                                        <td>
-                                            @foreach (var (qty, _) in ing.Units)
-                                            {
-                                                <div>@FractionDecimalBinder.ToFraction(qty)</div>
-                                            }
-                                        </td>
+                                        var recipeLabel = recipeList.Count switch
+                                        {
+                                            0 => "-",
+                                            1 => recipeList[0],
+                                            _ => $"{recipeList.Count} recipes"
+                                        };
+                                        var recipeTitleAttr = recipeList.Count <= 1 ? null : string.Join(", ", recipeList);
 
-                                        <td>
-                                            @foreach (var (qty, unit) in ing.Units)
-                                            {
-                                                var unitDisplay = qty == 1 ? unit : unit + "s";
-                                                <div>@unitDisplay</div>
-                                            }
-                                        </td>
+                                        <tr>
+                                            <td class="fw-semibold">@ing.Name</td>
 
-                                        @* MINIMAL CHANGE: render titles as stacked links *@
-                                        <td>
-                                            @if (recipeList.Count == 0)
-                                            {
-                                                <div>-</div>
-                                            }
-                                            else
-                                            {
-                                                @foreach (var title in recipeList)
+                                            <td>
+                                                @foreach (var (qty, _) in ing.Units)
                                                 {
-                                                    var match = Model.ListRecipes?
-                                                    .FirstOrDefault(x => x?.Recipe?.Title?.Trim() == title);
+                                                    <span>@FractionDecimalBinder.ToFraction(qty)</span>
+                                                }
+                                            </td>
 
-                                                    if (match?.Recipe != null)
+                                            <td>
+                                                @foreach (var (qty, unit) in ing.Units)
+                                                {
+                                                    var unitDisplay = qty == 1 ? unit : unit + "s";
+                                                    <span>@unitDisplay</span>
+                                                }
+                                            </td>
+
+                                            @* MINIMAL CHANGE: render titles as stacked links *@
+                                            <td>
+                                                @if (recipeList.Count == 0)
+                                                {
+                                                    <span>-</span>
+                                                }
+                                                else
+                                                {
+                                                    @foreach (var title in recipeList)
                                                     {
-                                                        <div>
-                                                            <a asp-controller="Recipes"
-                                                               asp-action="Details"
-                                                               asp-route-id="@match.Recipe.Id"
-                                                               class="text-decoration-none">
-                                                                @title
-                                                            </a>
-                                                        </div>
-                                                    }
-                                                    else
-                                                    {
-                                                        <div>@title</div>
+                                                        var match = Model.ListRecipes?
+                                                        .FirstOrDefault(x => x?.Recipe?.Title?.Trim() == title);
+
+                                                        if (match?.Recipe != null)
+                                                        {
+                                                            <span>
+                                                                <a asp-controller="Recipes"
+                                                                   asp-action="Details"
+                                                                   asp-route-id="@match.Recipe.Id"
+                                                                   class="text-decoration-none">
+                                                                    @title
+                                                                </a>
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>@title</span>
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted fst-italic">No ingredients found from linked recipes.</p>
+                    }
                 }
                 else
                 {
-                    <p class="text-muted fst-italic">No ingredients found from linked recipes.</p>
+                    @* ===== Recipes list mode: show linked recipes with a short description preview ===== *@
+                    <ul class="list-group">
+                        @foreach (var lr in Model.ListRecipes)
+                        {
+                            if (lr.Recipe != null)
+                            {
+                                <a asp-controller="Recipes"
+                                   asp-action="Details"
+                                   asp-route-id="@lr.Recipe.Id"
+                                   class="list-group-item my-1 text-decoration-none custom-list-item">
+
+                                    <div>
+                                        <strong>@lr.Recipe?.Title</strong>
+                                        <p class="mb-0 small">
+                                            @{
+                                                // Truncate long descriptions for a tidy list preview
+                                                var desc = lr.Recipe?.Description ?? "";
+                                                if (string.IsNullOrWhiteSpace(desc))
+                                                {
+                                                    @: <span class="fst-italic">No description available.</span>
+                                                }
+                                                else
+                                                {
+                                                    if (desc.Length > 100)
+                                                    {
+                                                        desc = desc.Substring(0, 100) + "...";
+                                                    }
+                                                    @desc
+                                                }
+                                            }
+                                        </p>
+                                    </div>
+                                </a>
+                            }
+                        }
+                    </ul>
                 }
             }
             else
             {
-                @* ===== Recipes list mode: show linked recipes with a short description preview ===== *@
-                <ul class="list-group">
-                    @foreach (var lr in Model.ListRecipes)
-                    {
-                        if (lr.Recipe != null)
-                        {
-                            <a asp-controller="Recipes"
-                               asp-action="Details"
-                               asp-route-id="@lr.Recipe.Id"
-                               class="list-group-item my-1 text-decoration-none custom-list-item">
-
-                                <div>
-                                    <strong>@lr.Recipe?.Title</strong>
-                                    <p class="mb-0 small">
-                                        @{
-                                            // Truncate long descriptions for a tidy list preview
-                                            var desc = lr.Recipe?.Description ?? "";
-                                            if (string.IsNullOrWhiteSpace(desc))
-                                            {
-                                                @: <span class="fst-italic">No description available.</span>
-                                            }
-                                            else
-                                            {
-                                                if (desc.Length > 100)
-                                                {
-                                                    desc = desc.Substring(0, 100) + "...";
-                                                }
-                                                @desc
-                                            }
-                                        }
-                                    </p>
-                                </div>
-                            </a>
-                        }
-                    }
-                </ul>
+                <p class="text-muted">No items attached yet.</p>
             }
-        }
-        else
-        {
-            <p class="text-muted">No items attached yet.</p>
-        }
+        </div>
     </div>
 </div>
-<script>
-    window.addEventListener('afterprint', function () {
-        const backLink = document.getElementById('back-link');
-        if (backLink) {
-            window.location.href = backLink.href;
-        }
-    });
 
-    window.onload = function() {
-        window.print();
+<script>
+    window.onload = function () {
+        setTimeout(() => {
+            window.print();
+
+            const backLink = document.getElementById("back-link");
+            if (!backLink) return;
+
+            const interval = setInterval(() => {
+                if (!window.matchMedia("print").matches) {
+                    clearInterval(interval);
+                    window.location.href = backLink.href;
+                }
+            }, 300);
+
+        }, 50);
     };
 </script>
