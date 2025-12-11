@@ -34,17 +34,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.EnableSensitiveDataLogging(); // show EF parameter values in Dev (OK for local dev)
     }
 });
-
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+Console.WriteLine("Is production? " + builder.Environment.IsProduction());
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = builder.Environment.IsDevelopment() ? false : true;
+    options.SignIn.RequireConfirmedAccount = builder.Environment.IsProduction();
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultUI()
 .AddDefaultTokenProviders();
 
 // add email capabilities when running in production
-if (!builder.Environment.IsDevelopment())
+if (builder.Environment.IsProduction())
 {
     builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
     builder.Services.AddTransient<IEmailSender, EmailHelper>();
