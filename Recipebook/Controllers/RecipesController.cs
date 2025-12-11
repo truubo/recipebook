@@ -36,9 +36,22 @@ namespace Recipebook.Controllers
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             scope = string.IsNullOrWhiteSpace(scope) ? "all" : scope.ToLowerInvariant();
 
-            IQueryable<Recipe> query = 
-                _context.Recipe.Where(r => !r.IsArchived)
-                .Where(r => !r.Private || (uid != null && r.AuthorId == uid)); // base query
+            IQueryable<Recipe> query =
+                _context.Recipe.Where(r => !r.IsArchived); // base query
+
+            if (!User.IsInRole("Admin"))
+            {
+                if (uid == null)
+                {
+                    // Anonymous: only public recipes
+                    query = query.Where(r => !r.Private);
+                }
+                else
+                {
+                    // Logged-in non-admin: public OR own private
+                    query = query.Where(r => !r.Private || r.AuthorId == uid);
+                }
+            }
 
             if (uid != null) // scope filter
             {
@@ -116,6 +129,15 @@ namespace Recipebook.Controllers
                 return Redirect("/Error/NotFound");
             }
 
+            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            if (recipe.Private && !isAdmin && recipe.AuthorId != uid)
+            {
+                _logger.LogWarning("Unauthorized access attempt for private recipe {RecipeId} by {User}.", id, uid ?? "anonymous");
+                return Redirect("/Error/NotFound");
+            }
+
             // For the view: resolve author email to display who created it
             var authorEmail = await _context.Users
                 .Where(u => u.Id == recipe.AuthorId)
@@ -124,10 +146,9 @@ namespace Recipebook.Controllers
             ViewData["AuthorEmail"] = authorEmail;
 
             // Current viewer identity (email if possible) for logs
-            var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             string who = User.Identity?.Name ?? "anonymous";
 
-            // ?? NEW: compute like/dislike counts + user vote directly from DB
+            // compute like/dislike counts + user vote directly from DB
             var likeCount = await _context.RecipeVotes
                 .CountAsync(v => v.RecipeId == recipe.Id && v.IsLike);
 
@@ -145,7 +166,6 @@ namespace Recipebook.Controllers
             ViewBag.DislikeCount = dislikeCount;
             ViewBag.UserLiked = userVote?.IsLike == true;
             ViewBag.UserDisliked = userVote?.IsLike == false;
-            // ?? END NEW
 
             // List category names for a readable log line
             var catNames = recipe.CategoryRecipes

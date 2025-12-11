@@ -90,7 +90,7 @@
         <div class="card-grid">
             @foreach (var item in Model ?? Enumerable.Empty<Recipe>())
             {
-                if (!item.Private || item.AuthorEmail == User?.Identity?.Name)
+                if (!item.Private || item.AuthorEmail == User?.Identity?.Name || User.IsInRole("Admin"))
                 {
                     <div class="recipe-card" style="position:relative;">
                         <div style="width:100%;max-height:200px;overflow:hidden;" class="mb-2">
