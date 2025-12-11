@@ -36,7 +36,9 @@ namespace Recipebook.Controllers
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             scope = string.IsNullOrWhiteSpace(scope) ? "all" : scope.ToLowerInvariant();
 
-            IQueryable<Recipe> query = _context.Recipe.Where(r => !r.IsArchived); // base query
+            IQueryable<Recipe> query = 
+                _context.Recipe.Where(r => !r.IsArchived)
+                .Where(r => !r.Private || (uid != null && r.AuthorId == uid)); // base query
 
             if (uid != null) // scope filter
             {
