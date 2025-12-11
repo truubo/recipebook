@@ -106,7 +106,6 @@
 }
 
 // Global
-
 .form-control:disabled,
 .form-control[readonly] {
     background-color: $light-brown !important;
@@ -121,6 +120,92 @@ body {
     background-color: $beige;
     color: black;
     font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+
+// ------------------------------
+// Print
+// ------------------------------
+.print-page {
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
+        margin: 20px;
+        animation: none !important;
+        transition: none !important;
+
+        * {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+
+    header,
+    button,
+    footer,
+    .details-actions-top,
+    .author,
+    .details-body > div.d-flex {
+        display: none !important;
+    }
+    // Containers
+    .details-body {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .details-page {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        background-color: white;
+        border: none;
+        box-shadow: none;
+    }
+    // Ingredients + directions
+    .direction,
+    .list-group-item {
+        border: 1px solid #000 !important;
+        background: none !important;
+        color: #000 !important;
+    }
+    // Table cleanup
+    table {
+        &.table {
+            border-radius: 0;
+            box-shadow: none;
+
+            thead,
+            tbody,
+            th,
+            td,
+            tr:hover {
+                background-color: transparent !important;
+            }
+
+            td {
+                border-bottom: 1px solid #000;
+            }
+        }
+
+        a {
+            color: #000 !important;
+        }
+    }
+
+    @media print {
+        body {
+            margin: 0;
+        }
+
+        #back-link {
+            display: none !important;
+        }
+
+        .details-header {
+            color: black !important;
+        }
+    }
 }
 
 // ------------------------------
@@ -1703,12 +1788,8 @@ main {
         flex: 0 0 38%;
         max-width: 400px;
         color: $dark-brown;
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-word;
+        display: block;
+        overflow: visible;
 
         @media (max-width: 992px) {
             flex: 1 1 auto;

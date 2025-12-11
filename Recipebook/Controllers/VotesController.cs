@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +10,7 @@ namespace Recipebook.Controllers
     [Authorize]
     public class VotesController : Controller
     {
-        private readonly ApplicationDbContext _context; // or your DbContext name
+        private readonly ApplicationDbContext _context;
 
         public VotesController(ApplicationDbContext context)
         {

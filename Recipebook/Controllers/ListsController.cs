@@ -1,19 +1,11 @@
-﻿// Controllers/ListsController.cs
-
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Models.ViewModels;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Recipebook.Controllers
 {
@@ -135,78 +127,46 @@ namespace Recipebook.Controllers
         public async Task<IActionResult> Index(string? searchString, string? scope)
         {
             var uid = _userManager.GetUserId(User)!;
-            var myEmail = await _context.Users
-                .Where(u => u.Id == uid)
-                .Select(u => u.UserName)
-                .FirstOrDefaultAsync();
+            var myEmail = User.Identity!.Name;
 
             using var _ = BeginUserScope(uid, myEmail, "Lists/Index");
 
-            // Base queries (deferred); include recipe link counts for display.
-            IQueryable<List>? listQ = null;
+            IQueryable<List> query = _context.Lists.Where(l => !l.IsArchived);
 
-            // 🧩 ALL SCOPES NOW INCLUDE INGREDIENT RECIPES CHAIN
             if (scope == "mine")
             {
-                listQ = _context.Lists
-                    .Where(l => !l.IsArchived && l.OwnerId == uid)
-                    .Include(l => l.ListRecipes)
-                        .ThenInclude(lr => lr.Recipe)
-                            .ThenInclude(r => r.IngredientRecipes)
-                                .ThenInclude(ir => ir.Ingredient)
-                    .Include(l => l.ListIngredients)
-                        .ThenInclude(li => li.Ingredient)
-                    .AsNoTracking();
+                query = query.Where(l => l.OwnerId == uid);
             }
             else if (scope == "ingredients")
             {
-                listQ = _context.Lists
-                    .Where(l => !l.IsArchived && l.ListType == ListType.Ingredients)
-                    .Include(l => l.ListRecipes)
-                        .ThenInclude(lr => lr.Recipe)
-                            .ThenInclude(r => r.IngredientRecipes)
-                                .ThenInclude(ir => ir.Ingredient)
-                    .Include(l => l.ListIngredients)
-                        .ThenInclude(li => li.Ingredient)
-                    .AsNoTracking();
+                query = query.Where(l => l.ListType == ListType.Ingredients);
             }
-            else // default: all lists
+            else // "all"
             {
-                if (User.IsInRole("Admin"))
-                {
-                    listQ = _context.Lists
-                        .Where(l => !l.IsArchived)
-                        .Include(l => l.ListRecipes)
-                            .ThenInclude(lr => lr.Recipe)
-                                .ThenInclude(r => r.IngredientRecipes)
-                                    .ThenInclude(ir => ir.Ingredient)
-                        .Include(l => l.ListIngredients)
-                            .ThenInclude(li => li.Ingredient)
-                        .AsNoTracking();
-                }
-                else
-                {
-                    listQ = _context.Lists
-                        .Where(l => !l.IsArchived && (l.OwnerId == uid || !l.Private))
-                        .Include(l => l.ListRecipes)
-                            .ThenInclude(lr => lr.Recipe)
-                                .ThenInclude(r => r.IngredientRecipes)
-                                    .ThenInclude(ir => ir.Ingredient)
-                        .Include(l => l.ListIngredients)
-                            .ThenInclude(li => li.Ingredient)
-                        .AsNoTracking();
-                }
+                if (!User.IsInRole("Admin"))
+                    query = query.Where(l => l.OwnerId == uid || !l.Private);
             }
 
             if (!string.IsNullOrWhiteSpace(searchString))
-                listQ = listQ.Where(l => l.Name.Contains(searchString) && !l.IsArchived);
+            {
+                query = query.Where(l => EF.Functions.Like(l.Name!, $"%{searchString}%"));
+            }
 
-            var lists = await listQ.OrderBy(l => l.Name).ToListAsync();
+            query = query
+                .Include(l => l.ListRecipes)
+                    .ThenInclude(lr => lr.Recipe)
+                        .ThenInclude(r => r.IngredientRecipes)
+                            .ThenInclude(ir => ir.Ingredient)
+                .Include(l => l.ListIngredients)
+                    .ThenInclude(li => li.Ingredient)
+                .AsNoTracking();
 
-            // Build owner email map
-            var ownerIds = lists.Select(l => l.OwnerId).Distinct().ToList();
+            var lists = await query
+                .OrderBy(l => l.Name)
+                .ToListAsync();
+
             var ownerEmails = await _context.Users
-                .Where(u => ownerIds.Contains(u.Id))
+                .Where(u => lists.Select(l => l.OwnerId).Distinct().Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id, u => u.UserName);
 
             ViewBag.OwnerEmails = ownerEmails;
@@ -224,8 +184,6 @@ namespace Recipebook.Controllers
 
             return View(vm);
         }
-
-
 
         // -------------------------------- DETAILS --------------------------------
         // GET: Lists/Details/5

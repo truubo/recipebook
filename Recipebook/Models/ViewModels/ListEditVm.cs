@@ -1,7 +1,4 @@
-﻿// Models/ViewModels/ListEditVm.cs
-using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Recipebook.Models.ViewModels
 {

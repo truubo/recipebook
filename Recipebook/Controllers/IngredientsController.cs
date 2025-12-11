@@ -1,13 +1,7 @@
-﻿// Controllers/IngredientsController.cs
-
-using System;
-using System.Linq;
-using System.Security.Claims; // for ClaimTypes
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging; // logger
 using Microsoft.Net.Http.Headers; // for HeaderNames
 using Recipebook.Data;
 using Recipebook.Models;
@@ -43,17 +37,23 @@ namespace Recipebook.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? searchString)
         {
-            var query = _context.Ingredient.Where(i => !i.IsArchived).AsQueryable();
+            IQueryable<Ingredient> query = _context.Ingredient
+                .Where(i => !i.IsArchived);
 
             if (!string.IsNullOrWhiteSpace(searchString))
             {
-                query = query.Where(i => i.Name!.Contains(searchString) && !i.IsArchived);
+                // case-insensitive search using EF like
+                query = query.Where(i =>
+                    EF.Functions.Like(i.Name!, $"%{searchString}%"));
             }
 
-            var ingredients = await query.Where(i => !i.IsArchived).ToListAsync();
+            var ingredients = await query.ToListAsync();
 
-            _logger.LogInformation("{Who} -> /Ingredients/Index | count={Count} search='{Search}'",
-                Who(), ingredients.Count, searchString ?? string.Empty);
+            _logger.LogInformation(
+                "{Who} -> /Ingredients/Index | count={Count} search='{Search}'",
+                Who(),
+                ingredients.Count,
+                searchString ?? string.Empty);
 
             ViewBag.SearchString = searchString;
 

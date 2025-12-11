@@ -1,21 +1,12 @@
-// Controllers/RecipesController.cs
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Recipebook.Data;
 using Recipebook.Models;
 using Recipebook.Models.ViewModels;
-using Recipebook.Services;
 using Recipebook.Services.Interfaces;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using static Recipebook.Services.CustomFormValidation;
 
 namespace Recipebook.Controllers
@@ -42,62 +33,50 @@ namespace Recipebook.Controllers
         // GET: Recipes
         public async Task<IActionResult> Index(string? searchString, int? tagId, string? scope)
         {
-            // Base query with eager loading
-            var query = _context.Recipe
-                .Where(r => !r.IsArchived)
-                .Include(r => r.CategoryRecipes).ThenInclude(cr => cr.Category)
-                .Include(r => r.Favorites) // needed for star state
-                .Include(r => r.RecipeVotes)
-                .Include(r => r.IngredientRecipes).ThenInclude(ir => ir.Ingredient) // <-- added
-                .AsQueryable();
-
-            // Apply title search
-            if (!string.IsNullOrWhiteSpace(searchString))
-            {
-                query = query.Where(r => r.Title.Contains(searchString) && !r.IsArchived);
-            }
-
-            // Apply tag filter
-            if (tagId.HasValue)
-            {
-                int cid = tagId.Value;
-                query = query.Where(r => r.CategoryRecipes.Where(cr => !cr.Recipe!.IsArchived).Any(cr => cr.CategoryId == cid));
-            }
-
-            // Tabs: all / mine / favorites
             var uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
             scope = string.IsNullOrWhiteSpace(scope) ? "all" : scope.ToLowerInvariant();
 
-            if (scope == "mine" && uid != null)
-                query = query.Where(r => r.AuthorId == uid && !r.IsArchived);
+            IQueryable<Recipe> query = _context.Recipe.Where(r => !r.IsArchived); // base query
 
-            if (scope == "favorites" && uid != null)
-                query = query.Where(r => _context.Favorites.Any(f => f.UserId == uid && f.RecipeId == r.Id) && !r.IsArchived);
-
-            var recipes = await query.Where(r => !r.IsArchived).ToListAsync();
-
-            // Resolve AuthorEmail for display
-            foreach (var r in recipes)
+            if (uid != null) // scope filter
             {
-                r.AuthorEmail = (await _context.Users
-                    .Where(u => u.Id == r.AuthorId)
-                    .Select(u => u.UserName)
-                    .FirstOrDefaultAsync()) ?? string.Empty;
+                if (scope == "mine") query = query.Where(r => r.AuthorId == uid);
+                if (scope == "favorites") query = query.Where(r => r.Favorites.Any(f => f.UserId == uid));
             }
 
-            // Actor for logging: username or anonymous
-            string who = User.Identity?.Name ?? "anonymous";
+            if (!string.IsNullOrWhiteSpace(searchString)) // search
+                query = query.Where(r => EF.Functions.Like(r.Title, $"%{searchString}%"));
 
-            _logger.LogInformation(
+            if (tagId.HasValue) // tag
+            {
+                int cid = tagId.Value;
+                query = query.Where(r => r.CategoryRecipes.Any(cr => cr.CategoryId == cid));
+            }
+
+            query = query // includes
+                .Include(r => r.CategoryRecipes).ThenInclude(cr => cr.Category)
+                .Include(r => r.Favorites)
+                .Include(r => r.RecipeVotes)
+                .AsNoTracking();
+
+            var recipes = await query.OrderBy(r => r.Title).ToListAsync();
+
+            await SetOwnerInfoAsync(recipes.Select(r => r.AuthorId));
+
+            _logger.LogInformation( // logging
                 "{Who} -> /Recipes/Index | count={Count} search='{Search}' tagId={TagId} scope={Scope}",
-                who, recipes.Count, searchString ?? string.Empty, tagId?.ToString() ?? "null", scope
+                User.Identity?.Name ?? "anonymous",
+                recipes.Count,
+                searchString ?? string.Empty,
+                tagId?.ToString() ?? "null",
+                scope
             );
 
-            // Dropdown + preserve selection
-            ViewBag.TagList = new SelectList(
+            ViewBag.TagList = new SelectList( // dropdown
                 await _context.Category
-                .Where(c => !c.IsArchived)
-                .OrderBy(c => c.Name).ToListAsync(),
+                    .Where(c => !c.IsArchived)
+                    .OrderBy(c => c.Name)
+                    .ToListAsync(),
                 "Id", "Name", tagId
             );
 
@@ -105,14 +84,9 @@ namespace Recipebook.Controllers
             ViewBag.TagId = tagId;
             ViewBag.Scope = scope;
 
-            await SetOwnerInfoAsync(recipes.Select(r => r.AuthorId)!);
-
             return View(recipes);
         }
 
-
-        // -------------------------------- DETAILS --------------------------------
-        // GET: Recipes/Details/5
         // -------------------------------- DETAILS --------------------------------
         // GET: Recipes/Details/5
         public async Task<IActionResult> Details(int? id)
