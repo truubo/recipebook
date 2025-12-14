@@ -11912,6 +11912,16 @@ body {
   font-family: "Segoe UI", Roboto, sans-serif;
 }
 
+.print-page * {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+
+.print-page *:hover {
+  background-color: #fff !important;
+}
+
 .print-page body {
   background-color: #fff !important;
   color: #000 !important;
