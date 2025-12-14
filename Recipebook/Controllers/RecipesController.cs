@@ -106,6 +106,7 @@ namespace Recipebook.Controllers
         // GET: Recipes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+
             if (id == null)
             {
                 _logger.LogWarning("Details requested with null id.");
@@ -190,6 +191,28 @@ namespace Recipebook.Controllers
                     .ToListAsync();
             }
             ViewBag.UserLists = userLists;
+
+            // NEW: Detect if the request originated from the Lists controller (via HTTP Referer)
+            // If so, set a flag so the view can adapt (e.g., show "Back to List" UI).
+            try
+            {
+                var referer = Request.Headers["Referer"].ToString();
+                if (!string.IsNullOrWhiteSpace(referer) &&
+                    (referer.Contains("/Lists/", StringComparison.OrdinalIgnoreCase) ||
+                     referer.Contains("/List/", StringComparison.OrdinalIgnoreCase)))
+                {
+                    ViewBag.IsFromList = true;
+                }
+                else
+                {
+                    ViewBag.IsFromList = false;
+                }
+            }
+            catch
+            {
+                // If anything goes wrong inspecting headers, default to false.
+                ViewBag.IsFromList = false;
+            }
 
             _logger.LogInformation(
                 "{Who} -> /Recipes/Details/{Id} '{Title}' | author={AuthorEmail} private={Private} categories={Count} {Categories} | listsLoaded={ListCount}",

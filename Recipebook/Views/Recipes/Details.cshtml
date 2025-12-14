@@ -38,11 +38,23 @@
 
 <div class="details-page position-relative">
     <div class="details-actions-top d-flex justify-content-between align-items-center w-100">
-        <a onclick="history.back()"
-           class="btn btn-brown"
-           title="Back to recipes">
-            <i class="bi bi-arrow-left-circle"></i>
-        </a>
+        @{
+            if (ViewBag.IsFromList) {
+                <a onclick="history.back()"
+                   class="btn btn-brown"
+                   title="Back to recipes">
+                    <i class="bi bi-arrow-left-circle"></i>
+                    </a>
+                } else
+                {
+                    <a asp-controller="Recipes"
+                       asp-action="Index"
+                       class="btn btn-brown"
+                       title="Back to recipes">
+                        <i class="bi bi-arrow-left-circle"></i>
+                    </a>
+                }
+            }
 
         <div class="d-flex align-items-center gap-2">
             <a asp-action="PrintFriendly" asp-route-id="@Model.Id" class="btn btn-danger">
